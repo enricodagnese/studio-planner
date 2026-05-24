@@ -293,6 +293,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
       {activeWeek.days.map((day) => {
         const [dayNameOnly] = day.name.split(' ');
         const dayNumberOnly = day.name.split(' ')[1] || '';
+        const monthOnly = day.dateLabel.split(' ')[1] || '';
         const dayColorClass = getDayClass(day.name);
         const isWeekend = dayNameOnly.toLowerCase().includes('sabato') || dayNameOnly.toLowerCase().includes('domenica');
         
@@ -310,8 +311,18 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
           >
             <div className="column-header">
               <div className="day-title day-title-row">
-                {isFirstWeek && <span className="day-name">{dayNameOnly}</span>}
-                <span className="day-number">{dayNumberOnly}</span>
+                {isFirstWeek ? (
+                  <>
+                    <span className="day-name">{dayNameOnly}</span>
+                    <span className="day-number-highlight">{dayNumberOnly}</span>
+                    <span className="day-month-neutral">{monthOnly}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="day-number-highlight">{dayNumberOnly}</span>
+                    <span className="day-month-neutral">{monthOnly}</span>
+                  </>
+                )}
               </div>
               {isToday && <span className="today-badge">Oggi</span>}
             </div>

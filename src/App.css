@@ -1,11 +1,11 @@
 /* Premium Developer Dark Theme Stylesheet for Notion-Style Study Planner */
 
 :root {
-  --bg-primary: #12131a;       /* Soft slate charcoal-blue base (Tokyo-Night style, less dark/heavy) */
-  --bg-secondary: #1a1c26;     /* Lighter panel containers background */
-  --bg-tertiary: #222436;      /* Cards, hover states and input backgrounds */
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 255, 255, 0.16);
+  --bg-primary: #1e1f29;       /* Highly luminous premium slate-steel base (even less dark and warmer) */
+  --bg-secondary: #282a36;     /* Lighter slate panel container background */
+  --bg-tertiary: #343746;      /* Elevated luminous inputs, cards, and hover states */
+  --border-color: rgba(255, 255, 255, 0.12); /* Clean, visible grid borders */
+  --border-hover: rgba(255, 255, 255, 0.22);
   
   /* Refined, non-cartoonish accents */
   --accent-primary: #ea580c;   /* Amber Orange accent */
@@ -572,17 +572,23 @@ body {
   letter-spacing: -0.01em;
 }
 
-.day-number {
-  font-size: 12px;
+.day-number-highlight {
+  font-size: 14px;
   font-weight: 800;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #ffffff !important;
-  padding: 2px 7px;
-  border-radius: 6px;
   font-variant-numeric: tabular-nums;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  transition: var(--transition-smooth);
+  letter-spacing: -0.01em;
+}
+
+.day-month-neutral {
+  font-size: 11px;
+  font-weight: 600;
+  color: #a1a1aa !important; /* Muted neutral gray (Mag is not colored) */
+  text-transform: capitalize;
+  margin-left: 4px;
+}
+
+.light-theme .day-month-neutral {
+  color: #64748b !important;
 }
 
 .today-badge {
@@ -1073,12 +1079,7 @@ body {
   /* Day name is already styled */
 }
 
-.light-theme .day-number {
-  background: rgba(15, 23, 42, 0.05);
-  border-color: rgba(15, 23, 42, 0.08);
-  color: #0f172a !important;
-  box-shadow: none;
-}
+
 
 .light-theme .time-slot-box {
   background: #f8fafc;
