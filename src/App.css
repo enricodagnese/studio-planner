@@ -3593,17 +3593,7 @@ body {
   opacity: 0.8 !important;
 }
 
-.btn-tree-toggle {
-  position: absolute !important;
-  left: 20px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  margin-left: 0 !important;
-}
 
-.btn-tree-toggle.expanded {
-  transform: translateY(-50%) rotate(90deg) !important;
-}
 
 .subject-card .checkbox-container {
   margin-left: 4px !important;
