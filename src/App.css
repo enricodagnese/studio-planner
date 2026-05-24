@@ -538,9 +538,9 @@ body {
   border-color: rgba(255, 255, 255, 0.03);
 }
 
-/* Today Highlighter - Discrete subtle border */
+/* Today Highlighter - Standard uniform border (orange outline removed) */
 .calendar-column.day-today {
-  border-color: rgba(234, 88, 12, 0.22) !important;
+  border-color: var(--border-color) !important;
   box-shadow: none !important;
   position: relative;
 }
