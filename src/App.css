@@ -1087,11 +1087,16 @@
 /* Main Dashboard Layout (Two Columns Grid) */
 .main-dashboard-layout {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: 340px 1fr;
   gap: 24px;
   align-items: start;
   width: 100%;
   margin-top: 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-dashboard-layout.sidebar-closed {
+  grid-template-columns: 1fr;
 }
 
 .layout-left-column {

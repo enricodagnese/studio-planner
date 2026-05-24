@@ -40,8 +40,8 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
 
   const handleDragStart = (e: React.DragEvent, subjectId: string) => {
     e.dataTransfer.setData('text/plain', subjectId);
-    e.dataTransfer.setData('application/react-planner-subject', subjectId);
     e.dataTransfer.effectAllowed = 'copyMove';
+    (window as any).reactPlannerDraggedItem = { type: 'subject', id: subjectId };
     
     // Add visual dragging effect
     const element = e.currentTarget as HTMLElement;

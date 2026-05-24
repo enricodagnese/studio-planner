@@ -255,27 +255,24 @@ function App() {
       </header>
 
       {/* Main Dashboard Layout (Two Columns) */}
-      <div className="main-dashboard-layout">
-        {/* Left Column: Collapsible Materials library */}
-        <aside className={`layout-left-column ${isSidebarOpen ? '' : 'collapsed'}`}>
-          <MaterialsList
-            subjects={subjects}
-            onAddSubject={handleAddSubject}
-            onToggleSubject={handleToggleSubject}
-            onDeleteSubject={handleDeleteSubject}
-          />
-        </aside>
+      <div className={`main-dashboard-layout ${isSidebarOpen ? '' : 'sidebar-closed'}`}>
+        {/* Left Column: Collapsible Materials library (fully unrendered when closed) */}
+        {isSidebarOpen && (
+          <aside className="layout-left-column">
+            <MaterialsList
+              subjects={subjects}
+              onAddSubject={handleAddSubject}
+              onToggleSubject={handleToggleSubject}
+              onDeleteSubject={handleDeleteSubject}
+            />
+          </aside>
+        )}
 
         {/* Right Column: Calendar grid for the WHOLE MONTH stacked vertically */}
         <main className="layout-right-column">
           {weeks.length > 0 ? (
             weeks.map((week) => (
-              <div key={week.id} className="week-wrapper" style={{ marginBottom: '32px' }}>
-                <div className="week-wrapper-header" style={{ marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#ffedd5', background: 'rgba(255,255,255,0.02)', padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', letterSpacing: '-0.01em', width: 'max-content' }}>
-                    🗓️ {week.name}
-                  </h2>
-                </div>
+              <div key={week.id} className="week-wrapper" style={{ marginBottom: '24px' }}>
                 <WeeklyGrid
                   activeWeek={week}
                   weeks={weeks}

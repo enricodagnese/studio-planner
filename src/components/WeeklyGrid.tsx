@@ -77,15 +77,15 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     e.preventDefault();
     setDragOverSlot(null);
 
-    const subjectId = e.dataTransfer.getData('application/react-planner-subject');
-    const calendarItemId = e.dataTransfer.getData('application/react-planner-calendar-item');
-    const sourceDayId = e.dataTransfer.getData('source-day-id');
-    const sourceSlotKey = e.dataTransfer.getData('source-slot-key') as 'mattina' | 'pomeriggio' | 'sera' | '';
+    // Retrieve dragged item from bulletproof global window state
+    const dragged = (window as any).reactPlannerDraggedItem;
+    if (!dragged) return;
 
     const updatedWeeks = JSON.parse(JSON.stringify(weeks)) as WeekPlan[];
 
-    if (subjectId) {
+    if (dragged.type === 'subject') {
       // Case 1: Dragging a subject from the materials library
+      const subjectId = dragged.id;
       const originSubject = subjects.find(s => s.id === subjectId);
       if (!originSubject) return;
 
@@ -103,15 +103,19 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
 
       targetDay[slotKey].push(newItem);
       onUpdateAllWeeks(updatedWeeks);
-    } else if (calendarItemId && sourceDayId && sourceSlotKey) {
-      // Case 2: Dragging an existing calendar item (cross-week supported!)
+    } else if (dragged.type === 'calendar-item') {
+      // Case 2: Dragging an existing calendar item (cross-week & intra-week fully supported!)
+      const calendarItemId = dragged.id;
+      const sourceDayId = dragged.sourceDayId;
+      const sourceSlotKey = dragged.sourceSlotKey as 'mattina' | 'pomeriggio' | 'sera';
+
       let movedItem: CalendarItem | null = null;
       
       // Find and remove from source day of any week
       for (const w of updatedWeeks) {
         const sourceDay = w.days.find(d => d.id === sourceDayId);
         if (sourceDay) {
-          const itemIndex = sourceDay[sourceSlotKey].findIndex(item => item.id === calendarItemId);
+          const itemIndex = sourceDay[sourceSlotKey].findIndex((item: CalendarItem) => item.id === calendarItemId);
           if (itemIndex !== -1) {
             [movedItem] = sourceDay[sourceSlotKey].splice(itemIndex, 1);
             break;
@@ -130,6 +134,9 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
       targetDay[slotKey].push(movedItem);
       onUpdateAllWeeks(updatedWeeks);
     }
+
+    // Reset global drag state
+    (window as any).reactPlannerDraggedItem = null;
   };
 
   const handleCalendarItemDragStart = (
@@ -139,10 +146,15 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     slotKey: 'mattina' | 'pomeriggio' | 'sera'
   ) => {
     e.dataTransfer.setData('text/plain', itemId);
-    e.dataTransfer.setData('application/react-planner-calendar-item', itemId);
-    e.dataTransfer.setData('source-day-id', dayId);
-    e.dataTransfer.setData('source-slot-key', slotKey);
     e.dataTransfer.effectAllowed = 'move';
+    
+    // Set global window drag state for absolute reliability
+    (window as any).reactPlannerDraggedItem = {
+      type: 'calendar-item',
+      id: itemId,
+      sourceDayId: dayId,
+      sourceSlotKey: slotKey
+    };
   };
 
   // --- Task Manipulation Handlers ---
@@ -248,7 +260,6 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
           <div key={day.id} className={`calendar-column glass-container ${dayColorClass}`}>
             <div className="column-header">
               <h3>{day.name}</h3>
-              <span className="date-tag">{day.dateLabel}</span>
             </div>
 
             <div className="slots-container">
