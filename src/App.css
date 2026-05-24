@@ -4081,12 +4081,23 @@ body {
 }
 
 .calendar-column.day-today .column-header {
-  background: rgba(234, 88, 12, 0.15) !important; /* Soft amber background only on header */
+  background: rgba(234, 88, 12, 0.45) !important; /* Rich amber orange with high contrast (low transparency) */
   border-bottom: 2px solid var(--accent-primary) !important;
 }
 
+.calendar-column.day-today .column-header .day-name,
+.calendar-column.day-today .column-header .day-number-highlight {
+  color: #ffffff !important;
+}
+
 .light-theme .calendar-column.day-today .column-header {
-  background: rgba(234, 88, 12, 0.08) !important;
+  background: rgba(234, 88, 12, 0.28) !important; /* Opaque orange background for light theme */
+  border-bottom: 2px solid var(--accent-primary) !important;
+}
+
+.light-theme .calendar-column.day-today .column-header .day-name,
+.light-theme .calendar-column.day-today .column-header .day-number-highlight {
+  color: #0f172a !important;
 }
 
 /* Day Past visual suppression */

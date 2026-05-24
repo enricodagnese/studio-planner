@@ -390,7 +390,7 @@ function App() {
 
 
       {activeTab === 'subjects' ? (
-        <SubjectsManager subjects={subjects} onUpdateSubjects={setSubjects} />
+        <SubjectsManager subjects={subjects} onUpdateSubjects={setSubjects} onResetAll={handleResetAll} />
       ) : (
         <div className="main-dashboard-layout">
           {/* Sidebar — always in DOM, animated via CSS */}
@@ -401,7 +401,6 @@ function App() {
               onToggleSubject={handleToggleSubject}
               onDeleteSubject={handleDeleteSubject}
               onUpdateSubjects={setSubjects}
-              onRedirectToSubjects={() => setActiveTab('subjects')}
             />
           </aside>
 
@@ -434,11 +433,6 @@ function App() {
       )}
 
 
-      <footer className="danger-zone">
-        <button className="btn-danger-text" onClick={handleResetAll}>
-          Ripristina dati iniziali di fabbrica
-        </button>
-      </footer>
 
       {showAddEventModal && (
         <AddEventModal

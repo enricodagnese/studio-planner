@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Subject } from '../types/planner';
-import { BookIcon, EditIcon, LightbulbIcon, GripVerticalIcon, ChevronRightIcon } from './Icons';
+import { BookIcon, LightbulbIcon, GripVerticalIcon, ChevronRightIcon } from './Icons';
 import { CybersecurityLogo } from './CybersecurityLogo';
 
 interface MaterialsListProps {
@@ -9,7 +9,6 @@ interface MaterialsListProps {
   onToggleSubject: (id: string) => void;
   onDeleteSubject: (id: string) => void;
   onUpdateSubjects?: (updatedSubjects: Subject[]) => void;
-  onRedirectToSubjects?: () => void;
 }
 
 const PRESET_COLORS = [
@@ -33,7 +32,6 @@ const getQtyLabel = (pages: number, quantityType?: string): string => {
 export const MaterialsList: React.FC<MaterialsListProps> = ({
   subjects,
   onUpdateSubjects,
-  onRedirectToSubjects,
 }) => {
   const [expandedSubjIds, setExpandedSubjIds] = useState<Record<string, boolean>>({});
 
@@ -82,18 +80,12 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
   };
 
   return (
-    <div className="materials-list-panel glass-container">
-      <div className="panel-header">
+    <div className="materials-list-panel glass-container" style={{ gap: '10px' }}>
+      <div className="panel-header" style={{ paddingLeft: '8px', marginTop: '6px', marginBottom: '2px' }}>
         <div className="title-with-icon">
-          <BookIcon className="panel-icon text-gold" />
-          <h2>Libreria Materie</h2>
+          <BookIcon className="panel-icon text-gold" size={16} />
+          <h2 style={{ fontSize: '14px', fontWeight: 700 }}>Libreria Materie</h2>
         </div>
-        {onRedirectToSubjects && (
-          <button className="btn btn-secondary btn-sm" onClick={onRedirectToSubjects} title="Gestisci le tue materie e compiti">
-            <EditIcon size={13} />
-            Gestisci
-          </button>
-        )}
       </div>
 
       <div className="subjects-grid" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

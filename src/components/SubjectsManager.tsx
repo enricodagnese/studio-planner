@@ -6,6 +6,7 @@ import { CybersecurityLogo } from './CybersecurityLogo';
 interface SubjectsManagerProps {
   subjects: Subject[];
   onUpdateSubjects: (updatedSubjects: Subject[]) => void;
+  onResetAll?: () => void;
 }
 
 const PRESET_COLORS = [
@@ -60,7 +61,7 @@ const getQtyInputLabel = (quantityType: TaskQuantityType): string => {
   }
 };
 
-export const SubjectsManager: React.FC<SubjectsManagerProps> = ({ subjects, onUpdateSubjects }) => {
+export const SubjectsManager: React.FC<SubjectsManagerProps> = ({ subjects, onUpdateSubjects, onResetAll }) => {
   const [selectedSubjId, setSelectedSubjId] = useState<string | null>(null);
   const [addingTaskCategory, setAddingTaskCategory] = useState<'teoria' | 'esercizi' | 'altro' | null>(null);
   const [taskName, setTaskName] = useState('');
@@ -73,6 +74,8 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({ subjects, onUp
   const [editName, setEditName] = useState('');
   const [editPages, setEditPages] = useState<number>(10);
   const [editQuantityType, setEditQuantityType] = useState<TaskQuantityType>('pagine');
+
+  const [showSettings, setShowSettings] = useState(false);
 
   const activeSubj = subjects.find(s => s.id === selectedSubjId);
 
@@ -322,12 +325,83 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({ subjects, onUp
   if (!selectedSubjId || !activeSubj) {
     return (
       <div className="subjects-manager-container">
-        <div className="manager-header">
+        <div className="manager-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <div className="manager-title-group">
             <BookIcon className="panel-icon text-orange" size={24} />
             <h2>Le tue materie</h2>
             <p className="subtitle">Gestisci e organizza le tue materie d'esame in categorie dedicate.</p>
           </div>
+          {onResetAll && (
+            <div className="settings-container" style={{ position: 'relative' }}>
+              <button 
+                className="btn-settings-toggle"
+                onClick={() => setShowSettings(!showSettings)}
+                title="Impostazioni applicazione"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  color: '#e4e4e7',
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  transition: 'background 0.2s, transform 0.2s',
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'; }}
+              >
+                <SettingsIcon size={20} style={{ transform: showSettings ? 'rotate(45deg)' : 'none', transition: 'transform 0.3s ease' }} />
+              </button>
+
+              {showSettings && (
+                <div className="settings-dropdown glass-container" style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '46px',
+                  width: '260px',
+                  background: 'rgba(20, 20, 26, 0.98)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '10px',
+                  padding: '16px',
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
+                  zIndex: 9999,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px'
+                }}>
+                  <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#fff', letterSpacing: '0.03em', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '8px' }}>IMPOSTAZIONI</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#a1a1aa', lineHeight: 1.4 }}>
+                      Da qui puoi resettare l'intero piano di studi alle condizioni di fabbrica iniziale.
+                    </p>
+                    <button 
+                      onClick={() => { setShowSettings(false); onResetAll(); }}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        color: '#f87171',
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        fontSize: '11.5px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'background 0.2s, color 0.2s',
+                        width: '100%',
+                        textAlign: 'center'
+                      }}
+                      onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)'; e.currentTarget.style.color = '#fff'; }}
+                      onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'; e.currentTarget.style.color = '#f87171'; }}
+                    >
+                      Ripristina dati iniziali
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="subjects-drawing-grid">
