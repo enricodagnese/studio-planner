@@ -5,7 +5,7 @@ import { WeeklyGrid } from './components/WeeklyGrid';
 import { AddWeekModal } from './components/AddWeekModal';
 import { ImportExport } from './components/ImportExport';
 import { SubjectsManager } from './components/SubjectsManager';
-import { PlusIcon, SunIcon, MoonIcon } from './components/Icons';
+import { PlusIcon } from './components/Icons';
 import './App.css';
 
 // Initial Mock Data matching the user's screenshot exactly
@@ -324,7 +324,7 @@ function App() {
   const [showAddWeekModal, setShowAddWeekModal] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<'planner' | 'subjects'>('planner');
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+  const [theme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('antigravity-studio-planner-theme');
     return (saved as 'dark' | 'light') || 'dark';
   });
@@ -449,15 +449,6 @@ function App() {
         </div>
 
         <div className="header-controls">
-          {/* Theme Toggle Button */}
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            title={theme === 'dark' ? "Passa al tema chiaro" : "Passa al tema scuro"}
-          >
-            {theme === 'dark' ? <SunIcon size={16} /> : <MoonIcon size={16} />}
-            <span>{theme === 'dark' ? 'Tema Chiaro' : 'Tema Scuro'}</span>
-          </button>
 
           {/* Collapsible Sidebar Toggle Button (Dangerous/Warning style, only if in planner tab) */}
           {activeTab === 'planner' && (
@@ -518,11 +509,6 @@ function App() {
             weeks.map((week, index) => {
               return (
                 <div key={week.id} className="week-wrapper">
-                  <div className="week-wrapper-header">
-                    <h2 className="week-title">
-                      {week.name.split(':')[1]?.trim() || week.name}
-                    </h2>
-                  </div>
                   <WeeklyGrid
                     activeWeek={week}
                     weeks={weeks}
