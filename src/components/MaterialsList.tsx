@@ -107,13 +107,11 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
             const presetColor = PRESET_COLORS.find(c => c.value === sub.color);
             const colorClass = presetColor ? presetColor.class : 'color-gold';
             const tasksList = sub.tasks || [];
-            const hasTasks = tasksList.length > 0;
+            const theoryTasks = tasksList.filter(t => t.category === 'teoria' && !t.completed);
+            const exerciseTasks = tasksList.filter(t => t.category === 'esercizi' && !t.completed);
+            const otherTasks = tasksList.filter(t => t.category === 'altro' && !t.completed);
+            const hasTasks = theoryTasks.length > 0 || exerciseTasks.length > 0 || otherTasks.length > 0;
             const isExpanded = !!expandedSubjIds[sub.id];
-
-            // Division of tasks by category
-            const theoryTasks = tasksList.filter(t => t.category === 'teoria');
-            const exerciseTasks = tasksList.filter(t => t.category === 'esercizi');
-            const otherTasks = tasksList.filter(t => t.category === 'altro');
 
             return (
               <div key={sub.id} className="subject-tree-node" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -180,6 +178,7 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
                             onDragStart={(e) => handleDragStart(e, 'task', sub.id, task.id, task.name, task.pages, task.quantityType)}
                             onDragEnd={handleDragEnd}
                             className={`tree-task-pill draggable-card ${colorClass} ${task.completed ? 'completed' : ''}`}
+                            style={{ '--accent-color': sub.color } as React.CSSProperties}
                           >
                             <div className="tree-task-drag-handle" title="Trascina questo capitolo">
                               <GripVerticalIcon size={12} className="drag-grip-icon" />
@@ -204,6 +203,7 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
                             onDragStart={(e) => handleDragStart(e, 'task', sub.id, task.id, task.name, task.pages, task.quantityType)}
                             onDragEnd={handleDragEnd}
                             className={`tree-task-pill draggable-card ${colorClass} ${task.completed ? 'completed' : ''}`}
+                            style={{ '--accent-color': sub.color } as React.CSSProperties}
                           >
                             <div className="tree-task-drag-handle" title="Trascina questo capitolo">
                               <GripVerticalIcon size={12} className="drag-grip-icon" />
@@ -228,6 +228,7 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
                             onDragStart={(e) => handleDragStart(e, 'task', sub.id, task.id, task.name, task.pages, task.quantityType)}
                             onDragEnd={handleDragEnd}
                             className={`tree-task-pill draggable-card ${colorClass} ${task.completed ? 'completed' : ''}`}
+                            style={{ '--accent-color': sub.color } as React.CSSProperties}
                           >
                             <div className="tree-task-drag-handle" title="Trascina questo capitolo">
                               <GripVerticalIcon size={12} className="drag-grip-icon" />

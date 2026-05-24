@@ -106,13 +106,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
       targetDay[slotKey].push(newItem);
       onUpdateAllWeeks(updatedWeeks);
 
-      // Auto-remove task from subject after scheduling
-      if (dragged.taskId) {
-        onUpdateSubjects(subjects.map(s => s.id === dragged.subjectId
-          ? { ...s, tasks: s.tasks.filter(t => t.id !== dragged.taskId) }
-          : s
-        ));
-      }
+
 
     } else if (dragged.type === 'calendar-item') {
       const calendarItemId = dragged.id;
@@ -204,26 +198,15 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
       }),
     })));
 
-    // Restore task to subjects list if it has a subjectId and taskId
+    // Mark task as not completed in subjects list if it has a subjectId and taskId
     if (foundItem && foundItem.subjectId && foundItem.taskId) {
       const item = foundItem;
       onUpdateSubjects(subjects.map(s => {
         if (s.id !== item.subjectId) return s;
-        // Avoid duplicate restore
-        const taskExists = s.tasks.some(t => t.id === item.taskId);
-        if (taskExists) return s;
-
-        const restoredTask = {
-          id: item.taskId!,
-          name: item.name,
-          pages: item.pages || 10,
-          completed: false, // restore as not completed
-          category: 'teoria' as const, // theory category as default fallback
-          quantityType: item.quantityType || 'pagine',
-        };
+        const updatedTasks = s.tasks.map(t => t.id === item.taskId ? { ...t, completed: false } : t);
         return {
           ...s,
-          tasks: [...s.tasks, restoredTask],
+          tasks: updatedTasks,
           completed: false, // subject is no longer fully completed
         };
       }));

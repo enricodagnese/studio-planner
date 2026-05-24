@@ -201,6 +201,12 @@ body {
   gap: 12px;
 }
 
+.title-with-icon {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
 .title-with-icon h2 {
   font-size: 16px;
   font-weight: 700;
@@ -1073,8 +1079,8 @@ body {
 }
 
 .light-theme .calendar-column.day-today {
-  border-color: var(--accent-primary);
-  background: #fff8f5;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  background: transparent !important;
 }
 
 .light-theme .day-title {
@@ -3131,13 +3137,13 @@ body {
    ======================================== */
 
 .calendar-column.day-today {
-  border: 2px solid rgba(234, 88, 12, 0.7) !important;
-  box-shadow: 0 0 0 1px rgba(234, 88, 12, 0.2), 0 4px 24px rgba(234, 88, 12, 0.18), inset 0 0 24px rgba(234, 88, 12, 0.04) !important;
-  background: rgba(234, 88, 12, 0.05) !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: none !important;
+  background: transparent !important;
   position: relative;
 }
 .calendar-column.day-today .cal-col-header-month {
-  background: linear-gradient(135deg, rgba(234, 88, 12, 0.22), rgba(234, 88, 12, 0.08)) !important;
+  background: linear-gradient(135deg, rgba(234, 88, 12, 0.16), rgba(234, 88, 12, 0.05)) !important;
   border-bottom: 2px solid rgba(234, 88, 12, 0.45) !important;
 }
 .today-badge {
