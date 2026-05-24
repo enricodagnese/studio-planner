@@ -59,7 +59,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
   // --- Drag & Drop ---
   const handleDragOver = (e: React.DragEvent, dayId: string, slotKey: string) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'copyMove';
+    e.dataTransfer.dropEffect = 'copy';
     if (dragOverSlot?.dayId !== dayId || dragOverSlot?.slotKey !== slotKey) {
       setDragOverSlot({ dayId, slotKey });
     }

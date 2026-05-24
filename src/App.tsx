@@ -289,11 +289,6 @@ function App() {
     }
   };
 
-  const handleAddWeek = (newWeek: WeekPlan) => {
-    setWeeks([...weeks, newWeek]);
-    setActiveWeekId(newWeek.id);
-    setShowAddWeekModal(false);
-  };
 
   const handleAddEvent = (
     title: string,
