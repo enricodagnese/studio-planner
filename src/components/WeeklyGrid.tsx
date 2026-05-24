@@ -44,6 +44,16 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     return colorsMap[sub.color] || 'color-gold';
   };
 
+  const getEventColor = (eventType?: string) => {
+    switch (eventType) {
+      case 'esame': return '#ef4444';
+      case 'svago': return '#3b82f6';
+      case 'lezione': return '#10b981';
+      case 'altro': return '#a78bfa';
+      default: return undefined;
+    }
+  };
+
   const getSubjectInfo = (subjectId?: string) => {
     if (!subjectId) return null;
     return subjects.find(s => s.id === subjectId) || null;
@@ -337,16 +347,19 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                             >
                               {/* Top row: checkbox + name + [event badge] + delete */}
                               <div className="item-header-row">
-                                {!isEvent && (
-                                  <label className="checkbox-container-sm">
-                                    <input
-                                      type="checkbox"
-                                      checked={item.completed}
-                                      onChange={() => handleToggleItem(day.id, slotKey, item.id)}
-                                    />
-                                    <span className="checkmark-sm"></span>
-                                  </label>
-                                )}
+                                <label className="checkbox-container-sm">
+                                  <input
+                                    type="checkbox"
+                                    checked={item.completed}
+                                    onChange={() => handleToggleItem(day.id, slotKey, item.id)}
+                                  />
+                                  <span
+                                    className="checkmark-sm"
+                                    style={{
+                                      '--accent-color': isEvent ? getEventColor(item.eventType) : undefined
+                                    } as React.CSSProperties}
+                                  ></span>
+                                </label>
                                 <span className="item-name" title={item.name}>{item.name}</span>
                                 {isEvent && (
                                   <span className={`event-type-badge event-badge-${item.eventType}`}>

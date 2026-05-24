@@ -4247,4 +4247,24 @@ body {
   box-shadow: 0 0 16px rgba(167, 139, 250, 0.2) !important;
 }
 
+/* Completed Events Todo Style */
+.scheduled-item-pill.completed.event-pill {
+  background: rgba(20, 20, 24, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  border-left: 4px solid #27272a !important;
+  opacity: 0.45 !important;
+}
+
+.scheduled-item-pill.completed.event-pill .item-name {
+  color: #71717a !important;
+  text-decoration: line-through !important;
+}
+
+.scheduled-item-pill.completed.event-pill .event-type-badge {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #71717a !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+
 
