@@ -8,6 +8,8 @@ interface WeeklyGridProps {
   subjects: Subject[];
   onUpdateAllWeeks: (updatedWeeks: WeekPlan[]) => void;
   isFirstWeek?: boolean;
+  copiedItem: { name: string; pages?: number; subjectId?: string } | null;
+  onCopyItem: (item: { name: string; pages?: number; subjectId?: string } | null) => void;
 }
 
 export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
@@ -16,6 +18,8 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
   subjects,
   onUpdateAllWeeks,
   isFirstWeek = false,
+  copiedItem,
+  onCopyItem,
 }) => {
   const [addingTaskForSlot, setAddingTaskForSlot] = useState<{ dayId: string; slotKey: string } | null>(null);
   const [newTaskName, setNewTaskName] = useState('');
@@ -196,6 +200,28 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     element.classList.remove('dragging');
   };
 
+  const handlePasteItem = (dayId: string, slotKey: 'mattina' | 'pomeriggio' | 'sera') => {
+    if (!copiedItem) return;
+    const newItem: CalendarItem = {
+      id: `cal-paste-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      name: copiedItem.name,
+      pages: copiedItem.pages,
+      subjectId: copiedItem.subjectId,
+      completed: false,
+    };
+
+    const updatedWeeks = weeks.map(w => {
+      if (w.id === activeWeek.id) {
+        const day = w.days.find(d => d.id === dayId);
+        if (day) {
+          day[slotKey].push(newItem);
+        }
+      }
+      return w;
+    });
+    onUpdateAllWeeks(updatedWeeks);
+  };
+
   // --- Task Manipulation Handlers ---
 
   const handleToggleItem = (dayId: string, slotKey: 'mattina' | 'pomeriggio' | 'sera', itemId: string) => {
@@ -304,6 +330,16 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
         const todayMonthShort = monthsShort[todayDate.getMonth()];
         const isToday = day.dateLabel === `${todayDayNumber} ${todayMonthShort}`;
 
+        const monthOnlyLower = monthOnly.toLowerCase();
+        let monthColor = '';
+        if (monthOnlyLower.includes('mag')) {
+          monthColor = '#34d399'; // Green
+        } else if (monthOnlyLower.includes('giu')) {
+          monthColor = '#fbbf24'; // Yellow
+        } else if (monthOnlyLower.includes('lug') || monthOnlyLower.includes('ago')) {
+          monthColor = '#f87171'; // Red
+        }
+
         return (
           <div 
             key={day.id} 
@@ -313,13 +349,13 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
               <div className="day-title day-title-row">
                 {isFirstWeek ? (
                   <>
-                    <span className="day-name">{dayNameOnly}</span>
-                    <span className="day-number-highlight">{dayNumberOnly}</span>
+                    <span className="day-name" style={monthColor ? { color: monthColor } : {}}>{dayNameOnly}</span>
+                    <span className="day-number-highlight" style={monthColor ? { color: monthColor } : {}}>{dayNumberOnly}</span>
                     <span className="day-month-neutral">{monthOnly}</span>
                   </>
                 ) : (
                   <>
-                    <span className="day-number-highlight">{dayNumberOnly}</span>
+                    <span className="day-number-highlight" style={monthColor ? { color: monthColor } : {}}>{dayNumberOnly}</span>
                     <span className="day-month-neutral">{monthOnly}</span>
                   </>
                 )}
@@ -372,13 +408,24 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                                 <span className="item-name" title={item.name}>{item.name}</span>
                                 {pageLabel && <span className="item-pages">{pageLabel}</span>}
                               </div>
-                              <button
-                                className="btn-delete-item"
-                                onClick={() => handleDeleteItem(day.id, slotKey, item.id)}
-                                title="Rimuovi"
-                              >
-                                ×
-                              </button>
+                              <div className="item-pill-actions">
+                                <button
+                                  type="button"
+                                  className="btn-copy-item"
+                                  onClick={() => onCopyItem({ name: item.name, pages: item.pages, subjectId: item.subjectId })}
+                                  title="Copia compito"
+                                >
+                                  📋
+                                </button>
+                                <button
+                                  type="button"
+                                  className="btn-delete-item"
+                                  onClick={() => handleDeleteItem(day.id, slotKey, item.id)}
+                                  title="Rimuovi"
+                                >
+                                  ×
+                                </button>
+                              </div>
                             </div>
                           );
                         })}
@@ -411,17 +458,29 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                         </div>
                       </form>
                     ) : (
-                      <button
-                        className="btn-add-to-slot"
-                        onClick={() => {
-                          setAddingTaskForSlot({ dayId: day.id, slotKey });
-                          setNewTaskName('');
-                        }}
-                        title="Aggiungi compito rapido"
-                      >
-                        <PlusIcon size={12} />
-                        <span>Aggiungi compito...</span>
-                      </button>
+                      <div className="slot-action-row">
+                        <button
+                          className="btn-add-to-slot"
+                          onClick={() => {
+                            setAddingTaskForSlot({ dayId: day.id, slotKey });
+                            setNewTaskName('');
+                          }}
+                          title="Aggiungi compito rapido"
+                        >
+                          <PlusIcon size={12} />
+                          <span>Aggiungi...</span>
+                        </button>
+                        {copiedItem && (
+                          <button
+                            type="button"
+                            className="btn-paste-to-slot"
+                            onClick={() => handlePasteItem(day.id, slotKey)}
+                            title={`Incolla "${copiedItem.name}"`}
+                          >
+                            Incolla
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 );

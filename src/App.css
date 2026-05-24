@@ -2713,3 +2713,143 @@ body {
   border-top-color: rgba(15, 23, 42, 0.06);
 }
 
+/* ===================================================
+   CYBER evolution: SOFT HUES & FULLY COLORED PILLS
+   =================================================== */
+
+.scheduled-item-pill.color-gold, .tree-task-pill.color-gold {
+  background: rgba(251, 191, 36, 0.12) !important;
+  border-color: rgba(251, 191, 36, 0.25) !important;
+  border-left: 4px solid #fbbf24 !important;
+}
+.scheduled-item-pill.color-gold:hover, .tree-task-pill.color-gold:hover {
+  background: rgba(251, 191, 36, 0.22) !important;
+  border-color: rgba(251, 191, 36, 0.4) !important;
+}
+
+.scheduled-item-pill.color-blue, .tree-task-pill.color-blue {
+  background: rgba(96, 165, 250, 0.12) !important;
+  border-color: rgba(96, 165, 250, 0.25) !important;
+  border-left: 4px solid #60a5fa !important;
+}
+.scheduled-item-pill.color-blue:hover, .tree-task-pill.color-blue:hover {
+  background: rgba(96, 165, 250, 0.22) !important;
+  border-color: rgba(96, 165, 250, 0.4) !important;
+}
+
+.scheduled-item-pill.color-emerald, .tree-task-pill.color-emerald {
+  background: rgba(52, 211, 153, 0.12) !important;
+  border-color: rgba(52, 211, 153, 0.25) !important;
+  border-left: 4px solid #34d399 !important;
+}
+.scheduled-item-pill.color-emerald:hover, .tree-task-pill.color-emerald:hover {
+  background: rgba(52, 211, 153, 0.22) !important;
+  border-color: rgba(52, 211, 153, 0.4) !important;
+}
+
+.scheduled-item-pill.color-purple, .tree-task-pill.color-purple {
+  background: rgba(167, 139, 250, 0.12) !important;
+  border-color: rgba(167, 139, 250, 0.25) !important;
+  border-left: 4px solid #a78bfa !important;
+}
+.scheduled-item-pill.color-purple:hover, .tree-task-pill.color-purple:hover {
+  background: rgba(167, 139, 250, 0.22) !important;
+  border-color: rgba(167, 139, 250, 0.4) !important;
+}
+
+.scheduled-item-pill.color-red, .tree-task-pill.color-red {
+  background: rgba(248, 113, 113, 0.12) !important;
+  border-color: rgba(248, 113, 113, 0.25) !important;
+  border-left: 4px solid #f87171 !important;
+}
+.scheduled-item-pill.color-red:hover, .tree-task-pill.color-red:hover {
+  background: rgba(248, 113, 113, 0.22) !important;
+  border-color: rgba(248, 113, 113, 0.4) !important;
+}
+
+.scheduled-item-pill.color-pink, .tree-task-pill.color-pink {
+  background: rgba(244, 114, 182, 0.12) !important;
+  border-color: rgba(244, 114, 182, 0.25) !important;
+  border-left: 4px solid #f472b6 !important;
+}
+.scheduled-item-pill.color-pink:hover, .tree-task-pill.color-pink:hover {
+  background: rgba(244, 114, 182, 0.22) !important;
+  border-color: rgba(244, 114, 182, 0.4) !important;
+}
+
+/* Clipboard action stylings */
+.item-pill-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: var(--transition-smooth);
+}
+
+.scheduled-item-pill:hover .item-pill-actions {
+  opacity: 1;
+}
+
+.btn-copy-item {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  font-size: 9px;
+  opacity: 0.55;
+  transition: var(--transition-smooth);
+}
+
+.btn-copy-item:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.slot-action-row {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.btn-paste-to-slot {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: #a1a1aa;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.btn-paste-to-slot:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+/* Light mode overrides for Copy/Paste */
+.light-theme .btn-copy-item:hover {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.light-theme .btn-paste-to-slot {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+  color: #475569;
+}
+
+.light-theme .btn-paste-to-slot:hover {
+  background: #f1f5f9;
+  border-color: rgba(15, 23, 42, 0.18);
+  color: #0f172a;
+}
+
+

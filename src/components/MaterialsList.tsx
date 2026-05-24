@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Subject } from '../types/planner';
 import { BookIcon } from './Icons';
+import { CybersecurityLogo } from './CybersecurityLogo';
 
 interface MaterialsListProps {
   subjects: Subject[];
@@ -12,12 +13,12 @@ interface MaterialsListProps {
 }
 
 const PRESET_COLORS = [
-  { name: 'Gold', value: '#d97706', class: 'color-gold' },
-  { name: 'Blue', value: '#2563eb', class: 'color-blue' },
-  { name: 'Emerald', value: '#059669', class: 'color-emerald' },
-  { name: 'Purple', value: '#7c3aed', class: 'color-purple' },
-  { name: 'Red', value: '#dc2626', class: 'color-red' },
-  { name: 'Pink', value: '#db2777', class: 'color-pink' },
+  { name: 'Gold', value: '#fbbf24', class: 'color-gold' },
+  { name: 'Blue', value: '#60a5fa', class: 'color-blue' },
+  { name: 'Emerald', value: '#34d399', class: 'color-emerald' },
+  { name: 'Purple', value: '#a78bfa', class: 'color-purple' },
+  { name: 'Red', value: '#f87171', class: 'color-red' },
+  { name: 'Pink', value: '#f472b6', class: 'color-pink' },
 ];
 
 export const MaterialsList: React.FC<MaterialsListProps> = ({
@@ -165,7 +166,9 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
                   </label>
 
                   <div className="card-main-content">
-                    <span className="subject-sidebar-logo">{sub.logo || '📚'}</span>
+                    <span className="subject-sidebar-logo" style={{ color: sub.color }}>
+                      <CybersecurityLogo logo={sub.logo || 'shield'} size={16} />
+                    </span>
                     <span className="subject-title">{sub.name}</span>
                     <span className="pages-badge">{totalPages} pag</span>
                   </div>

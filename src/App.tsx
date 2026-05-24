@@ -8,15 +8,15 @@ import { SubjectsManager } from './components/SubjectsManager';
 import { PlusIcon } from './components/Icons';
 import './App.css';
 
-// Initial Mock Data matching the user's screenshot exactly
+// Initial Mock Data matching the user's screenshot exactly (with soft cyber themes)
 const INITIAL_SUBJECTS: Subject[] = [
   { 
     id: 'subj-1', 
     name: 'Cloud - LAN e VLAN', 
     pages: 14, 
     completed: false, 
-    color: '#d97706',
-    logo: '☁️',
+    color: '#fbbf24', // Soft Gold
+    logo: 'globe', // Cybersecurity vector icon key
     description: 'Syllabus generale e configurazione di LAN, VLAN e protocollo 802.1Q.',
     tasks: [
       { id: 'task-1-1', name: 'Capitolo 1: Standard LAN', pages: 8, completed: false, category: 'teoria' },
@@ -28,8 +28,8 @@ const INITIAL_SUBJECTS: Subject[] = [
     name: 'Cloud - Multi QoS', 
     pages: 18, 
     completed: false, 
-    color: '#2563eb',
-    logo: '⚙️',
+    color: '#60a5fa', // Soft Blue
+    logo: 'cpu', // Cybersecurity vector icon key
     description: 'Meccanismi di coda, prioritizzazione e policy di Quality of Service.',
     tasks: [
       { id: 'task-2-1', name: 'Lettura QoS Overview', pages: 10, completed: false, category: 'teoria' },
@@ -41,8 +41,8 @@ const INITIAL_SUBJECTS: Subject[] = [
     name: 'Cloud - CC Concept', 
     pages: 22, 
     completed: false, 
-    color: '#059669',
-    logo: '🌐',
+    color: '#34d399', // Soft Emerald
+    logo: 'shield', // Cybersecurity vector icon key
     description: 'Definizioni e modelli del Cloud (IaaS, PaaS, SaaS).',
     tasks: [
       { id: 'task-3-1', name: 'Architettura Cloud Computing', pages: 12, completed: false, category: 'teoria' },
@@ -54,8 +54,8 @@ const INITIAL_SUBJECTS: Subject[] = [
     name: 'Cloud - CC Virtualization', 
     pages: 16, 
     completed: false, 
-    color: '#7c3aed',
-    logo: '💻',
+    color: '#a78bfa', // Soft Purple
+    logo: 'terminal', // Cybersecurity vector icon key
     description: 'Hypervisor, macchine virtuali e architetture di virtualizzazione.',
     tasks: []
   },
@@ -64,8 +64,8 @@ const INITIAL_SUBJECTS: Subject[] = [
     name: 'Cloud - CC Container', 
     pages: 23, 
     completed: false, 
-    color: '#dc2626',
-    logo: '📦',
+    color: '#f87171', // Soft Red
+    logo: 'database', // Cybersecurity vector icon key
     description: 'Docker, containerizzazione e orchestrazione base.',
     tasks: []
   },
@@ -74,8 +74,8 @@ const INITIAL_SUBJECTS: Subject[] = [
     name: 'Cloud - Network soft.', 
     pages: 17, 
     completed: false, 
-    color: '#db2777',
-    logo: '📡',
+    color: '#f472b6', // Soft Pink
+    logo: 'server', // Cybersecurity vector icon key
     description: 'Reti software-defined (SDN) e piani di controllo/dati.',
     tasks: []
   }
@@ -84,171 +84,15 @@ const INITIAL_SUBJECTS: Subject[] = [
 const INITIAL_WEEKS: WeekPlan[] = [
   {
     id: 'week-1',
-    name: 'Settimana 1: 25 Mag - 31 Mag',
+    name: 'Settimana 1: 18 Lug - 19 Lug',
     days: [
-      {
-        id: 'day-1',
-        name: 'Lunedì 25',
-        dateLabel: '25 Mag',
-        mattina: [
-          { id: 'item-1-1', name: 'IPv4', pages: 12, completed: false },
-          { id: 'item-1-2', name: 'Quiz IPv4', completed: false }
-        ],
-        pomeriggio: [],
-        sera: []
-      },
-      {
-        id: 'day-2',
-        name: 'Martedì 26',
-        dateLabel: '26 Mag',
-        mattina: [
-          { id: 'item-2-1', name: 'Routing', pages: 18, completed: false },
-          { id: 'item-2-2', name: 'Quiz Routing', completed: false }
-        ],
-        pomeriggio: [],
-        sera: []
-      },
-      {
-        id: 'day-3',
-        name: 'Mercoledì 27',
-        dateLabel: '27 Mag',
-        mattina: [
-          { id: 'item-3-1', name: 'IPv6', pages: 36, completed: false },
-          { id: 'item-3-2', name: 'IPv6', pages: 36, completed: false }
-        ],
-        pomeriggio: [],
-        sera: []
-      },
-      {
-        id: 'day-4',
-        name: 'Giovedì 28',
-        dateLabel: '28 Mag',
-        mattina: [],
-        pomeriggio: [
-          { id: 'item-4-1', name: 'LABORATORIO NETWORK', pages: 14, completed: false }
-        ],
-        sera: []
-      },
-      {
-        id: 'day-5',
-        name: 'Venerdì 29',
-        dateLabel: '29 Mag',
-        mattina: [],
-        pomeriggio: [],
-        sera: []
-      },
-      {
-        id: 'day-6',
-        name: 'Sabato 30',
-        dateLabel: '30 Mag',
-        mattina: [],
-        pomeriggio: [],
-        sera: []
-      },
-      {
-        id: 'day-7',
-        name: 'Domenica 31',
-        dateLabel: '31 Mag',
-        mattina: [],
-        pomeriggio: [],
-        sera: []
-      }
-    ]
-  },
-  {
-    id: 'week-2',
-    name: 'Settimana 2: 1 Giu - 7 Giu',
-    days: [
-      { id: 'day-8', name: 'Lunedì 1', dateLabel: '1 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-9', name: 'Martedì 2', dateLabel: '2 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-10', name: 'Mercoledì 3', dateLabel: '3 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-11', name: 'Giovedì 4', dateLabel: '4 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-12', name: 'Venerdì 5', dateLabel: '5 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-13', name: 'Sabato 6', dateLabel: '6 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-14', name: 'Domenica 7', dateLabel: '7 Giu', mattina: [], pomeriggio: [], sera: [] }
-    ]
-  },
-  {
-    id: 'week-3',
-    name: 'Settimana 3: 8 Giu - 14 Giu',
-    days: [
-      { id: 'day-3-1', name: 'Lunedì 8', dateLabel: '8 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-3-2', name: 'Martedì 9', dateLabel: '9 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-3-3', name: 'Mercoledì 10', dateLabel: '10 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-3-4', name: 'Giovedì 11', dateLabel: '11 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-3-5', name: 'Venerdì 12', dateLabel: '12 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-3-6', name: 'Sabato 13', dateLabel: '13 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-3-7', name: 'Domenica 14', dateLabel: '14 Giu', mattina: [], pomeriggio: [], sera: [] }
-    ]
-  },
-  {
-    id: 'week-4',
-    name: 'Settimana 4: 15 Giu - 21 Giu',
-    days: [
-      { id: 'day-4-1', name: 'Lunedì 15', dateLabel: '15 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-4-2', name: 'Martedì 16', dateLabel: '16 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-4-3', name: 'Mercoledì 17', dateLabel: '17 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-4-4', name: 'Giovedì 18', dateLabel: '18 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-4-5', name: 'Venerdì 19', dateLabel: '19 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-4-6', name: 'Sabato 20', dateLabel: '20 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-4-7', name: 'Domenica 21', dateLabel: '21 Giu', mattina: [], pomeriggio: [], sera: [] }
-    ]
-  },
-  {
-    id: 'week-5',
-    name: 'Settimana 5: 22 Giu - 28 Giu',
-    days: [
-      { id: 'day-5-1', name: 'Lunedì 22', dateLabel: '22 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-5-2', name: 'Martedì 23', dateLabel: '23 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-5-3', name: 'Mercoledì 24', dateLabel: '24 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-5-4', name: 'Giovedì 25', dateLabel: '25 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-5-5', name: 'Venerdì 26', dateLabel: '26 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-5-6', name: 'Sabato 27', dateLabel: '27 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-5-7', name: 'Domenica 28', dateLabel: '28 Giu', mattina: [], pomeriggio: [], sera: [] }
-    ]
-  },
-  {
-    id: 'week-6',
-    name: 'Settimana 6: 29 Giu - 5 Lug',
-    days: [
-      { id: 'day-6-1', name: 'Lunedì 29', dateLabel: '29 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-6-2', name: 'Martedì 30', dateLabel: '30 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-6-3', name: 'Mercoledì 1', dateLabel: '1 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-6-4', name: 'Giovedì 2', dateLabel: '2 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-6-5', name: 'Venerdì 3', dateLabel: '3 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-6-6', name: 'Sabato 4', dateLabel: '4 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-6-7', name: 'Domenica 5', dateLabel: '5 Lug', mattina: [], pomeriggio: [], sera: [] }
-    ]
-  },
-  {
-    id: 'week-7',
-    name: 'Settimana 7: 6 Lug - 12 Lug',
-    days: [
-      { id: 'day-7-1', name: 'Lunedì 6', dateLabel: '6 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-7-2', name: 'Martedì 7', dateLabel: '7 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-7-3', name: 'Mercoledì 8', dateLabel: '8 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-7-4', name: 'Giovedì 9', dateLabel: '9 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-7-5', name: 'Venerdì 10', dateLabel: '10 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-7-6', name: 'Sabato 11', dateLabel: '11 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-7-7', name: 'Domenica 12', dateLabel: '12 Lug', mattina: [], pomeriggio: [], sera: [] }
-    ]
-  },
-  {
-    id: 'week-8',
-    name: 'Settimana 8: 13 Lug - 19 Lug',
-    days: [
-      { id: 'day-8-1', name: 'Lunedì 13', dateLabel: '13 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-8-2', name: 'Martedì 14', dateLabel: '14 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-8-3', name: 'Mercoledì 15', dateLabel: '15 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-8-4', name: 'Giovedì 16', dateLabel: '16 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-8-5', name: 'Venerdì 17', dateLabel: '17 Lug', mattina: [], pomeriggio: [], sera: [] },
       { id: 'day-8-6', name: 'Sabato 18', dateLabel: '18 Lug', mattina: [], pomeriggio: [], sera: [] },
       { id: 'day-8-7', name: 'Domenica 19', dateLabel: '19 Lug', mattina: [], pomeriggio: [], sera: [] }
     ]
   },
   {
-    id: 'week-9',
-    name: 'Settimana 9: 20 Lug - 26 Lug',
+    id: 'week-2',
+    name: 'Settimana 2: 20 Lug - 26 Lug',
     days: [
       { id: 'day-9-1', name: 'Lunedì 20', dateLabel: '20 Lug', mattina: [], pomeriggio: [], sera: [] },
       { id: 'day-9-2', name: 'Martedì 21', dateLabel: '21 Lug', mattina: [], pomeriggio: [], sera: [] },
@@ -260,8 +104,8 @@ const INITIAL_WEEKS: WeekPlan[] = [
     ]
   },
   {
-    id: 'week-10',
-    name: 'Settimana 10: 27 Lug - 2 Ago',
+    id: 'week-3',
+    name: 'Settimana 3: 27 Lug - 2 Ago',
     days: [
       { id: 'day-10-1', name: 'Lunedì 27', dateLabel: '27 Lug', mattina: [], pomeriggio: [], sera: [] },
       { id: 'day-10-2', name: 'Martedì 28', dateLabel: '28 Lug', mattina: [], pomeriggio: [], sera: [] },
@@ -281,12 +125,29 @@ function App() {
   // Load State from LocalStorage or use defaults
   const [subjects, setSubjects] = useState<Subject[]>(() => {
     const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}-subjects`);
+    const colorMigrationMap: Record<string, string> = {
+      '#d97706': '#fbbf24',
+      '#2563eb': '#60a5fa',
+      '#059669': '#34d399',
+      '#7c3aed': '#a78bfa',
+      '#dc2626': '#f87171',
+      '#db2777': '#f472b6',
+    };
+    const logoMigrationMap: Record<string, string> = {
+      '☁️': 'globe',
+      '⚙️': 'cpu',
+      '🌐': 'shield',
+      '💻': 'terminal',
+      '📦': 'database',
+      '📡': 'server',
+      '📚': 'shield'
+    };
     if (saved) {
       const parsed = JSON.parse(saved) as Subject[];
-      // Migrate existing state database to support the new tasks array, categories, logos, and descriptions cleanly
       return parsed.map((s) => ({
         ...s,
-        logo: s.logo || '📚',
+        color: colorMigrationMap[s.color] || s.color,
+        logo: logoMigrationMap[s.logo] || s.logo || 'shield',
         description: s.description || '',
         tasks: (s.tasks || []).map((t) => ({
           ...t,
@@ -301,8 +162,9 @@ function App() {
     const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}-weeks`);
     if (saved) {
       const parsed = JSON.parse(saved) as WeekPlan[];
-      // If the user has <= 2 weeks, auto-migrate to cover the new expanded July schedule!
-      if (parsed.length > 0 && parsed.length <= 2) {
+      // If the saved state has weeks with May (Mag) or June (Giu) days, auto-migrate to the new July starting date!
+      const hasOldDays = parsed.some(w => w.days.some(d => d.dateLabel.includes('Mag') || d.dateLabel.includes('Giu')));
+      if (hasOldDays || parsed.length > 3) {
         return INITIAL_WEEKS;
       }
       return parsed;
@@ -312,7 +174,10 @@ function App() {
 
   const [activeWeekId, setActiveWeekId] = useState<string>(() => {
     const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}-activeWeekId`);
-    if (saved) return saved;
+    if (saved) {
+      const activeExists = INITIAL_WEEKS.some(w => w.id === saved);
+      if (activeExists) return saved;
+    }
     return INITIAL_WEEKS[0]?.id || '';
   });
 
@@ -328,6 +193,8 @@ function App() {
     const saved = localStorage.getItem('antigravity-studio-planner-theme');
     return (saved as 'dark' | 'light') || 'dark';
   });
+
+  const [copiedItem, setCopiedItem] = useState<{ name: string; pages?: number; subjectId?: string } | null>(null);
 
   // Sync to LocalStorage
   useEffect(() => {
@@ -515,6 +382,8 @@ function App() {
                     subjects={subjects}
                     onUpdateAllWeeks={setWeeks}
                     isFirstWeek={index === 0}
+                    copiedItem={copiedItem}
+                    onCopyItem={setCopiedItem}
                   />
                 </div>
               );

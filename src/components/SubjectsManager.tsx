@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Subject, Task } from '../types/planner';
 import { TrashIcon, BookIcon } from './Icons';
+import { CybersecurityLogo } from './CybersecurityLogo';
 
 interface SubjectsManagerProps {
   subjects: Subject[];
@@ -8,15 +9,26 @@ interface SubjectsManagerProps {
 }
 
 const PRESET_COLORS = [
-  { name: 'Gold', value: '#d97706', class: 'color-gold' },
-  { name: 'Blue', value: '#2563eb', class: 'color-blue' },
-  { name: 'Emerald', value: '#059669', class: 'color-emerald' },
-  { name: 'Purple', value: '#7c3aed', class: 'color-purple' },
-  { name: 'Red', value: '#dc2626', class: 'color-red' },
-  { name: 'Pink', value: '#db2777', class: 'color-pink' },
+  { name: 'Gold', value: '#fbbf24', class: 'color-gold' },
+  { name: 'Blue', value: '#60a5fa', class: 'color-blue' },
+  { name: 'Emerald', value: '#34d399', class: 'color-emerald' },
+  { name: 'Purple', value: '#a78bfa', class: 'color-purple' },
+  { name: 'Red', value: '#f87171', class: 'color-red' },
+  { name: 'Pink', value: '#f472b6', class: 'color-pink' },
 ];
 
-const EMOJI_PRESETS = ['📚', '☁️', '⚙️', '🔒', '💻', '🛡️', '🌐', '📊', '📝', '🧠', '⚡', '🔬', '🔧', '🎯'];
+const CYBER_LOGOS = [
+  { key: 'shield', name: 'Firewall' },
+  { key: 'lock', name: 'Crittografia' },
+  { key: 'key', name: 'Autenticazione' },
+  { key: 'terminal', name: 'Terminale Hacker' },
+  { key: 'globe', name: 'Sicurezza Rete' },
+  { key: 'radar', name: 'Scanner Minacce' },
+  { key: 'bug', name: 'Analisi Malware' },
+  { key: 'database', name: 'Database Sicuro' },
+  { key: 'cpu', name: 'Sicurezza Chip' },
+  { key: 'server', name: 'Mainframe Sicuro' }
+];
 
 export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
   subjects,
@@ -40,7 +52,7 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
       pages: 30,
       completed: false,
       color: PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)].value,
-      logo: '📚',
+      logo: 'shield',
       description: '',
       tasks: []
     };
@@ -160,7 +172,9 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
                 className={`subject-grid-card glass-container ${colorClass} ${subj.completed ? 'completed' : ''}`}
                 style={{ '--accent-color': subj.color } as React.CSSProperties}
               >
-                <div className="card-emoji-logo">{subj.logo || '📚'}</div>
+                <div className="card-emoji-logo" style={{ color: subj.color }}>
+                  <CybersecurityLogo logo={subj.logo || 'shield'} size={42} />
+                </div>
                 <h3 className="card-subj-title">{subj.name}</h3>
                 {totalCount > 0 ? (
                   <span className="card-subj-stats">
@@ -201,7 +215,9 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
           ⬅ Torna alle materie
         </button>
         <div className="workspace-title-area">
-          <span className="workspace-logo-display">{activeSubj.logo}</span>
+          <span className="workspace-logo-display">
+            <CybersecurityLogo logo={activeSubj.logo} size={32} color={activeSubj.color} />
+          </span>
           <h2 className="workspace-title">{activeSubj.name}</h2>
         </div>
       </div>
@@ -428,14 +444,15 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
           <div className="info-field">
             <label>Logo Rappresentativo (LOGO)</label>
             <div className="logo-emoji-picker-grid">
-              {EMOJI_PRESETS.map((emoji) => (
+              {CYBER_LOGOS.map((item) => (
                 <button
-                  key={emoji}
+                  key={item.key}
                   type="button"
-                  className={`btn-emoji-selector ${activeSubj.logo === emoji ? 'active' : ''}`}
-                  onClick={() => handleUpdateActiveField('logo', emoji)}
+                  className={`btn-emoji-selector ${activeSubj.logo === item.key ? 'active' : ''}`}
+                  onClick={() => handleUpdateActiveField('logo', item.key)}
+                  title={item.name}
                 >
-                  {emoji}
+                  <CybersecurityLogo logo={item.key} size={18} />
                 </button>
               ))}
             </div>
