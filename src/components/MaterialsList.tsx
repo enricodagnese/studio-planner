@@ -165,6 +165,7 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
                   </label>
 
                   <div className="card-main-content">
+                    <span className="subject-sidebar-logo">{sub.logo || '📚'}</span>
                     <span className="subject-title">{sub.name}</span>
                     <span className="pages-badge">{totalPages} pag</span>
                   </div>
@@ -197,6 +198,7 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
                           <span className="checkmark-sm" style={{ '--accent-color': sub.color } as React.CSSProperties}></span>
                         </label>
                         <span className="tree-task-title" title={task.name}>
+                          {task.category === 'teoria' ? '📚 ' : task.category === 'esercizi' ? '📝 ' : '⚙️ '}
                           {task.name}
                         </span>
                         <span className="tree-task-pages-badge">{task.pages} pag</span>

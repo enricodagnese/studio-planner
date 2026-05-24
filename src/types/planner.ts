@@ -3,6 +3,7 @@ export interface Task {
   name: string;
   pages: number;
   completed: boolean;
+  category: 'teoria' | 'esercizi' | 'altro'; // Task categorization column
 }
 
 export interface Subject {
@@ -11,6 +12,8 @@ export interface Subject {
   pages: number;
   completed: boolean;
   color: string; // hex or CSS class for custom look
+  logo: string;  // Custom representative emoji/icon (e.g. ☁️, ⚙️)
+  description?: string; // General description or course notes
   tasks: Task[]; // List of specific tasks or chapters
 }
 

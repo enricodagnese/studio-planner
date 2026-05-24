@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Subject, Task } from '../types/planner';
-import { PlusIcon, TrashIcon, BookIcon } from './Icons';
+import { TrashIcon, BookIcon } from './Icons';
 
 interface SubjectsManagerProps {
   subjects: Subject[];
@@ -16,92 +16,73 @@ const PRESET_COLORS = [
   { name: 'Pink', value: '#db2777', class: 'color-pink' },
 ];
 
+const EMOJI_PRESETS = ['📚', '☁️', '⚙️', '🔒', '💻', '🛡️', '🌐', '📊', '📝', '🧠', '⚡', '🔬', '🔧', '🎯'];
+
 export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
   subjects,
   onUpdateSubjects,
 }) => {
-  const [newSubjName, setNewSubjName] = useState('');
-  const [newSubjPages, setNewSubjPages] = useState<number>(30);
-  const [newSubjColor, setNewSubjColor] = useState(PRESET_COLORS[0].value);
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedSubjId, setSelectedSubjId] = useState<string | null>(null);
 
-  // Task inline states
-  const [addingTaskForSubjId, setAddingTaskForSubjId] = useState<string | null>(null);
+  // Task creation state
+  const [addingTaskCategory, setAddingTaskCategory] = useState<'teoria' | 'esercizi' | 'altro' | null>(null);
   const [taskName, setTaskName] = useState('');
   const [taskPages, setTaskPages] = useState<number>(10);
 
-  // Subject Edit inline states
-  const [editingSubjId, setEditingSubjId] = useState<string | null>(null);
-  const [editSubjName, setEditSubjName] = useState('');
-  const [editSubjPages, setEditSubjPages] = useState<number>(0);
-  const [editSubjColor, setEditSubjColor] = useState('');
+  // Active Subject helper
+  const activeSubj = subjects.find(s => s.id === selectedSubjId);
 
-  // Handle Add Subject
-  const handleAddSubject = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSubjName.trim()) return;
-
+  // Add Subject (Autoselects the new subject immediately to edit!)
+  const handleCreateSubject = () => {
     const newSubj: Subject = {
       id: `subj-${Date.now()}`,
-      name: newSubjName,
-      pages: newSubjPages,
+      name: 'Nuova Materia',
+      pages: 30,
       completed: false,
-      color: newSubjColor,
-      tasks: [],
+      color: PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)].value,
+      logo: '📚',
+      description: '',
+      tasks: []
     };
-
     onUpdateSubjects([...subjects, newSubj]);
-    setNewSubjName('');
-    setNewSubjPages(30);
-    setShowAddForm(false);
+    setSelectedSubjId(newSubj.id);
   };
 
-  // Handle Delete Subject
+  // Delete Subject
   const handleDeleteSubject = (id: string) => {
-    if (window.confirm("Sei sicuro di voler eliminare definitivamente questa materia e tutti i suoi compiti associati?")) {
+    if (window.confirm("Sei sicuro di voler eliminare definitivamente questa materia e tutti i suoi compiti?")) {
       onUpdateSubjects(subjects.filter((s) => s.id !== id));
+      setSelectedSubjId(null);
     }
   };
 
-  // Start Edit Subject
-  const startEditSubject = (subj: Subject) => {
-    setEditingSubjId(subj.id);
-    setEditSubjName(subj.name);
-    setEditSubjPages(subj.pages);
-    setEditSubjColor(subj.color);
-  };
-
-  // Save Edit Subject
-  const saveEditSubject = (id: string) => {
-    if (!editSubjName.trim()) return;
+  // Update a single field inside the active Subject
+  const handleUpdateActiveField = (field: keyof Subject, value: any) => {
+    if (!selectedSubjId) return;
     onUpdateSubjects(
-      subjects.map((s) =>
-        s.id === id
-          ? { ...s, name: editSubjName, pages: editSubjPages, color: editSubjColor }
-          : s
-      )
+      subjects.map((s) => (s.id === selectedSubjId ? { ...s, [field]: value } : s))
     );
-    setEditingSubjId(null);
   };
 
-  // Add Task to Subject
-  const handleAddTask = (e: React.FormEvent, subjId: string) => {
+  // Add Task inside category column
+  const handleAddTask = (e: React.FormEvent, category: 'teoria' | 'esercizi' | 'altro') => {
     e.preventDefault();
-    if (!taskName.trim()) return;
+    if (!taskName.trim() || !selectedSubjId || !activeSubj) return;
 
     const newTask: Task = {
       id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
       name: taskName,
       pages: taskPages,
       completed: false,
+      category,
     };
 
     onUpdateSubjects(
       subjects.map((s) => {
-        if (s.id === subjId) {
+        if (s.id === selectedSubjId) {
           return {
             ...s,
-            tasks: [...(s.tasks || []), newTask],
+            tasks: [...(s.tasks || []), newTask]
           };
         }
         return s;
@@ -110,23 +91,23 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
 
     setTaskName('');
     setTaskPages(10);
-    setAddingTaskForSubjId(null);
+    setAddingTaskCategory(null);
   };
 
-  // Toggle Task Completion
-  const handleToggleTask = (subjId: string, taskId: string) => {
+  // Toggle Task Checklist
+  const handleToggleTask = (taskId: string) => {
+    if (!selectedSubjId) return;
     onUpdateSubjects(
       subjects.map((s) => {
-        if (s.id === subjId) {
+        if (s.id === selectedSubjId) {
           const updatedTasks = s.tasks.map((t) =>
             t.id === taskId ? { ...t, completed: !t.completed } : t
           );
-          // A subject is completed if all its tasks are completed (and it has at least 1 task)
           const allCompleted = updatedTasks.length > 0 && updatedTasks.every((t) => t.completed);
           return {
             ...s,
             tasks: updatedTasks,
-            completed: allCompleted,
+            completed: allCompleted
           };
         }
         return s;
@@ -134,17 +115,18 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
     );
   };
 
-  // Delete Task
-  const handleDeleteTask = (subjId: string, taskId: string) => {
+  // Delete Task Row
+  const handleDeleteTask = (taskId: string) => {
+    if (!selectedSubjId) return;
     onUpdateSubjects(
       subjects.map((s) => {
-        if (s.id === subjId) {
+        if (s.id === selectedSubjId) {
           const updatedTasks = s.tasks.filter((t) => t.id !== taskId);
           const allCompleted = updatedTasks.length > 0 && updatedTasks.every((t) => t.completed);
           return {
             ...s,
             tasks: updatedTasks,
-            completed: allCompleted,
+            completed: allCompleted
           };
         }
         return s;
@@ -152,278 +134,339 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
     );
   };
 
-  return (
-    <div className="subjects-manager-container">
-      <div className="manager-header">
-        <div className="manager-title-group">
-          <BookIcon className="panel-icon text-orange" size={24} />
-          <h2>📚 Le tue materie & task</h2>
-          <p className="subtitle">Gestisci gli argomenti d'esame e pianifica in dettaglio i singoli capitoli o compiti da svolgere.</p>
-        </div>
-        <button
-          className="btn btn-primary btn-add-subj-main"
-          onClick={() => setShowAddForm(!showAddForm)}
-        >
-          <PlusIcon size={16} />
-          <span>Aggiungi Materia</span>
-        </button>
-      </div>
-
-      {showAddForm && (
-        <form onSubmit={handleAddSubject} className="add-subject-modal-form glass-container animate-fade-in">
-          <h3>Nuova Materia / Corso</h3>
-          <div className="form-grid">
-            <div className="form-group">
-              <label>Nome Materia o Argomento Generale</label>
-              <input
-                type="text"
-                value={newSubjName}
-                onChange={(e) => setNewSubjName(e.target.value)}
-                placeholder="Es. Sistemi Operativi, Algoritmi, ecc."
-                className="form-control"
-                required
-                autoFocus
-              />
-            </div>
-            <div className="form-group">
-              <label>Budget Pagine Complessivo</label>
-              <input
-                type="number"
-                min="0"
-                value={newSubjPages}
-                onChange={(e) => setNewSubjPages(parseInt(e.target.value) || 0)}
-                className="form-control"
-              />
-            </div>
-            <div className="form-group">
-              <label>Colore Rappresentativo</label>
-              <div className="color-selectors color-manager-selectors">
-                {PRESET_COLORS.map((c) => (
-                  <button
-                    key={c.value}
-                    type="button"
-                    className={`color-dot ${c.class} ${newSubjColor === c.value ? 'active' : ''}`}
-                    onClick={() => setNewSubjColor(c.value)}
-                    title={c.name}
-                  />
-                ))}
-              </div>
-            </div>
+  // View 1: Main List Grid (Drawing 1)
+  if (!selectedSubjId || !activeSubj) {
+    return (
+      <div className="subjects-manager-container">
+        <div className="manager-header">
+          <div className="manager-title-group">
+            <BookIcon className="panel-icon text-orange" size={24} />
+            <h2>📚 Le tue materie</h2>
+            <p className="subtitle">Gestisci e organizza le tue materie d'esame in categorie dedicate.</p>
           </div>
-          <div className="form-buttons">
-            <button type="submit" className="btn btn-success">Salva Materia</button>
-            <button type="button" className="btn btn-secondary" onClick={() => setShowAddForm(false)}>
-              Annulla
-            </button>
-          </div>
-        </form>
-      )}
-
-      {subjects.length === 0 ? (
-        <div className="manager-empty-state glass-container">
-          <BookIcon size={48} className="empty-icon text-muted" />
-          <h3>Nessuna materia registrata</h3>
-          <p>Crea la tua prima materia d'esame cliccando sul pulsante "+ Aggiungi Materia" in alto a destra.</p>
-          <button className="btn btn-primary" onClick={() => setShowAddForm(true)}>
-            Registra una materia ora
-          </button>
         </div>
-      ) : (
-        <div className="subjects-manager-grid">
+
+        <div className="subjects-drawing-grid">
           {subjects.map((subj) => {
-            const tasksList = subj.tasks || [];
-            const completedCount = tasksList.filter((t) => t.completed).length;
-            const totalCount = tasksList.length;
-            const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
-            
-            // Calculate total pages scheduled in this subject
-            const totalPages = tasksList.reduce((acc, curr) => acc + curr.pages, 0);
-
-            const isEditing = editingSubjId === subj.id;
+            const completedCount = subj.tasks.filter(t => t.completed).length;
+            const totalCount = subj.tasks.length;
             const presetColor = PRESET_COLORS.find(c => c.value === subj.color);
             const colorClass = presetColor ? presetColor.class : 'color-gold';
 
             return (
               <div
                 key={subj.id}
-                className={`subject-manager-card glass-container ${colorClass}`}
+                onClick={() => setSelectedSubjId(subj.id)}
+                className={`subject-grid-card glass-container ${colorClass} ${subj.completed ? 'completed' : ''}`}
                 style={{ '--accent-color': subj.color } as React.CSSProperties}
               >
-                {/* Card Header (Subject Title & Page Budget) */}
-                <div className="card-subj-header">
-                  {isEditing ? (
-                    <div className="edit-subj-inputs">
-                      <input
-                        type="text"
-                        value={editSubjName}
-                        onChange={(e) => setEditSubjName(e.target.value)}
-                        className="form-control edit-subj-name-input"
-                        placeholder="Nome Materia"
-                        required
-                      />
-                      <input
-                        type="number"
-                        value={editSubjPages}
-                        onChange={(e) => setEditSubjPages(parseInt(e.target.value) || 0)}
-                        className="form-control edit-subj-pages-input"
-                        placeholder="Pag"
-                      />
-                      <div className="edit-colors-list">
-                        {PRESET_COLORS.map((c) => (
-                          <button
-                            key={c.value}
-                            type="button"
-                            className={`color-dot-sm ${c.class} ${editSubjColor === c.value ? 'active' : ''}`}
-                            onClick={() => setEditSubjColor(c.value)}
-                          />
-                        ))}
-                      </div>
-                      <div className="edit-subj-buttons">
-                        <button className="btn btn-success btn-xs" onClick={() => saveEditSubject(subj.id)}>Salva</button>
-                        <button className="btn btn-secondary btn-xs" onClick={() => setEditingSubjId(null)}>Annulla</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="subj-title-area">
-                        <div className="subj-color-badge" style={{ backgroundColor: subj.color }} />
-                        <h3 className="subj-name" title={subj.name}>{subj.name}</h3>
-                      </div>
-                      <div className="subj-stats-badge">
-                        <span className="pages-stat" title="Budget Pagine / Pagine Programmate">
-                          {totalPages > 0 ? `${totalPages} pag prog` : `${subj.pages} pag target`}
-                        </span>
-                        <div className="card-header-actions">
-                          <button
-                            className="btn-card-action btn-edit-subj"
-                            onClick={() => startEditSubject(subj)}
-                            title="Modifica materia"
-                          >
-                            ✏️
-                          </button>
-                          <button
-                            className="btn-card-action btn-delete-subj"
-                            onClick={() => handleDeleteSubject(subj.id)}
-                            title="Elimina materia"
-                          >
-                            <TrashIcon size={13} />
-                          </button>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Progress bar inside card */}
-                {totalCount > 0 && (
-                  <div className="subj-progress-section">
-                    <div className="progress-labels">
-                      <span>Progresso task</span>
-                      <span className="percent-text">{progress}% ({completedCount}/{totalCount})</span>
-                    </div>
-                    <div className="subj-progress-bar-track">
-                      <div
-                        className="subj-progress-bar-fill"
-                        style={{ width: `${progress}%`, backgroundColor: subj.color }}
-                      />
-                    </div>
-                  </div>
+                <div className="card-emoji-logo">{subj.logo || '📚'}</div>
+                <h3 className="card-subj-title">{subj.name}</h3>
+                {totalCount > 0 ? (
+                  <span className="card-subj-stats">
+                    {completedCount}/{totalCount} Compiti completati
+                  </span>
+                ) : (
+                  <span className="card-subj-stats empty-stats">Crea compiti e capitoli</span>
                 )}
-
-                {/* Tasks List within Subject */}
-                <div className="card-tasks-section">
-                  <h4>Capitoli e Task da studiare</h4>
-                  
-                  {tasksList.length === 0 ? (
-                    <p className="no-tasks-hint">Nessun sotto-task creato. Aggiungine uno sotto per tracciare i capitoli dell'esame!</p>
-                  ) : (
-                    <div className="subj-tasks-list">
-                      {tasksList.map((task) => (
-                        <div
-                          key={task.id}
-                          className={`subj-task-row ${task.completed ? 'task-row-completed' : ''}`}
-                        >
-                          <label className="checkbox-container-sm">
-                            <input
-                              type="checkbox"
-                              checked={task.completed}
-                              onChange={() => handleToggleTask(subj.id, task.id)}
-                            />
-                            <span className="checkmark-sm" style={{ '--accent-color': subj.color } as React.CSSProperties}></span>
-                          </label>
-                          <div className="task-row-text">
-                            <span className="task-row-name" title={task.name}>{task.name}</span>
-                            <span className="task-row-pages">{task.pages} pagine</span>
-                          </div>
-                          <button
-                            className="btn-delete-task-row"
-                            onClick={() => handleDeleteTask(subj.id, task.id)}
-                            title="Elimina task"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Add Quick Task Form inside Subject */}
-                  {addingTaskForSubjId === subj.id ? (
-                    <form
-                      onSubmit={(e) => handleAddTask(e, subj.id)}
-                      className="add-task-inline-form glass-input-panel animate-fade-in"
-                    >
-                      <div className="inline-form-inputs">
-                        <input
-                          type="text"
-                          value={taskName}
-                          onChange={(e) => setTaskName(e.target.value)}
-                          placeholder="Es. Leggere Cap. 1"
-                          className="form-control input-task-name"
-                          required
-                          autoFocus
-                        />
-                        <input
-                          type="number"
-                          min="1"
-                          value={taskPages}
-                          onChange={(e) => setTaskPages(parseInt(e.target.value) || 1)}
-                          className="form-control input-task-pages"
-                          title="Numero pagine"
-                          placeholder="Pagine"
-                          required
-                        />
-                      </div>
-                      <div className="inline-form-buttons">
-                        <button type="submit" className="btn btn-success btn-xs">Salva</button>
-                        <button
-                          type="button"
-                          className="btn btn-secondary btn-xs"
-                          onClick={() => setAddingTaskForSubjId(null)}
-                        >
-                          Annulla
-                        </button>
-                      </div>
-                    </form>
-                  ) : (
-                    <button
-                      className="btn-add-task-row-trigger"
-                      onClick={() => {
-                        setAddingTaskForSubjId(subj.id);
-                        setTaskName('');
-                        setTaskPages(15);
-                      }}
-                    >
-                      <PlusIcon size={12} />
-                      <span>Aggiungi Capitolo / Task...</span>
-                    </button>
-                  )}
-                </div>
+                {subj.completed && <span className="card-completed-badge">✓ Completato</span>}
               </div>
             );
           })}
+
+          {/* Dotted border AGGIUNGI + Card (Drawing 1) */}
+          <div
+            onClick={handleCreateSubject}
+            className="subject-grid-card add-subj-grid-card-btn"
+            title="Crea una nuova materia"
+          >
+            <div className="add-card-plus-icon">+</div>
+            <h3 className="add-card-title">AGGIUNGI</h3>
+          </div>
         </div>
-      )}
+      </div>
+    );
+  }
+
+  // View 2: Single Subject Workspace (Drawing 2)
+  const theoryTasks = activeSubj.tasks.filter(t => t.category === 'teoria');
+  const exerciseTasks = activeSubj.tasks.filter(t => t.category === 'esercizi');
+  const otherTasks = activeSubj.tasks.filter(t => t.category === 'altro');
+
+  return (
+    <div className="subject-workspace-container animate-fade-in">
+      {/* Workspace Header */}
+      <div className="workspace-header">
+        <button className="btn btn-secondary btn-sm btn-back-to-grid" onClick={() => setSelectedSubjId(null)}>
+          ⬅ Torna alle materie
+        </button>
+        <div className="workspace-title-area">
+          <span className="workspace-logo-display">{activeSubj.logo}</span>
+          <h2 className="workspace-title">{activeSubj.name}</h2>
+        </div>
+      </div>
+
+      {/* Main Workspace split */}
+      <div className="workspace-grid-layout">
+        
+        {/* Left columns (Teoria, Esercizi, Altro) */}
+        <div className="workspace-columns-area">
+          
+          {/* Column 1: Teoria */}
+          <div className="workspace-column glass-container">
+            <div className="column-header-title">
+              <span className="column-emoji">📚</span>
+              <h3>TEORIA</h3>
+            </div>
+            <div className="column-tasks-list">
+              {theoryTasks.length === 0 ? (
+                <p className="column-empty-hint">Nessun capitolo registrato</p>
+              ) : (
+                theoryTasks.map((t) => (
+                  <div key={t.id} className={`column-task-row ${t.completed ? 'completed' : ''}`}>
+                    <label className="checkbox-container-sm">
+                      <input type="checkbox" checked={t.completed} onChange={() => handleToggleTask(t.id)} />
+                      <span className="checkmark-sm" style={{ '--accent-color': activeSubj.color } as React.CSSProperties}></span>
+                    </label>
+                    <div className="task-row-details">
+                      <span className="task-row-title-text">{t.name}</span>
+                      <span className="task-row-pages-text">{t.pages} pag</span>
+                    </div>
+                    <button className="btn-remove-task" onClick={() => handleDeleteTask(t.id)}>×</button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {addingTaskCategory === 'teoria' ? (
+              <form onSubmit={(e) => handleAddTask(e, 'teoria')} className="column-add-task-form glass-input-panel">
+                <input
+                  type="text"
+                  placeholder="Es. Capitolo 1"
+                  value={taskName}
+                  onChange={(e) => setTaskName(e.target.value)}
+                  className="form-control"
+                  required
+                  autoFocus
+                />
+                <div className="inline-add-row">
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Pagine"
+                    value={taskPages}
+                    onChange={(e) => setTaskPages(parseInt(e.target.value) || 1)}
+                    className="form-control text-center"
+                    required
+                  />
+                  <div className="inline-add-buttons">
+                    <button type="submit" className="btn btn-success btn-xs">✓</button>
+                    <button type="button" className="btn btn-secondary btn-xs" onClick={() => setAddingTaskCategory(null)}>×</button>
+                  </div>
+                </div>
+              </form>
+            ) : (
+              <button className="btn-column-add-trigger" onClick={() => { setAddingTaskCategory('teoria'); setTaskName(''); setTaskPages(15); }}>
+                + Aggiungi task
+              </button>
+            )}
+          </div>
+
+          {/* Column 2: Esercizi */}
+          <div className="workspace-column glass-container">
+            <div className="column-header-title">
+              <span className="column-emoji">📝</span>
+              <h3>ESERCIZI</h3>
+            </div>
+            <div className="column-tasks-list">
+              {exerciseTasks.length === 0 ? (
+                <p className="column-empty-hint">Nessun esercizio registrato</p>
+              ) : (
+                exerciseTasks.map((t) => (
+                  <div key={t.id} className={`column-task-row ${t.completed ? 'completed' : ''}`}>
+                    <label className="checkbox-container-sm">
+                      <input type="checkbox" checked={t.completed} onChange={() => handleToggleTask(t.id)} />
+                      <span className="checkmark-sm" style={{ '--accent-color': activeSubj.color } as React.CSSProperties}></span>
+                    </label>
+                    <div className="task-row-details">
+                      <span className="task-row-title-text">{t.name}</span>
+                      <span className="task-row-pages-text">{t.pages} pag</span>
+                    </div>
+                    <button className="btn-remove-task" onClick={() => handleDeleteTask(t.id)}>×</button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {addingTaskCategory === 'esercizi' ? (
+              <form onSubmit={(e) => handleAddTask(e, 'esercizi')} className="column-add-task-form glass-input-panel">
+                <input
+                  type="text"
+                  placeholder="Es. Esercitazione code"
+                  value={taskName}
+                  onChange={(e) => setTaskName(e.target.value)}
+                  className="form-control"
+                  required
+                  autoFocus
+                />
+                <div className="inline-add-row">
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Pagine"
+                    value={taskPages}
+                    onChange={(e) => setTaskPages(parseInt(e.target.value) || 1)}
+                    className="form-control text-center"
+                    required
+                  />
+                  <div className="inline-add-buttons">
+                    <button type="submit" className="btn btn-success btn-xs">✓</button>
+                    <button type="button" className="btn btn-secondary btn-xs" onClick={() => setAddingTaskCategory(null)}>×</button>
+                  </div>
+                </div>
+              </form>
+            ) : (
+              <button className="btn-column-add-trigger" onClick={() => { setAddingTaskCategory('esercizi'); setTaskName(''); setTaskPages(15); }}>
+                + Aggiungi task
+              </button>
+            )}
+          </div>
+
+          {/* Column 3: Altro */}
+          <div className="workspace-column glass-container">
+            <div className="column-header-title">
+              <span className="column-emoji">⚙️</span>
+              <h3>ALTRO</h3>
+            </div>
+            <div className="column-tasks-list">
+              {otherTasks.length === 0 ? (
+                <p className="column-empty-hint">Nessun altro task</p>
+              ) : (
+                otherTasks.map((t) => (
+                  <div key={t.id} className={`column-task-row ${t.completed ? 'completed' : ''}`}>
+                    <label className="checkbox-container-sm">
+                      <input type="checkbox" checked={t.completed} onChange={() => handleToggleTask(t.id)} />
+                      <span className="checkmark-sm" style={{ '--accent-color': activeSubj.color } as React.CSSProperties}></span>
+                    </label>
+                    <div className="task-row-details">
+                      <span className="task-row-title-text">{t.name}</span>
+                      <span className="task-row-pages-text">{t.pages} pag</span>
+                    </div>
+                    <button className="btn-remove-task" onClick={() => handleDeleteTask(t.id)}>×</button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {addingTaskCategory === 'altro' ? (
+              <form onSubmit={(e) => handleAddTask(e, 'altro')} className="column-add-task-form glass-input-panel">
+                <input
+                  type="text"
+                  placeholder="Es. Ripasso finale"
+                  value={taskName}
+                  onChange={(e) => setTaskName(e.target.value)}
+                  className="form-control"
+                  required
+                  autoFocus
+                />
+                <div className="inline-add-row">
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Pagine"
+                    value={taskPages}
+                    onChange={(e) => setTaskPages(parseInt(e.target.value) || 1)}
+                    className="form-control text-center"
+                    required
+                  />
+                  <div className="inline-add-buttons">
+                    <button type="submit" className="btn btn-success btn-xs">✓</button>
+                    <button type="button" className="btn btn-secondary btn-xs" onClick={() => setAddingTaskCategory(null)}>×</button>
+                  </div>
+                </div>
+              </form>
+            ) : (
+              <button className="btn-column-add-trigger" onClick={() => { setAddingTaskCategory('altro'); setTaskName(''); setTaskPages(15); }}>
+                + Aggiungi task
+              </button>
+            )}
+          </div>
+
+        </div>
+
+        {/* Right side: INFO Column/Panel (Drawing 2) */}
+        <div className="workspace-info-panel glass-container">
+          <div className="panel-title-area">
+            <h4>INFO MATERIA</h4>
+          </div>
+
+          {/* Edit Name */}
+          <div className="info-field">
+            <label>Nome Materia</label>
+            <input
+              type="text"
+              value={activeSubj.name}
+              onChange={(e) => handleUpdateActiveField('name', e.target.value)}
+              className="form-control"
+              required
+            />
+          </div>
+
+          {/* Edit Description (DESC) */}
+          <div className="info-field">
+            <label>Descrizione / Syllabus (DESC)</label>
+            <textarea
+              value={activeSubj.description || ''}
+              onChange={(e) => handleUpdateActiveField('description', e.target.value)}
+              placeholder="Aggiungi note sull'esame, scadenze o syllabus della materia..."
+              className="form-control textarea-desc"
+              rows={4}
+            />
+          </div>
+
+          {/* Edit Logo Emoji (LOGO picker) */}
+          <div className="info-field">
+            <label>Logo Rappresentativo (LOGO)</label>
+            <div className="logo-emoji-picker-grid">
+              {EMOJI_PRESETS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  className={`btn-emoji-selector ${activeSubj.logo === emoji ? 'active' : ''}`}
+                  onClick={() => handleUpdateActiveField('logo', emoji)}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Edit Color theme (COLORE presets) */}
+          <div className="info-field">
+            <label>Colore Tema (COLORE)</label>
+            <div className="color-selectors color-manager-selectors">
+              {PRESET_COLORS.map((c) => (
+                <button
+                  key={c.value}
+                  type="button"
+                  className={`color-dot ${c.class} ${activeSubj.color === c.value ? 'active' : ''}`}
+                  onClick={() => handleUpdateActiveField('color', c.value)}
+                  title={c.name}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Danger delete area */}
+          <div className="info-danger-area">
+            <button className="btn btn-secondary btn-block btn-delete-subj-workspace" onClick={() => handleDeleteSubject(activeSubj.id)}>
+              <TrashIcon size={14} />
+              <span>Elimina Intera Materia</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 };

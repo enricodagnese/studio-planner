@@ -16,9 +16,11 @@ const INITIAL_SUBJECTS: Subject[] = [
     pages: 14, 
     completed: false, 
     color: '#d97706',
+    logo: '☁️',
+    description: 'Syllabus generale e configurazione di LAN, VLAN e protocollo 802.1Q.',
     tasks: [
-      { id: 'task-1-1', name: 'Capitolo 1: Standard LAN', pages: 8, completed: false },
-      { id: 'task-1-2', name: 'Quiz VLAN & Trunking', pages: 6, completed: false }
+      { id: 'task-1-1', name: 'Capitolo 1: Standard LAN', pages: 8, completed: false, category: 'teoria' },
+      { id: 'task-1-2', name: 'Quiz VLAN & Trunking', pages: 6, completed: false, category: 'esercizi' }
     ]
   },
   { 
@@ -27,9 +29,11 @@ const INITIAL_SUBJECTS: Subject[] = [
     pages: 18, 
     completed: false, 
     color: '#2563eb',
+    logo: '⚙️',
+    description: 'Meccanismi di coda, prioritizzazione e policy di Quality of Service.',
     tasks: [
-      { id: 'task-2-1', name: 'Lettura QoS Overview', pages: 10, completed: false },
-      { id: 'task-2-2', name: 'Esercizi code prioritizzazione', pages: 8, completed: false }
+      { id: 'task-2-1', name: 'Lettura QoS Overview', pages: 10, completed: false, category: 'teoria' },
+      { id: 'task-2-2', name: 'Esercizi code prioritizzazione', pages: 8, completed: false, category: 'esercizi' }
     ]
   },
   { 
@@ -38,9 +42,11 @@ const INITIAL_SUBJECTS: Subject[] = [
     pages: 22, 
     completed: false, 
     color: '#059669',
+    logo: '🌐',
+    description: 'Definizioni e modelli del Cloud (IaaS, PaaS, SaaS).',
     tasks: [
-      { id: 'task-3-1', name: 'Architettura Cloud Computing', pages: 12, completed: false },
-      { id: 'task-3-2', name: 'Quiz di ricapitolazione', pages: 10, completed: false }
+      { id: 'task-3-1', name: 'Architettura Cloud Computing', pages: 12, completed: false, category: 'teoria' },
+      { id: 'task-3-2', name: 'Quiz di ricapitolazione', pages: 10, completed: false, category: 'esercizi' }
     ]
   },
   { 
@@ -49,6 +55,8 @@ const INITIAL_SUBJECTS: Subject[] = [
     pages: 16, 
     completed: false, 
     color: '#7c3aed',
+    logo: '💻',
+    description: 'Hypervisor, macchine virtuali e architetture di virtualizzazione.',
     tasks: []
   },
   { 
@@ -57,6 +65,8 @@ const INITIAL_SUBJECTS: Subject[] = [
     pages: 23, 
     completed: false, 
     color: '#dc2626',
+    logo: '📦',
+    description: 'Docker, containerizzazione e orchestrazione base.',
     tasks: []
   },
   { 
@@ -65,6 +75,8 @@ const INITIAL_SUBJECTS: Subject[] = [
     pages: 17, 
     completed: false, 
     color: '#db2777',
+    logo: '📡',
+    description: 'Reti software-defined (SDN) e piani di controllo/dati.',
     tasks: []
   }
 ];
@@ -271,10 +283,15 @@ function App() {
     const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}-subjects`);
     if (saved) {
       const parsed = JSON.parse(saved) as Subject[];
-      // Migrate existing state database to support the new tasks array cleanly
+      // Migrate existing state database to support the new tasks array, categories, logos, and descriptions cleanly
       return parsed.map((s) => ({
         ...s,
-        tasks: s.tasks || [],
+        logo: s.logo || '📚',
+        description: s.description || '',
+        tasks: (s.tasks || []).map((t) => ({
+          ...t,
+          category: t.category || 'teoria'
+        })),
       }));
     }
     return INITIAL_SUBJECTS;
@@ -343,6 +360,8 @@ function App() {
       pages,
       completed: false,
       color,
+      logo: '📚',
+      description: '',
       tasks: [],
     };
     setSubjects([...subjects, newSubject]);
@@ -488,6 +507,7 @@ function App() {
                 onToggleSubject={handleToggleSubject}
                 onDeleteSubject={handleDeleteSubject}
                 onUpdateSubjects={setSubjects}
+                onRedirectToSubjects={() => setActiveTab('subjects')}
               />
             </aside>
           )}
