@@ -8,7 +8,6 @@ interface WeeklyGridProps {
   subjects: Subject[];
   onUpdateAllWeeks: (updatedWeeks: WeekPlan[]) => void;
   onUpdateSubjects: (updatedSubjects: Subject[]) => void;
-  isFirstWeek?: boolean;
 }
 
 const getQtyLabel = (pages?: number, quantityType?: TaskQuantityType): string => {
@@ -27,13 +26,11 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
   subjects,
   onUpdateAllWeeks,
   onUpdateSubjects,
-  isFirstWeek = false,
 }) => {
   const [addingTaskForSlot, setAddingTaskForSlot] = useState<{ dayId: string; slotKey: string } | null>(null);
   const [newTaskName, setNewTaskName] = useState('');
   const [dragOverSlot, setDragOverSlot] = useState<{ dayId: string; slotKey: string } | null>(null);
 
-  // Color class from subject color hex
   const getSubjectColorClass = (subjectId?: string) => {
     if (!subjectId) return 'item-custom';
     const sub = subjects.find(s => s.id === subjectId);
@@ -42,20 +39,15 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
       '#fbbf24': 'color-gold',   '#60a5fa': 'color-blue',
       '#34d399': 'color-emerald','#a78bfa': 'color-purple',
       '#f87171': 'color-red',    '#f472b6': 'color-pink',
-      '#d97706': 'color-gold',   '#2563eb': 'color-blue',
-      '#059669': 'color-emerald','#7c3aed': 'color-purple',
-      '#dc2626': 'color-red',    '#db2777': 'color-pink',
     };
     return colorsMap[sub.color] || 'color-gold';
   };
 
-  // Find subject for a calendar item
   const getSubjectInfo = (subjectId?: string) => {
     if (!subjectId) return null;
     return subjects.find(s => s.id === subjectId) || null;
   };
 
-  // Month class for header coloring only
   const getMonthClass = (dateLabel: string) => {
     const month = (dateLabel.split(' ')[1] || '').toLowerCase();
     if (month.includes('mag')) return 'month-mag';
@@ -67,8 +59,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
   // --- Drag & Drop ---
   const handleDragOver = (e: React.DragEvent, dayId: string, slotKey: string) => {
     e.preventDefault();
-    const dragged = (window as any).reactPlannerDraggedItem;
-    e.dataTransfer.dropEffect = dragged?.type === 'calendar-item' ? 'move' : 'copy';
+    e.dataTransfer.dropEffect = 'copyMove';
     if (dragOverSlot?.dayId !== dayId || dragOverSlot?.slotKey !== slotKey) {
       setDragOverSlot({ dayId, slotKey });
     }
@@ -104,7 +95,8 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
       const newItem: CalendarItem = {
         id: `cal-task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         subjectId: dragged.subjectId,
-        name: dragged.name,                      // Just task name, NOT "Subject: Task"
+        taskId: dragged.taskId,      // store for sync
+        name: dragged.name,
         pages: dragged.pages,
         quantityType: dragged.quantityType as TaskQuantityType,
         completed: false,
@@ -157,23 +149,50 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
 
   // --- Task Actions ---
   const handleToggleItem = (dayId: string, slotKey: 'mattina' | 'pomeriggio' | 'sera', itemId: string) => {
-    onUpdateAllWeeks(weeks.map(w => {
-      if (w.id === activeWeek.id) {
-        const day = w.days.find(d => d.id === dayId);
-        if (day) { const item = day[slotKey].find(i => i.id === itemId); if (item) item.completed = !item.completed; }
-      }
-      return w;
-    }));
+    // Find the item first to get its current state before toggling
+    let foundItem: CalendarItem | null = null;
+    for (const w of weeks) {
+      const day = w.days.find(d => d.id === dayId);
+      if (day) { foundItem = day[slotKey].find(i => i.id === itemId) || null; break; }
+    }
+    if (!foundItem) return;
+    const newCompleted = !foundItem.completed;
+
+    // Update calendar weeks immutably
+    onUpdateAllWeeks(weeks.map(w => ({
+      ...w,
+      days: w.days.map(d => d.id !== dayId ? d : {
+        ...d,
+        [slotKey]: d[slotKey].map(i => i.id === itemId ? { ...i, completed: newCompleted } : i),
+      }),
+    })));
+
+    // Sync completion to subjects (only for task items linked to a subject)
+    if (foundItem.subjectId) {
+      const item = foundItem;
+      onUpdateSubjects(subjects.map(s => {
+        if (s.id !== item.subjectId) return s;
+        const updatedTasks = s.tasks.map(t => {
+          const isMatch = item.taskId ? t.id === item.taskId : t.name === item.name;
+          return isMatch ? { ...t, completed: newCompleted } : t;
+        });
+        return {
+          ...s,
+          tasks: updatedTasks,
+          completed: updatedTasks.length > 0 && updatedTasks.every(t => t.completed),
+        };
+      }));
+    }
   };
 
   const handleDeleteItem = (dayId: string, slotKey: 'mattina' | 'pomeriggio' | 'sera', itemId: string) => {
-    onUpdateAllWeeks(weeks.map(w => {
-      if (w.id === activeWeek.id) {
-        const day = w.days.find(d => d.id === dayId);
-        if (day) day[slotKey] = day[slotKey].filter(i => i.id !== itemId);
-      }
-      return w;
-    }));
+    onUpdateAllWeeks(weeks.map(w => ({
+      ...w,
+      days: w.days.map(d => d.id !== dayId ? d : {
+        ...d,
+        [slotKey]: d[slotKey].filter(i => i.id !== itemId),
+      }),
+    })));
   };
 
   const handleAddCustomTaskSubmit = (e: React.FormEvent, dayId: string, slotKey: 'mattina' | 'pomeriggio' | 'sera') => {
@@ -186,13 +205,13 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     if (match) { parsedPages = parseInt(match[1]); parsedName = newTaskName.replace(pageRegex, '').trim(); }
 
     const newItem: CalendarItem = { id: `cal-custom-${Date.now()}`, name: parsedName, pages: parsedPages, completed: false };
-    onUpdateAllWeeks(weeks.map(w => {
-      if (w.id === activeWeek.id) {
-        const day = w.days.find(d => d.id === dayId);
-        if (day) day[slotKey].push(newItem);
-      }
-      return w;
-    }));
+    onUpdateAllWeeks(weeks.map(w => ({
+      ...w,
+      days: w.days.map(d => d.id !== dayId ? d : {
+        ...d,
+        [slotKey]: [...d[slotKey], newItem],
+      }),
+    })));
     setNewTaskName('');
     setAddingTaskForSlot(null);
   };
@@ -211,7 +230,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
         const dayNumberOnly = parts[1] || '';
         const monthOnly = day.dateLabel.split(' ')[1] || '';
         const monthClass = getMonthClass(day.dateLabel);
-        const isWeekend = ['sabato', 'domenica'].some(d => dayNameOnly.toLowerCase().includes(d));
+        const isWeekend = ['sabato', 'domenica'].some(d => dayNameOnly.toLowerCase().startsWith(d));
 
         const todayDate = new Date();
         const monthsShort = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
@@ -222,21 +241,13 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
             key={day.id}
             className={`calendar-column glass-container ${monthClass} ${isWeekend ? 'day-weekend' : ''} ${isToday ? 'day-today' : ''}`}
           >
-            {/* Column Header — month color applied here only */}
+            {/* Column Header — month color applied via class on this div */}
             <div className={`column-header cal-col-header-month ${monthClass}`}>
               <div className="day-title day-title-row">
-                {isFirstWeek ? (
-                  <>
-                    <span className="day-name">{dayNameOnly}</span>
-                    <span className="day-number-highlight">{dayNumberOnly}</span>
-                    <span className="day-month-neutral">{monthOnly}</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="day-number-highlight">{dayNumberOnly}</span>
-                    <span className="day-month-neutral">{monthOnly}</span>
-                  </>
-                )}
+                {/* Always show day name for all weeks */}
+                <span className="day-name">{dayNameOnly}</span>
+                <span className="day-number-highlight">{dayNumberOnly}</span>
+                <span className="day-month-neutral">{monthOnly}</span>
               </div>
               {isToday && <span className="today-badge">Oggi</span>}
             </div>
@@ -261,10 +272,10 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                     ) : (
                       <div className="slot-items-list">
                         {items.map((item) => {
-                          const colorClass = getSubjectColorClass(item.subjectId);
-                          const subject = getSubjectInfo(item.subjectId);
+                          const isEvent = !!item.eventType;
+                          const colorClass = isEvent ? '' : getSubjectColorClass(item.subjectId);
+                          const subject = isEvent ? null : getSubjectInfo(item.subjectId);
                           const qtyLabel = getQtyLabel(item.pages, item.quantityType);
-                          // Abbreviate subject name to max 14 chars
                           const subjLabel = subject
                             ? (subject.name.length > 14 ? subject.name.slice(0, 13) + '…' : subject.name)
                             : null;
@@ -275,19 +286,26 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                               draggable
                               onDragStart={(e) => handleCalendarItemDragStart(e, item.id, day.id, slotKey)}
                               onDragEnd={handleCalendarItemDragEnd}
-                              className={`scheduled-item-pill ${colorClass} ${item.completed ? 'completed' : ''}`}
+                              className={`scheduled-item-pill ${colorClass} ${isEvent ? `event-pill event-${item.eventType}` : ''} ${item.completed ? 'completed' : ''}`}
                             >
-                              {/* Top row: checkbox + task name + delete */}
+                              {/* Top row: checkbox + name + [event badge] + delete */}
                               <div className="item-header-row">
-                                <label className="checkbox-container-sm">
-                                  <input
-                                    type="checkbox"
-                                    checked={item.completed}
-                                    onChange={() => handleToggleItem(day.id, slotKey, item.id)}
-                                  />
-                                  <span className="checkmark-sm"></span>
-                                </label>
+                                {!isEvent && (
+                                  <label className="checkbox-container-sm">
+                                    <input
+                                      type="checkbox"
+                                      checked={item.completed}
+                                      onChange={() => handleToggleItem(day.id, slotKey, item.id)}
+                                    />
+                                    <span className="checkmark-sm"></span>
+                                  </label>
+                                )}
                                 <span className="item-name" title={item.name}>{item.name}</span>
+                                {isEvent && (
+                                  <span className={`event-type-badge event-badge-${item.eventType}`}>
+                                    {item.eventType === 'esame' ? 'ESAME' : 'SVAGO'}
+                                  </span>
+                                )}
                                 <button
                                   type="button"
                                   className="btn-delete-item"
@@ -298,8 +316,8 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                                 </button>
                               </div>
 
-                              {/* Bottom row: subject tag + quantity tag */}
-                              {(subjLabel || qtyLabel) && (
+                              {/* Bottom row: subject tag + quantity tag (only for task items) */}
+                              {!isEvent && (subjLabel || qtyLabel) && (
                                 <div className="item-tags-row">
                                   {subjLabel && (
                                     <span

@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import type { PlannerState, Subject, WeekPlan } from './types/planner';
 import { MaterialsList } from './components/MaterialsList';
 import { WeeklyGrid } from './components/WeeklyGrid';
-import { AddWeekModal } from './components/AddWeekModal';
 import { ImportExport } from './components/ImportExport';
 import { SubjectsManager } from './components/SubjectsManager';
-import { PlusIcon, CalendarIcon, BookIcon } from './components/Icons';
+import { AddEventModal } from './components/AddEventModal';
+import { PlusIcon, CalendarIcon, BookIcon, ChevronLeftIcon, ChevronRightIcon } from './components/Icons';
 import './App.css';
+
 
 // Version key for forced migration when data structure changes
 const PLANNER_VERSION = '4';
@@ -203,12 +204,13 @@ function App() {
     return localStorage.getItem(TITLE_STORAGE_KEY) || 'SESSIONE ESTIVA';
   });
 
-  const [showAddWeekModal, setShowAddWeekModal] = useState(false);
+  const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<'planner' | 'subjects'>('planner');
   const [theme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('antigravity-studio-planner-theme') as 'dark' | 'light') || 'dark';
   });
+
 
   // Sync version on mount (after state is set)
   useEffect(() => {
@@ -220,6 +222,55 @@ function App() {
   useEffect(() => { localStorage.setItem(`${LOCAL_STORAGE_KEY}-weeks`, JSON.stringify(weeks)); }, [weeks]);
   useEffect(() => { localStorage.setItem(`${LOCAL_STORAGE_KEY}-activeWeekId`, activeWeekId); }, [activeWeekId]);
   useEffect(() => { localStorage.setItem(TITLE_STORAGE_KEY, sessionTitle); }, [sessionTitle]);
+
+  // Sync task completed state from subjects to calendar items
+  useEffect(() => {
+    setWeeks((prevWeeks) => {
+      let changed = false;
+      const nextWeeks = prevWeeks.map((w) => {
+        const nextDays = w.days.map((d) => {
+          let dayChanged = false;
+          const slotsToSync = (['mattina', 'pomeriggio', 'sera'] as const).map((slotKey) => {
+            let slotChanged = false;
+            const nextSlot = d[slotKey].map((item) => {
+              if (item.subjectId) {
+                const subject = subjects.find((s) => s.id === item.subjectId);
+                const task = subject?.tasks.find((t) => item.taskId ? t.id === item.taskId : t.name === item.name);
+                if (task && item.completed !== task.completed) {
+                  slotChanged = true;
+                  return { ...item, completed: task.completed };
+                }
+              }
+              return item;
+            });
+            if (slotChanged) slotChanged = true; // flag slot as updated
+            const isSlotUpdated = nextSlot.some((ni, idx) => ni !== d[slotKey][idx]);
+            if (isSlotUpdated) {
+              dayChanged = true;
+            }
+            return nextSlot;
+          });
+          if (dayChanged) {
+            return {
+              ...d,
+              mattina: slotsToSync[0],
+              pomeriggio: slotsToSync[1],
+              sera: slotsToSync[2],
+            };
+          }
+          return d;
+        });
+        const isWeekUpdated = nextDays.some((nd, idx) => nd !== w.days[idx]);
+        if (isWeekUpdated) {
+          changed = true;
+          return { ...w, days: nextDays };
+        }
+        return w;
+      });
+      return changed ? nextWeeks : prevWeeks;
+    });
+  }, [subjects]);
+
 
   const handleAddSubject = (name: string, pages: number, color: string) => {
     setSubjects([...subjects, {
@@ -244,6 +295,30 @@ function App() {
     setShowAddWeekModal(false);
   };
 
+  const handleAddEvent = (
+    title: string,
+    eventType: 'esame' | 'svago',
+    slots: Array<{ dayId: string; slotKey: 'mattina' | 'pomeriggio' | 'sera' }>
+  ) => {
+    const updatedWeeks = JSON.parse(JSON.stringify(weeks)) as WeekPlan[];
+    for (const slot of slots) {
+      for (const w of updatedWeeks) {
+        const day = w.days.find(d => d.id === slot.dayId);
+        if (day) {
+          day[slot.slotKey].push({
+            id: `cal-event-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+            name: title,
+            eventType,
+            completed: false,
+          });
+          break;
+        }
+      }
+    }
+    setWeeks(updatedWeeks);
+    setShowAddEventModal(false);
+  };
+
   const handleImportState = (importedState: PlannerState) => {
     setWeeks(importedState.weeks);
     setSubjects(importedState.subjects);
@@ -251,6 +326,7 @@ function App() {
       setActiveWeekId(importedState.activeWeekId || importedState.weeks[0].id);
     }
   };
+
 
   const handleResetAll = () => {
     if (window.confirm("⚠️ ATTENZIONE: Questo cancellerà PERMANENTEMENTE tutti i tuoi dati di studio. Vuoi procedere?")) {
@@ -305,64 +381,62 @@ function App() {
         <div className="header-controls">
           {activeTab === 'planner' && (
             <button
-              className={`btn ${isSidebarOpen ? 'btn-warning' : 'btn-secondary'} btn-sm`}
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              title={isSidebarOpen ? "Nascondi Libreria" : "Mostra Libreria"}
+              className="btn btn-primary btn-sm"
+              onClick={() => setShowAddEventModal(true)}
+              title="Aggiungi un evento speciale (esame, svago) al calendario"
             >
-              <span>{isSidebarOpen ? 'Chiudi Libreria' : 'Apri Libreria'}</span>
-            </button>
-          )}
-          {activeTab === 'planner' && (
-            <button className="btn btn-primary btn-sm" onClick={() => setShowAddWeekModal(true)} title="Pianifica una nuova settimana">
-              <PlusIcon size={16} />
-              <span>Nuova Settimana</span>
+              <PlusIcon size={15} />
+              <span>Aggiungi Evento</span>
             </button>
           )}
           <ImportExport plannerState={{ weeks, subjects, activeWeekId }} onImportState={handleImportState} />
         </div>
       </header>
 
+
       {activeTab === 'subjects' ? (
         <SubjectsManager subjects={subjects} onUpdateSubjects={setSubjects} />
       ) : (
-        <div className={`main-dashboard-layout ${isSidebarOpen ? '' : 'sidebar-closed'}`}>
-          {isSidebarOpen && (
-            <aside className="layout-left-column">
-              <MaterialsList
-                subjects={subjects}
-                onAddSubject={handleAddSubject}
-                onToggleSubject={handleToggleSubject}
-                onDeleteSubject={handleDeleteSubject}
-                onUpdateSubjects={setSubjects}
-                onRedirectToSubjects={() => setActiveTab('subjects')}
-              />
-            </aside>
-          )}
+        <div className="main-dashboard-layout">
+          {/* Sidebar — always in DOM, animated via CSS */}
+          <aside className={`layout-left-column ${isSidebarOpen ? '' : 'sidebar-panel-closed'}`}>
+            <MaterialsList
+              subjects={subjects}
+              onAddSubject={handleAddSubject}
+              onToggleSubject={handleToggleSubject}
+              onDeleteSubject={handleDeleteSubject}
+              onUpdateSubjects={setSubjects}
+              onRedirectToSubjects={() => setActiveTab('subjects')}
+            />
+          </aside>
+
+          {/* Sidebar toggle strip — always visible at boundary */}
+          <div className="sidebar-handle-col">
+            <button
+              className="sidebar-strip-toggle"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              title={isSidebarOpen ? 'Chiudi libreria' : 'Apri libreria'}
+            >
+              {isSidebarOpen ? <ChevronLeftIcon size={13} /> : <ChevronRightIcon size={13} />}
+            </button>
+          </div>
+
           <main className="layout-right-column">
-            {weeks.length > 0 ? (
-              weeks.map((week, index) => (
-                <div key={week.id} className="week-wrapper">
-                  <WeeklyGrid
-                    activeWeek={week}
-                    weeks={weeks}
-                    subjects={subjects}
-                    onUpdateAllWeeks={setWeeks}
-                    onUpdateSubjects={setSubjects}
-                    isFirstWeek={index === 0}
-                  />
-                </div>
-              ))
-            ) : (
-              <div className="empty-state glass-container" style={{ padding: '40px' }}>
-                <p>Nessuna settimana pianificata attiva.</p>
-                <button className="btn btn-primary" onClick={() => setShowAddWeekModal(true)} style={{ marginTop: '12px' }}>
-                  Crea la prima settimana
-                </button>
+            {weeks.map((week) => (
+              <div key={week.id} className="week-wrapper">
+                <WeeklyGrid
+                  activeWeek={week}
+                  weeks={weeks}
+                  subjects={subjects}
+                  onUpdateAllWeeks={setWeeks}
+                  onUpdateSubjects={setSubjects}
+                />
               </div>
-            )}
+            ))}
           </main>
         </div>
       )}
+
 
       <footer className="danger-zone">
         <button className="btn-danger-text" onClick={handleResetAll}>
@@ -370,11 +444,11 @@ function App() {
         </button>
       </footer>
 
-      {showAddWeekModal && (
-        <AddWeekModal
-          onClose={() => setShowAddWeekModal(false)}
-          onAddWeek={handleAddWeek}
-          suggestedWeekNumber={weeks.length + 1}
+      {showAddEventModal && (
+        <AddEventModal
+          weeks={weeks}
+          onClose={() => setShowAddEventModal(false)}
+          onConfirm={handleAddEvent}
         />
       )}
     </div>
@@ -382,3 +456,4 @@ function App() {
 }
 
 export default App;
+

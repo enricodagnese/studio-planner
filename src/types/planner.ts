@@ -23,9 +23,11 @@ export interface Subject {
 export interface CalendarItem {
   id: string;
   subjectId?: string; // Links to a Subject if dragged from the list
+  taskId?: string;          // For reliable sync with subject task completion
   name: string; // The task display name (without subject prefix)
   pages?: number; // Quantity value
   quantityType?: TaskQuantityType; // How to display the quantity
+  eventType?: 'esame' | 'svago';   // For extra calendar events
   completed: boolean;
 }
 
