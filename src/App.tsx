@@ -81,41 +81,110 @@ const INITIAL_SUBJECTS: Subject[] = [
   }
 ];
 
+// Study period: May 25 → July 17 (no days beyond Jul 17)
 const INITIAL_WEEKS: WeekPlan[] = [
   {
     id: 'week-1',
-    name: 'Settimana 1: 18 Lug - 19 Lug',
+    name: 'Settimana 1: 25 Mag - 31 Mag',
     days: [
-      { id: 'day-8-6', name: 'Sabato 18', dateLabel: '18 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-8-7', name: 'Domenica 19', dateLabel: '19 Lug', mattina: [], pomeriggio: [], sera: [] }
+      { id: 'day-1-1', name: 'Domenica 25', dateLabel: '25 Mag', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-1-2', name: 'Lunedì 26', dateLabel: '26 Mag', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-1-3', name: 'Martedì 27', dateLabel: '27 Mag', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-1-4', name: 'Mercoledì 28', dateLabel: '28 Mag', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-1-5', name: 'Giovedì 29', dateLabel: '29 Mag', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-1-6', name: 'Venerdì 30', dateLabel: '30 Mag', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-1-7', name: 'Sabato 31', dateLabel: '31 Mag', mattina: [], pomeriggio: [], sera: [] },
     ]
   },
   {
     id: 'week-2',
-    name: 'Settimana 2: 20 Lug - 26 Lug',
+    name: 'Settimana 2: 1 Giu - 7 Giu',
     days: [
-      { id: 'day-9-1', name: 'Lunedì 20', dateLabel: '20 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-9-2', name: 'Martedì 21', dateLabel: '21 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-9-3', name: 'Mercoledì 22', dateLabel: '22 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-9-4', name: 'Giovedì 23', dateLabel: '23 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-9-5', name: 'Venerdì 24', dateLabel: '24 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-9-6', name: 'Sabato 25', dateLabel: '25 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-9-7', name: 'Domenica 26', dateLabel: '26 Lug', mattina: [], pomeriggio: [], sera: [] }
+      { id: 'day-2-1', name: 'Domenica 1', dateLabel: '1 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-2-2', name: 'Lunedì 2', dateLabel: '2 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-2-3', name: 'Martedì 3', dateLabel: '3 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-2-4', name: 'Mercoledì 4', dateLabel: '4 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-2-5', name: 'Giovedì 5', dateLabel: '5 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-2-6', name: 'Venerdì 6', dateLabel: '6 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-2-7', name: 'Sabato 7', dateLabel: '7 Giu', mattina: [], pomeriggio: [], sera: [] },
     ]
   },
   {
     id: 'week-3',
-    name: 'Settimana 3: 27 Lug - 2 Ago',
+    name: 'Settimana 3: 8 Giu - 14 Giu',
     days: [
-      { id: 'day-10-1', name: 'Lunedì 27', dateLabel: '27 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-10-2', name: 'Martedì 28', dateLabel: '28 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-10-3', name: 'Mercoledì 29', dateLabel: '29 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-10-4', name: 'Giovedì 30', dateLabel: '30 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-10-5', name: 'Venerdì 31', dateLabel: '31 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-10-6', name: 'Sabato 1', dateLabel: '1 Ago', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'day-10-7', name: 'Domenica 2', dateLabel: '2 Ago', mattina: [], pomeriggio: [], sera: [] }
+      { id: 'day-3-1', name: 'Domenica 8', dateLabel: '8 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-3-2', name: 'Lunedì 9', dateLabel: '9 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-3-3', name: 'Martedì 10', dateLabel: '10 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-3-4', name: 'Mercoledì 11', dateLabel: '11 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-3-5', name: 'Giovedì 12', dateLabel: '12 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-3-6', name: 'Venerdì 13', dateLabel: '13 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-3-7', name: 'Sabato 14', dateLabel: '14 Giu', mattina: [], pomeriggio: [], sera: [] },
     ]
-  }
+  },
+  {
+    id: 'week-4',
+    name: 'Settimana 4: 15 Giu - 21 Giu',
+    days: [
+      { id: 'day-4-1', name: 'Domenica 15', dateLabel: '15 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-4-2', name: 'Lunedì 16', dateLabel: '16 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-4-3', name: 'Martedì 17', dateLabel: '17 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-4-4', name: 'Mercoledì 18', dateLabel: '18 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-4-5', name: 'Giovedì 19', dateLabel: '19 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-4-6', name: 'Venerdì 20', dateLabel: '20 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-4-7', name: 'Sabato 21', dateLabel: '21 Giu', mattina: [], pomeriggio: [], sera: [] },
+    ]
+  },
+  {
+    id: 'week-5',
+    name: 'Settimana 5: 22 Giu - 28 Giu',
+    days: [
+      { id: 'day-5-1', name: 'Domenica 22', dateLabel: '22 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-5-2', name: 'Lunedì 23', dateLabel: '23 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-5-3', name: 'Martedì 24', dateLabel: '24 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-5-4', name: 'Mercoledì 25', dateLabel: '25 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-5-5', name: 'Giovedì 26', dateLabel: '26 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-5-6', name: 'Venerdì 27', dateLabel: '27 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-5-7', name: 'Sabato 28', dateLabel: '28 Giu', mattina: [], pomeriggio: [], sera: [] },
+    ]
+  },
+  {
+    id: 'week-6',
+    name: 'Settimana 6: 29 Giu - 5 Lug',
+    days: [
+      { id: 'day-6-1', name: 'Domenica 29', dateLabel: '29 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-6-2', name: 'Lunedì 30', dateLabel: '30 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-6-3', name: 'Martedì 1', dateLabel: '1 Lug', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-6-4', name: 'Mercoledì 2', dateLabel: '2 Lug', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-6-5', name: 'Giovedì 3', dateLabel: '3 Lug', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-6-6', name: 'Venerdì 4', dateLabel: '4 Lug', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-6-7', name: 'Sabato 5', dateLabel: '5 Lug', mattina: [], pomeriggio: [], sera: [] },
+    ]
+  },
+  {
+    id: 'week-7',
+    name: 'Settimana 7: 6 Lug - 12 Lug',
+    days: [
+      { id: 'day-7-1', name: 'Domenica 6', dateLabel: '6 Lug', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-7-2', name: 'Lunedì 7', dateLabel: '7 Lug', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-7-3', name: 'Martedì 8', dateLabel: '8 Lug', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-7-4', name: 'Mercoledì 9', dateLabel: '9 Lug', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-7-5', name: 'Giovedì 10', dateLabel: '10 Lug', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-7-6', name: 'Venerdì 11', dateLabel: '11 Lug', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-7-7', name: 'Sabato 12', dateLabel: '12 Lug', mattina: [], pomeriggio: [], sera: [] },
+    ]
+  },
+  {
+    id: 'week-8',
+    name: 'Settimana 8: 13 Lug - 17 Lug',
+    days: [
+      { id: 'day-8-1', name: 'Domenica 13', dateLabel: '13 Lug', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-8-2', name: 'Lunedì 14', dateLabel: '14 Lug', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-8-3', name: 'Martedì 15', dateLabel: '15 Lug', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-8-4', name: 'Mercoledì 16', dateLabel: '16 Lug', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'day-8-5', name: 'Giovedì 17', dateLabel: '17 Lug', mattina: [], pomeriggio: [], sera: [] },
+    ]
+  },
 ];
 
 const LOCAL_STORAGE_KEY = 'antigravity-studio-planner-state';
@@ -162,9 +231,12 @@ function App() {
     const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}-weeks`);
     if (saved) {
       const parsed = JSON.parse(saved) as WeekPlan[];
-      // If the saved state has weeks with May (Mag) or June (Giu) days, auto-migrate to the new July starting date!
-      const hasOldDays = parsed.some(w => w.days.some(d => d.dateLabel.includes('Mag') || d.dateLabel.includes('Giu')));
-      if (hasOldDays || parsed.length > 3) {
+      // If the saved state has weeks starting from July 18+, auto-migrate to the new range!
+      const hasWrongDays = parsed.some(w => w.days.some(d =>
+        (d.dateLabel.includes('Lug') && parseInt(d.dateLabel) >= 18) ||
+        d.dateLabel.includes('Ago')
+      ));
+      if (hasWrongDays) {
         return INITIAL_WEEKS;
       }
       return parsed;
@@ -193,8 +265,6 @@ function App() {
     const saved = localStorage.getItem('antigravity-studio-planner-theme');
     return (saved as 'dark' | 'light') || 'dark';
   });
-
-  const [copiedItem, setCopiedItem] = useState<{ name: string; pages?: number; subjectId?: string } | null>(null);
 
   // Sync to LocalStorage
   useEffect(() => {
@@ -227,7 +297,7 @@ function App() {
       pages,
       completed: false,
       color,
-      logo: '📚',
+      logo: 'shield',
       description: '',
       tasks: [],
     };
@@ -277,7 +347,6 @@ function App() {
       setSessionTitle('SESSIONE ESTIVA');
     }
   };
-
 
 
 
@@ -381,9 +450,8 @@ function App() {
                     weeks={weeks}
                     subjects={subjects}
                     onUpdateAllWeeks={setWeeks}
+                    onUpdateSubjects={setSubjects}
                     isFirstWeek={index === 0}
-                    copiedItem={copiedItem}
-                    onCopyItem={setCopiedItem}
                   />
                 </div>
               );

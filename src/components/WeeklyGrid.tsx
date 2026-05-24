@@ -7,9 +7,8 @@ interface WeeklyGridProps {
   weeks: WeekPlan[];
   subjects: Subject[];
   onUpdateAllWeeks: (updatedWeeks: WeekPlan[]) => void;
+  onUpdateSubjects: (updatedSubjects: Subject[]) => void;
   isFirstWeek?: boolean;
-  copiedItem: { name: string; pages?: number; subjectId?: string } | null;
-  onCopyItem: (item: { name: string; pages?: number; subjectId?: string } | null) => void;
 }
 
 export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
@@ -17,9 +16,8 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
   weeks,
   subjects,
   onUpdateAllWeeks,
+  onUpdateSubjects,
   isFirstWeek = false,
-  copiedItem,
-  onCopyItem,
 }) => {
   const [addingTaskForSlot, setAddingTaskForSlot] = useState<{ dayId: string; slotKey: string } | null>(null);
   const [newTaskName, setNewTaskName] = useState('');
@@ -32,6 +30,13 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     if (!sub) return 'item-custom';
     
     const colorsMap: Record<string, string> = {
+      '#fbbf24': 'color-gold',
+      '#60a5fa': 'color-blue',
+      '#34d399': 'color-emerald',
+      '#a78bfa': 'color-purple',
+      '#f87171': 'color-red',
+      '#f472b6': 'color-pink',
+      // Legacy dark colors
       '#d97706': 'color-gold',
       '#2563eb': 'color-blue',
       '#059669': 'color-emerald',
@@ -52,16 +57,12 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     return '';
   };
 
-  // Helper to assign a specific color class to each column based on Italian day name
-  const getDayClass = (dayName: string) => {
-    const name = dayName.toLowerCase();
-    if (name.includes('lunedì')) return 'day-lunedi';
-    if (name.includes('martedì')) return 'day-martedi';
-    if (name.includes('mercoledì')) return 'day-mercoledi';
-    if (name.includes('giovedì')) return 'day-giovedi';
-    if (name.includes('venerdì')) return 'day-venerdi';
-    if (name.includes('sabato')) return 'day-sabato';
-    if (name.includes('domenica')) return 'day-domenica';
+  // Helper: determine month class for the calendar column background
+  const getMonthClass = (dateLabel: string) => {
+    const month = dateLabel.split(' ')[1]?.toLowerCase() || '';
+    if (month.includes('mag')) return 'month-mag';
+    if (month.includes('giu')) return 'month-giu';
+    if (month.includes('lug') || month.includes('ago')) return 'month-lug';
     return '';
   };
 
@@ -98,7 +99,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     const updatedWeeks = JSON.parse(JSON.stringify(weeks)) as WeekPlan[];
 
     if (dragged.type === 'subject') {
-      // Case 1: Dragging a subject from the materials library
+      // Case 1: Dragging a whole subject from the materials library
       const subjectId = dragged.id;
       const originSubject = subjects.find(s => s.id === subjectId);
       if (!originSubject) return;
@@ -117,6 +118,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
 
       targetDay[slotKey].push(newItem);
       onUpdateAllWeeks(updatedWeeks);
+
     } else if (dragged.type === 'task') {
       // Case 2: Dragging a specific granular sub-task from the materials library tree
       const originSubject = subjects.find(s => s.id === dragged.subjectId);
@@ -137,8 +139,23 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
 
       targetDay[slotKey].push(newItem);
       onUpdateAllWeeks(updatedWeeks);
+
+      // Auto-remove this task from the subject's task list now that it is scheduled
+      if (dragged.taskId) {
+        const updatedSubjects = subjects.map(s => {
+          if (s.id === dragged.subjectId) {
+            return {
+              ...s,
+              tasks: s.tasks.filter(t => t.id !== dragged.taskId),
+            };
+          }
+          return s;
+        });
+        onUpdateSubjects(updatedSubjects);
+      }
+
     } else if (dragged.type === 'calendar-item') {
-      // Case 2: Dragging an existing calendar item (cross-week & intra-week fully supported!)
+      // Case 3: Dragging an existing calendar item (cross-week & intra-week fully supported!)
       const calendarItemId = dragged.id;
       const sourceDayId = dragged.sourceDayId;
       const sourceSlotKey = dragged.sourceSlotKey as 'mattina' | 'pomeriggio' | 'sera';
@@ -198,28 +215,6 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
   const handleCalendarItemDragEnd = (e: React.DragEvent) => {
     const element = e.currentTarget as HTMLElement;
     element.classList.remove('dragging');
-  };
-
-  const handlePasteItem = (dayId: string, slotKey: 'mattina' | 'pomeriggio' | 'sera') => {
-    if (!copiedItem) return;
-    const newItem: CalendarItem = {
-      id: `cal-paste-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-      name: copiedItem.name,
-      pages: copiedItem.pages,
-      subjectId: copiedItem.subjectId,
-      completed: false,
-    };
-
-    const updatedWeeks = weeks.map(w => {
-      if (w.id === activeWeek.id) {
-        const day = w.days.find(d => d.id === dayId);
-        if (day) {
-          day[slotKey].push(newItem);
-        }
-      }
-      return w;
-    });
-    onUpdateAllWeeks(updatedWeeks);
   };
 
   // --- Task Manipulation Handlers ---
@@ -320,7 +315,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
         const [dayNameOnly] = day.name.split(' ');
         const dayNumberOnly = day.name.split(' ')[1] || '';
         const monthOnly = day.dateLabel.split(' ')[1] || '';
-        const dayColorClass = getDayClass(day.name);
+        const monthClass = getMonthClass(day.dateLabel);
         const isWeekend = dayNameOnly.toLowerCase().includes('sabato') || dayNameOnly.toLowerCase().includes('domenica');
         
         // High-end dynamic current day highlighter
@@ -330,32 +325,22 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
         const todayMonthShort = monthsShort[todayDate.getMonth()];
         const isToday = day.dateLabel === `${todayDayNumber} ${todayMonthShort}`;
 
-        const monthOnlyLower = monthOnly.toLowerCase();
-        let monthColor = '';
-        if (monthOnlyLower.includes('mag')) {
-          monthColor = '#34d399'; // Green
-        } else if (monthOnlyLower.includes('giu')) {
-          monthColor = '#fbbf24'; // Yellow
-        } else if (monthOnlyLower.includes('lug') || monthOnlyLower.includes('ago')) {
-          monthColor = '#f87171'; // Red
-        }
-
         return (
           <div 
             key={day.id} 
-            className={`calendar-column glass-container ${dayColorClass} ${isWeekend ? 'day-weekend' : ''} ${isToday ? 'day-today' : ''}`}
+            className={`calendar-column glass-container ${monthClass} ${isWeekend ? 'day-weekend' : ''} ${isToday ? 'day-today' : ''}`}
           >
             <div className="column-header">
               <div className="day-title day-title-row">
                 {isFirstWeek ? (
                   <>
-                    <span className="day-name" style={monthColor ? { color: monthColor } : {}}>{dayNameOnly}</span>
-                    <span className="day-number-highlight" style={monthColor ? { color: monthColor } : {}}>{dayNumberOnly}</span>
+                    <span className="day-name">{dayNameOnly}</span>
+                    <span className="day-number-highlight">{dayNumberOnly}</span>
                     <span className="day-month-neutral">{monthOnly}</span>
                   </>
                 ) : (
                   <>
-                    <span className="day-number-highlight" style={monthColor ? { color: monthColor } : {}}>{dayNumberOnly}</span>
+                    <span className="day-number-highlight">{dayNumberOnly}</span>
                     <span className="day-month-neutral">{monthOnly}</span>
                   </>
                 )}
@@ -411,14 +396,6 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                               <div className="item-pill-actions">
                                 <button
                                   type="button"
-                                  className="btn-copy-item"
-                                  onClick={() => onCopyItem({ name: item.name, pages: item.pages, subjectId: item.subjectId })}
-                                  title="Copia compito"
-                                >
-                                  📋
-                                </button>
-                                <button
-                                  type="button"
                                   className="btn-delete-item"
                                   onClick={() => handleDeleteItem(day.id, slotKey, item.id)}
                                   title="Rimuovi"
@@ -470,16 +447,6 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                           <PlusIcon size={12} />
                           <span>Aggiungi...</span>
                         </button>
-                        {copiedItem && (
-                          <button
-                            type="button"
-                            className="btn-paste-to-slot"
-                            onClick={() => handlePasteItem(day.id, slotKey)}
-                            title={`Incolla "${copiedItem.name}"`}
-                          >
-                            Incolla
-                          </button>
-                        )}
                       </div>
                     )}
                   </div>

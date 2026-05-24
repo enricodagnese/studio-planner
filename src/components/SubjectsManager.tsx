@@ -41,6 +41,9 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
   const [taskName, setTaskName] = useState('');
   const [taskPages, setTaskPages] = useState<number>(10);
 
+  // Copy/paste clipboard for tasks within subjects
+  const [copiedTask, setCopiedTask] = useState<{ name: string; pages: number; category: 'teoria' | 'esercizi' | 'altro' } | null>(null);
+
   // Active Subject helper
   const activeSubj = subjects.find(s => s.id === selectedSubjId);
 
@@ -106,6 +109,31 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
     setAddingTaskCategory(null);
   };
 
+  // Paste a copied task into a specific category column
+  const handlePasteTask = (category: 'teoria' | 'esercizi' | 'altro') => {
+    if (!copiedTask || !selectedSubjId || !activeSubj) return;
+
+    const pastedTask: Task = {
+      id: `task-paste-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      name: copiedTask.name,
+      pages: copiedTask.pages,
+      completed: false,
+      category,
+    };
+
+    onUpdateSubjects(
+      subjects.map((s) => {
+        if (s.id === selectedSubjId) {
+          return {
+            ...s,
+            tasks: [...(s.tasks || []), pastedTask]
+          };
+        }
+        return s;
+      })
+    );
+  };
+
   // Toggle Task Checklist
   const handleToggleTask = (taskId: string) => {
     if (!selectedSubjId) return;
@@ -145,6 +173,81 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
       })
     );
   };
+
+  // Render a single task row with copy button
+  const renderTaskRow = (t: Task) => (
+    <div key={t.id} className={`column-task-row ${t.completed ? 'completed' : ''}`}>
+      <label className="checkbox-container-sm">
+        <input type="checkbox" checked={t.completed} onChange={() => handleToggleTask(t.id)} />
+        <span className="checkmark-sm" style={{ '--accent-color': activeSubj!.color } as React.CSSProperties}></span>
+      </label>
+      <div className="task-row-details">
+        <span className="task-row-title-text">{t.name}</span>
+        <span className="task-row-pages-text">{t.pages} pag</span>
+      </div>
+      <div className="task-row-actions">
+        <button
+          className="btn-copy-task"
+          onClick={() => setCopiedTask({ name: t.name, pages: t.pages, category: t.category })}
+          title="Copia task"
+          type="button"
+        >
+          📋
+        </button>
+        <button className="btn-remove-task" onClick={() => handleDeleteTask(t.id)}>×</button>
+      </div>
+    </div>
+  );
+
+  // Render column add/paste area
+  const renderColumnFooter = (category: 'teoria' | 'esercizi' | 'altro') => (
+    <>
+      {addingTaskCategory === category ? (
+        <form onSubmit={(e) => handleAddTask(e, category)} className="column-add-task-form glass-input-panel">
+          <input
+            type="text"
+            placeholder={category === 'teoria' ? 'Es. Capitolo 1' : category === 'esercizi' ? 'Es. Esercitazione code' : 'Es. Ripasso finale'}
+            value={taskName}
+            onChange={(e) => setTaskName(e.target.value)}
+            className="form-control"
+            required
+            autoFocus
+          />
+          <div className="inline-add-row">
+            <input
+              type="number"
+              min="1"
+              placeholder="Pagine"
+              value={taskPages}
+              onChange={(e) => setTaskPages(parseInt(e.target.value) || 1)}
+              className="form-control text-center"
+              required
+            />
+            <div className="inline-add-buttons">
+              <button type="submit" className="btn btn-success btn-xs">✓</button>
+              <button type="button" className="btn btn-secondary btn-xs" onClick={() => setAddingTaskCategory(null)}>×</button>
+            </div>
+          </div>
+        </form>
+      ) : (
+        <div className="column-footer-actions">
+          <button className="btn-column-add-trigger" onClick={() => { setAddingTaskCategory(category); setTaskName(''); setTaskPages(15); }}>
+            + Aggiungi task
+          </button>
+          {copiedTask && (
+            <button
+              className="btn-column-paste-trigger"
+              onClick={() => handlePasteTask(category)}
+              title={`Incolla "${copiedTask.name}"`}
+              type="button"
+            >
+              📋 Incolla
+            </button>
+          )}
+        </div>
+      )}
+    </>
+  );
 
   // View 1: Main List Grid (Drawing 1)
   if (!selectedSubjId || !activeSubj) {
@@ -211,7 +314,7 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
     <div className="subject-workspace-container animate-fade-in">
       {/* Workspace Header */}
       <div className="workspace-header">
-        <button className="btn btn-secondary btn-sm btn-back-to-grid" onClick={() => setSelectedSubjId(null)}>
+        <button className="btn btn-secondary btn-sm btn-back-to-grid" onClick={() => { setSelectedSubjId(null); setCopiedTask(null); }}>
           ⬅ Torna alle materie
         </button>
         <div className="workspace-title-area">
@@ -220,6 +323,12 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
           </span>
           <h2 className="workspace-title">{activeSubj.name}</h2>
         </div>
+        {copiedTask && (
+          <div className="clipboard-indicator">
+            📋 <span>Copiato: <strong>{copiedTask.name}</strong></span>
+            <button className="btn-clear-clipboard" onClick={() => setCopiedTask(null)} title="Svuota clipboard">✕</button>
+          </div>
+        )}
       </div>
 
       {/* Main Workspace split */}
@@ -238,54 +347,10 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
               {theoryTasks.length === 0 ? (
                 <p className="column-empty-hint">Nessun capitolo registrato</p>
               ) : (
-                theoryTasks.map((t) => (
-                  <div key={t.id} className={`column-task-row ${t.completed ? 'completed' : ''}`}>
-                    <label className="checkbox-container-sm">
-                      <input type="checkbox" checked={t.completed} onChange={() => handleToggleTask(t.id)} />
-                      <span className="checkmark-sm" style={{ '--accent-color': activeSubj.color } as React.CSSProperties}></span>
-                    </label>
-                    <div className="task-row-details">
-                      <span className="task-row-title-text">{t.name}</span>
-                      <span className="task-row-pages-text">{t.pages} pag</span>
-                    </div>
-                    <button className="btn-remove-task" onClick={() => handleDeleteTask(t.id)}>×</button>
-                  </div>
-                ))
+                theoryTasks.map(renderTaskRow)
               )}
             </div>
-
-            {addingTaskCategory === 'teoria' ? (
-              <form onSubmit={(e) => handleAddTask(e, 'teoria')} className="column-add-task-form glass-input-panel">
-                <input
-                  type="text"
-                  placeholder="Es. Capitolo 1"
-                  value={taskName}
-                  onChange={(e) => setTaskName(e.target.value)}
-                  className="form-control"
-                  required
-                  autoFocus
-                />
-                <div className="inline-add-row">
-                  <input
-                    type="number"
-                    min="1"
-                    placeholder="Pagine"
-                    value={taskPages}
-                    onChange={(e) => setTaskPages(parseInt(e.target.value) || 1)}
-                    className="form-control text-center"
-                    required
-                  />
-                  <div className="inline-add-buttons">
-                    <button type="submit" className="btn btn-success btn-xs">✓</button>
-                    <button type="button" className="btn btn-secondary btn-xs" onClick={() => setAddingTaskCategory(null)}>×</button>
-                  </div>
-                </div>
-              </form>
-            ) : (
-              <button className="btn-column-add-trigger" onClick={() => { setAddingTaskCategory('teoria'); setTaskName(''); setTaskPages(15); }}>
-                + Aggiungi task
-              </button>
-            )}
+            {renderColumnFooter('teoria')}
           </div>
 
           {/* Column 2: Esercizi */}
@@ -298,54 +363,10 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
               {exerciseTasks.length === 0 ? (
                 <p className="column-empty-hint">Nessun esercizio registrato</p>
               ) : (
-                exerciseTasks.map((t) => (
-                  <div key={t.id} className={`column-task-row ${t.completed ? 'completed' : ''}`}>
-                    <label className="checkbox-container-sm">
-                      <input type="checkbox" checked={t.completed} onChange={() => handleToggleTask(t.id)} />
-                      <span className="checkmark-sm" style={{ '--accent-color': activeSubj.color } as React.CSSProperties}></span>
-                    </label>
-                    <div className="task-row-details">
-                      <span className="task-row-title-text">{t.name}</span>
-                      <span className="task-row-pages-text">{t.pages} pag</span>
-                    </div>
-                    <button className="btn-remove-task" onClick={() => handleDeleteTask(t.id)}>×</button>
-                  </div>
-                ))
+                exerciseTasks.map(renderTaskRow)
               )}
             </div>
-
-            {addingTaskCategory === 'esercizi' ? (
-              <form onSubmit={(e) => handleAddTask(e, 'esercizi')} className="column-add-task-form glass-input-panel">
-                <input
-                  type="text"
-                  placeholder="Es. Esercitazione code"
-                  value={taskName}
-                  onChange={(e) => setTaskName(e.target.value)}
-                  className="form-control"
-                  required
-                  autoFocus
-                />
-                <div className="inline-add-row">
-                  <input
-                    type="number"
-                    min="1"
-                    placeholder="Pagine"
-                    value={taskPages}
-                    onChange={(e) => setTaskPages(parseInt(e.target.value) || 1)}
-                    className="form-control text-center"
-                    required
-                  />
-                  <div className="inline-add-buttons">
-                    <button type="submit" className="btn btn-success btn-xs">✓</button>
-                    <button type="button" className="btn btn-secondary btn-xs" onClick={() => setAddingTaskCategory(null)}>×</button>
-                  </div>
-                </div>
-              </form>
-            ) : (
-              <button className="btn-column-add-trigger" onClick={() => { setAddingTaskCategory('esercizi'); setTaskName(''); setTaskPages(15); }}>
-                + Aggiungi task
-              </button>
-            )}
+            {renderColumnFooter('esercizi')}
           </div>
 
           {/* Column 3: Altro */}
@@ -358,54 +379,10 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
               {otherTasks.length === 0 ? (
                 <p className="column-empty-hint">Nessun altro task</p>
               ) : (
-                otherTasks.map((t) => (
-                  <div key={t.id} className={`column-task-row ${t.completed ? 'completed' : ''}`}>
-                    <label className="checkbox-container-sm">
-                      <input type="checkbox" checked={t.completed} onChange={() => handleToggleTask(t.id)} />
-                      <span className="checkmark-sm" style={{ '--accent-color': activeSubj.color } as React.CSSProperties}></span>
-                    </label>
-                    <div className="task-row-details">
-                      <span className="task-row-title-text">{t.name}</span>
-                      <span className="task-row-pages-text">{t.pages} pag</span>
-                    </div>
-                    <button className="btn-remove-task" onClick={() => handleDeleteTask(t.id)}>×</button>
-                  </div>
-                ))
+                otherTasks.map(renderTaskRow)
               )}
             </div>
-
-            {addingTaskCategory === 'altro' ? (
-              <form onSubmit={(e) => handleAddTask(e, 'altro')} className="column-add-task-form glass-input-panel">
-                <input
-                  type="text"
-                  placeholder="Es. Ripasso finale"
-                  value={taskName}
-                  onChange={(e) => setTaskName(e.target.value)}
-                  className="form-control"
-                  required
-                  autoFocus
-                />
-                <div className="inline-add-row">
-                  <input
-                    type="number"
-                    min="1"
-                    placeholder="Pagine"
-                    value={taskPages}
-                    onChange={(e) => setTaskPages(parseInt(e.target.value) || 1)}
-                    className="form-control text-center"
-                    required
-                  />
-                  <div className="inline-add-buttons">
-                    <button type="submit" className="btn btn-success btn-xs">✓</button>
-                    <button type="button" className="btn btn-secondary btn-xs" onClick={() => setAddingTaskCategory(null)}>×</button>
-                  </div>
-                </div>
-              </form>
-            ) : (
-              <button className="btn-column-add-trigger" onClick={() => { setAddingTaskCategory('altro'); setTaskName(''); setTaskPages(15); }}>
-                + Aggiungi task
-              </button>
-            )}
+            {renderColumnFooter('altro')}
           </div>
 
         </div>

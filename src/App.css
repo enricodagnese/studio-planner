@@ -2616,12 +2616,12 @@ body {
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
 }
 
-.color-gold { background-color: #d97706; }
-.color-blue { background-color: #2563eb; }
-.color-emerald { background-color: #059669; }
-.color-purple { background-color: #7c3aed; }
-.color-red { background-color: #dc2626; }
-.color-pink { background-color: #db2777; }
+.color-gold { background-color: #fbbf24; }
+.color-blue { background-color: #60a5fa; }
+.color-emerald { background-color: #34d399; }
+.color-purple { background-color: #a78bfa; }
+.color-red { background-color: #f87171; }
+.color-pink { background-color: #f472b6; }
 
 /* Logo Emoji Picker Grid */
 .logo-emoji-picker-grid {
@@ -2852,4 +2852,213 @@ body {
   color: #0f172a;
 }
 
+
+/* ===================================================
+   MONTH-BASED CALENDAR COLUMN BACKGROUND TINTS
+   (Green=May, Yellow=June, Red=July)
+   =================================================== */
+
+.calendar-column.month-mag {
+  background: rgba(52, 211, 153, 0.06) !important;
+  border-color: rgba(52, 211, 153, 0.15) !important;
+}
+
+.calendar-column.month-mag .day-name,
+.calendar-column.month-mag .day-number-highlight,
+.calendar-column.month-mag .day-month-neutral {
+  color: #ffffff !important;
+}
+
+.calendar-column.month-mag .column-header {
+  border-bottom-color: rgba(52, 211, 153, 0.2);
+}
+
+.calendar-column.month-giu {
+  background: rgba(251, 191, 36, 0.06) !important;
+  border-color: rgba(251, 191, 36, 0.15) !important;
+}
+
+.calendar-column.month-giu .day-name,
+.calendar-column.month-giu .day-number-highlight,
+.calendar-column.month-giu .day-month-neutral {
+  color: #ffffff !important;
+}
+
+.calendar-column.month-giu .column-header {
+  border-bottom-color: rgba(251, 191, 36, 0.2);
+}
+
+.calendar-column.month-lug {
+  background: rgba(248, 113, 113, 0.06) !important;
+  border-color: rgba(248, 113, 113, 0.15) !important;
+}
+
+.calendar-column.month-lug .day-name,
+.calendar-column.month-lug .day-number-highlight,
+.calendar-column.month-lug .day-month-neutral {
+  color: #ffffff !important;
+}
+
+.calendar-column.month-lug .column-header {
+  border-bottom-color: rgba(248, 113, 113, 0.2);
+}
+
+/* Light mode month tints */
+.light-theme .calendar-column.month-mag {
+  background: rgba(52, 211, 153, 0.05) !important;
+  border-color: rgba(52, 211, 153, 0.2) !important;
+}
+
+.light-theme .calendar-column.month-mag .day-name,
+.light-theme .calendar-column.month-mag .day-number-highlight,
+.light-theme .calendar-column.month-mag .day-month-neutral {
+  color: #065f46 !important;
+}
+
+.light-theme .calendar-column.month-giu {
+  background: rgba(251, 191, 36, 0.05) !important;
+  border-color: rgba(251, 191, 36, 0.2) !important;
+}
+
+.light-theme .calendar-column.month-giu .day-name,
+.light-theme .calendar-column.month-giu .day-number-highlight,
+.light-theme .calendar-column.month-giu .day-month-neutral {
+  color: #92400e !important;
+}
+
+.light-theme .calendar-column.month-lug {
+  background: rgba(248, 113, 113, 0.05) !important;
+  border-color: rgba(248, 113, 113, 0.2) !important;
+}
+
+.light-theme .calendar-column.month-lug .day-name,
+.light-theme .calendar-column.month-lug .day-number-highlight,
+.light-theme .calendar-column.month-lug .day-month-neutral {
+  color: #991b1b !important;
+}
+
+
+/* ===================================================
+   SUBJECTS MANAGER COPY/PASTE TASK SYSTEM
+   =================================================== */
+
+/* Task row actions (copy + remove) */
+.task-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.column-task-row:hover .task-row-actions {
+  opacity: 1;
+}
+
+.btn-copy-task {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  opacity: 0.55;
+  transition: all 0.15s ease;
+}
+
+.btn-copy-task:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Column footer: add + paste row */
+.column-footer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.btn-column-paste-trigger {
+  width: 100%;
+  background: transparent;
+  border: 1px dashed rgba(251, 191, 36, 0.3);
+  color: rgba(251, 191, 36, 0.7);
+  padding: 7px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.btn-column-paste-trigger:hover {
+  border-color: rgba(251, 191, 36, 0.6);
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.05);
+}
+
+/* Clipboard indicator banner */
+.clipboard-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(251, 191, 36, 0.08);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #fbbf24;
+  flex-shrink: 0;
+}
+
+.clipboard-indicator strong {
+  color: #ffffff;
+}
+
+.btn-clear-clipboard {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: rgba(251, 191, 36, 0.6);
+  font-size: 12px;
+  line-height: 1;
+  padding: 0 4px;
+  transition: color 0.15s ease;
+}
+
+.btn-clear-clipboard:hover {
+  color: #ef4444;
+}
+
+/* Light mode overrides for copy/paste system */
+.light-theme .btn-copy-task:hover {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+.light-theme .btn-column-paste-trigger {
+  border-color: rgba(217, 119, 6, 0.3);
+  color: #d97706;
+}
+
+.light-theme .btn-column-paste-trigger:hover {
+  border-color: rgba(217, 119, 6, 0.6);
+  color: #92400e;
+  background: rgba(217, 119, 6, 0.04);
+}
+
+.light-theme .clipboard-indicator {
+  background: rgba(217, 119, 6, 0.06);
+  border-color: rgba(217, 119, 6, 0.2);
+  color: #d97706;
+}
+
+.light-theme .clipboard-indicator strong {
+  color: #0f172a;
+}
 
