@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import type { WeekPlan } from '../types/planner';
-import { XIcon, CalendarIcon, BookIcon } from './Icons';
+import { XIcon, CalendarIcon, BookIcon, VideoIcon } from './Icons';
 
 interface AddEventModalProps {
   weeks: WeekPlan[];
   onClose: () => void;
   onConfirm: (
     title: string,
-    eventType: 'esame' | 'svago',
+    eventType: 'esame' | 'svago' | 'lezione',
     slots: Array<{ dayId: string; slotKey: 'mattina' | 'pomeriggio' | 'sera' }>
   ) => void;
 }
@@ -20,7 +20,7 @@ const SLOT_LABELS = {
 
 export const AddEventModal: React.FC<AddEventModalProps> = ({ weeks, onClose, onConfirm }) => {
   const [title, setTitle] = useState('');
-  const [eventType, setEventType] = useState<'esame' | 'svago'>('esame');
+  const [eventType, setEventType] = useState<'esame' | 'svago' | 'lezione'>('esame');
   const [selectedSlots, setSelectedSlots] = useState<Set<string>>(new Set());
 
   const toggleSlot = (dayId: string, slotKey: string) => {
@@ -76,7 +76,7 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ weeks, onClose, on
           {/* Event Type Toggle */}
           <div className="event-form-group">
             <label className="event-form-label">Tipologia</label>
-            <div className="event-type-toggle">
+            <div className="event-type-toggle" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
               <button
                 type="button"
                 className={`event-type-btn esame-type-btn ${eventType === 'esame' ? 'active' : ''}`}
@@ -92,6 +92,14 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ weeks, onClose, on
               >
                 <span className="svago-icon-star">★</span>
                 SVAGO
+              </button>
+              <button
+                type="button"
+                className={`event-type-btn lezione-type-btn ${eventType === 'lezione' ? 'active' : ''}`}
+                onClick={() => setEventType('lezione')}
+              >
+                <VideoIcon size={13} />
+                LEZIONE
               </button>
             </div>
           </div>
@@ -154,7 +162,7 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ weeks, onClose, on
           </button>
           <button
             type="submit"
-            className={`btn btn-event-confirm ${eventType === 'esame' ? 'btn-esame' : 'btn-svago'}`}
+            className={`btn btn-event-confirm ${eventType === 'esame' ? 'btn-esame' : eventType === 'svago' ? 'btn-svago' : 'btn-lezione'}`}
             disabled={!title.trim() || selectedSlots.size === 0}
           >
             Aggiungi {selectedSlots.size > 0 ? `(${selectedSlots.size} slot)` : ''} all'agenda

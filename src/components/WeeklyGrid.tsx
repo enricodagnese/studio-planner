@@ -186,6 +186,16 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
   };
 
   const handleDeleteItem = (dayId: string, slotKey: 'mattina' | 'pomeriggio' | 'sera', itemId: string) => {
+    // Find the item first to see if it was originally dragged from a subject's tasks
+    let foundItem: CalendarItem | null = null;
+    for (const w of weeks) {
+      const day = w.days.find(d => d.id === dayId);
+      if (day) {
+        foundItem = day[slotKey].find(i => i.id === itemId) || null;
+        if (foundItem) break;
+      }
+    }
+
     onUpdateAllWeeks(weeks.map(w => ({
       ...w,
       days: w.days.map(d => d.id !== dayId ? d : {
@@ -193,6 +203,31 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
         [slotKey]: d[slotKey].filter(i => i.id !== itemId),
       }),
     })));
+
+    // Restore task to subjects list if it has a subjectId and taskId
+    if (foundItem && foundItem.subjectId && foundItem.taskId) {
+      const item = foundItem;
+      onUpdateSubjects(subjects.map(s => {
+        if (s.id !== item.subjectId) return s;
+        // Avoid duplicate restore
+        const taskExists = s.tasks.some(t => t.id === item.taskId);
+        if (taskExists) return s;
+
+        const restoredTask = {
+          id: item.taskId!,
+          name: item.name,
+          pages: item.pages || 10,
+          completed: false, // restore as not completed
+          category: 'teoria' as const, // theory category as default fallback
+          quantityType: item.quantityType || 'pagine',
+        };
+        return {
+          ...s,
+          tasks: [...s.tasks, restoredTask],
+          completed: false, // subject is no longer fully completed
+        };
+      }));
+    }
   };
 
   const handleAddCustomTaskSubmit = (e: React.FormEvent, dayId: string, slotKey: 'mattina' | 'pomeriggio' | 'sera') => {
@@ -236,10 +271,30 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
         const monthsShort = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
         const isToday = day.dateLabel === `${todayDate.getDate()} ${monthsShort[todayDate.getMonth()]}`;
 
+        const isPast = (() => {
+          if (isToday) return false;
+          const monthsMap: Record<string, number> = {
+            'Mag': 4, 'Giu': 5, 'Lug': 6, 'Ago': 7,
+            'mag': 4, 'giu': 5, 'lug': 6, 'ago': 7
+          };
+          const dateParts = day.dateLabel.split(' ');
+          const dNum = parseInt(dateParts[0]);
+          const mStr = dateParts[1];
+          if (!dNum || !mStr) return false;
+          const mNum = monthsMap[mStr];
+          if (mNum === undefined) return false;
+
+          const currentYear = 2026;
+          const dayPure = new Date(currentYear, mNum, dNum);
+          const todayPure = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
+
+          return dayPure < todayPure;
+        })();
+
         return (
           <div
             key={day.id}
-            className={`calendar-column glass-container ${monthClass} ${isWeekend ? 'day-weekend' : ''} ${isToday ? 'day-today' : ''}`}
+            className={`calendar-column glass-container ${monthClass} ${isWeekend ? 'day-weekend' : ''} ${isToday ? 'day-today' : ''} ${isPast ? 'day-past' : ''}`}
           >
             {/* Column Header — month color applied via class on this div */}
             <div className={`column-header cal-col-header-month ${monthClass}`}>
@@ -303,7 +358,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                                 <span className="item-name" title={item.name}>{item.name}</span>
                                 {isEvent && (
                                   <span className={`event-type-badge event-badge-${item.eventType}`}>
-                                    {item.eventType === 'esame' ? 'ESAME' : 'SVAGO'}
+                                    {item.eventType === 'esame' ? 'ESAME' : item.eventType === 'svago' ? 'SVAGO' : 'LEZIONE'}
                                   </span>
                                 )}
                                 <button

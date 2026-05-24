@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Subject } from '../types/planner';
-import { BookIcon, EditIcon, LightbulbIcon, GripVerticalIcon, ChevronRightIcon, ChevronDownIcon } from './Icons';
+import { BookIcon, EditIcon, LightbulbIcon, GripVerticalIcon, ChevronRightIcon } from './Icons';
 import { CybersecurityLogo } from './CybersecurityLogo';
 
 interface MaterialsListProps {
@@ -32,7 +32,6 @@ const getQtyLabel = (pages: number, quantityType?: string): string => {
 
 export const MaterialsList: React.FC<MaterialsListProps> = ({
   subjects,
-  onToggleSubject,
   onUpdateSubjects,
   onRedirectToSubjects,
 }) => {
@@ -97,7 +96,7 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
         )}
       </div>
 
-      <div className="subjects-grid">
+      <div className="subjects-grid" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {subjects.length === 0 ? (
           <div className="empty-state">
             <p>Nessun argomento registrato.</p>
@@ -110,67 +109,139 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
             const tasksList = sub.tasks || [];
             const hasTasks = tasksList.length > 0;
             const isExpanded = !!expandedSubjIds[sub.id];
-            const totalPages = hasTasks ? tasksList.reduce((sum, t) => sum + t.pages, 0) : sub.pages;
+
+            // Division of tasks by category
+            const theoryTasks = tasksList.filter(t => t.category === 'teoria');
+            const exerciseTasks = tasksList.filter(t => t.category === 'esercizi');
+            const otherTasks = tasksList.filter(t => t.category === 'altro');
 
             return (
-              <div key={sub.id} className="subject-tree-node">
+              <div key={sub.id} className="subject-tree-node" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {/* Main subject card: NOT draggable, only for preview and opening tasks */}
                 <div
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, 'subject', sub.id)}
-                  onDragEnd={handleDragEnd}
-                  className={`subject-card draggable-card ${colorClass} ${sub.completed ? 'completed' : ''}`}
-                  style={{ '--accent-color': sub.color } as React.CSSProperties}
+                  className={`subject-card ${colorClass} ${sub.completed ? 'completed' : ''}`}
+                  style={{ 
+                    '--accent-color': sub.color,
+                    paddingLeft: '14px',
+                    paddingRight: '14px',
+                    borderLeft: `4px solid ${sub.color}`,
+                    background: 'rgba(30, 31, 41, 0.75)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    cursor: 'default'
+                  } as React.CSSProperties}
+                  onClick={() => hasTasks && toggleExpandSubject(sub.id)}
                 >
-                  {hasTasks && (
-                    <button
-                      type="button"
-                      className={`btn-tree-toggle ${isExpanded ? 'expanded' : ''}`}
-                      onClick={(e) => { e.stopPropagation(); toggleExpandSubject(sub.id); }}
-                      title={isExpanded ? 'Comprimi task' : 'Espandi task'}
-                    >
-                      {isExpanded ? <ChevronDownIcon size={12} /> : <ChevronRightIcon size={12} />}
-                    </button>
-                  )}
-
-                  <div className="card-drag-handle" title="Trascina materia intera">
-                    <GripVerticalIcon size={14} className="drag-grip-icon" />
-                  </div>
-
-                  <label className="checkbox-container" onClick={(e) => e.stopPropagation()}>
-                    <input type="checkbox" checked={sub.completed} onChange={() => onToggleSubject(sub.id)} />
-                    <span className="checkmark"></span>
-                  </label>
-
-                  <div className="card-main-content">
-                    <span className="subject-sidebar-logo" style={{ color: sub.color }}>
-                      <CybersecurityLogo logo={sub.logo || 'shield'} size={16} />
+                  <div className="card-main-content" style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '12px' }}>
+                    <span className="subject-sidebar-logo" style={{ color: sub.color, display: 'flex', alignItems: 'center' }}>
+                      <CybersecurityLogo logo={sub.logo || 'shield'} size={18} />
                     </span>
-                    <span className="subject-title">{sub.name}</span>
-                    <span className="pages-badge">{totalPages} pag</span>
+                    <span className="subject-title" style={{ flex: '1', fontWeight: 600, fontSize: '13.5px', color: '#fff' }}>
+                      {sub.name}
+                    </span>
+                    {hasTasks && (
+                      <button
+                        type="button"
+                        className={`btn-tree-toggle ${isExpanded ? 'expanded' : ''}`}
+                        onClick={(e) => { e.stopPropagation(); toggleExpandSubject(sub.id); }}
+                        title={isExpanded ? 'Comprimi compiti' : 'Apri compiti'}
+                        style={{
+                          position: 'relative',
+                          left: 'auto',
+                          top: 'auto',
+                          transform: isExpanded ? 'rotate(90deg)' : 'none',
+                          transition: 'transform 0.2s ease',
+                          background: 'transparent',
+                          border: 'none',
+                          color: '#a1a1aa',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '24px',
+                          height: '24px'
+                        }}
+                      >
+                        <ChevronRightIcon size={15} />
+                      </button>
+                    )}
                   </div>
                 </div>
 
                 {isExpanded && hasTasks && (
-                  <div className="subject-sub-tasks-tree animate-slide-down">
-                    {tasksList.map((task) => (
-                      <div
-                        key={task.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, 'task', sub.id, task.id, task.name, task.pages, task.quantityType)}
-                        onDragEnd={handleDragEnd}
-                        className={`tree-task-pill draggable-card ${colorClass} ${task.completed ? 'completed' : ''}`}
-                      >
-                        <div className="tree-task-drag-handle" title="Trascina questo capitolo">
-                          <GripVerticalIcon size={12} className="drag-grip-icon" />
-                        </div>
-                        <label className="checkbox-container-sm" onClick={(e) => e.stopPropagation()}>
-                          <input type="checkbox" checked={task.completed} onChange={() => handleToggleTaskLocal(sub.id, task.id)} />
-                          <span className="checkmark-sm" style={{ '--accent-color': sub.color } as React.CSSProperties}></span>
-                        </label>
-                        <span className="tree-task-title" title={task.name}>{task.name}</span>
-                        <span className="tree-task-pages-badge">{getQtyLabel(task.pages, task.quantityType)}</span>
+                  <div className="subject-sub-tasks-tree animate-slide-down" style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingLeft: '12px', borderLeft: '1.5px dashed rgba(255,255,255,0.08)', marginLeft: '22px' }}>
+                    {theoryTasks.length > 0 && (
+                      <div className="task-category-group" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        <div className="task-category-header" style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.06em', color: '#71717a', textTransform: 'uppercase', paddingLeft: '6px', marginBottom: '2px' }}>Teoria</div>
+                        {theoryTasks.map((task) => (
+                          <div
+                            key={task.id}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, 'task', sub.id, task.id, task.name, task.pages, task.quantityType)}
+                            onDragEnd={handleDragEnd}
+                            className={`tree-task-pill draggable-card ${colorClass} ${task.completed ? 'completed' : ''}`}
+                          >
+                            <div className="tree-task-drag-handle" title="Trascina questo capitolo">
+                              <GripVerticalIcon size={12} className="drag-grip-icon" />
+                            </div>
+                            <label className="checkbox-container-sm" onClick={(e) => e.stopPropagation()}>
+                              <input type="checkbox" checked={task.completed} onChange={() => handleToggleTaskLocal(sub.id, task.id)} />
+                              <span className="checkmark-sm" style={{ '--accent-color': sub.color } as React.CSSProperties}></span>
+                            </label>
+                            <span className="tree-task-title" title={task.name}>{task.name}</span>
+                            <span className="tree-task-pages-badge">{getQtyLabel(task.pages, task.quantityType)}</span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
+                    {exerciseTasks.length > 0 && (
+                      <div className="task-category-group" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        <div className="task-category-header" style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.06em', color: '#71717a', textTransform: 'uppercase', paddingLeft: '6px', marginBottom: '2px' }}>Esercizi</div>
+                        {exerciseTasks.map((task) => (
+                          <div
+                            key={task.id}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, 'task', sub.id, task.id, task.name, task.pages, task.quantityType)}
+                            onDragEnd={handleDragEnd}
+                            className={`tree-task-pill draggable-card ${colorClass} ${task.completed ? 'completed' : ''}`}
+                          >
+                            <div className="tree-task-drag-handle" title="Trascina questo capitolo">
+                              <GripVerticalIcon size={12} className="drag-grip-icon" />
+                            </div>
+                            <label className="checkbox-container-sm" onClick={(e) => e.stopPropagation()}>
+                              <input type="checkbox" checked={task.completed} onChange={() => handleToggleTaskLocal(sub.id, task.id)} />
+                              <span className="checkmark-sm" style={{ '--accent-color': sub.color } as React.CSSProperties}></span>
+                            </label>
+                            <span className="tree-task-title" title={task.name}>{task.name}</span>
+                            <span className="tree-task-pages-badge">{getQtyLabel(task.pages, task.quantityType)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {otherTasks.length > 0 && (
+                      <div className="task-category-group" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        <div className="task-category-header" style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.06em', color: '#71717a', textTransform: 'uppercase', paddingLeft: '6px', marginBottom: '2px' }}>Altro</div>
+                        {otherTasks.map((task) => (
+                          <div
+                            key={task.id}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, 'task', sub.id, task.id, task.name, task.pages, task.quantityType)}
+                            onDragEnd={handleDragEnd}
+                            className={`tree-task-pill draggable-card ${colorClass} ${task.completed ? 'completed' : ''}`}
+                          >
+                            <div className="tree-task-drag-handle" title="Trascina questo capitolo">
+                              <GripVerticalIcon size={12} className="drag-grip-icon" />
+                            </div>
+                            <label className="checkbox-container-sm" onClick={(e) => e.stopPropagation()}>
+                              <input type="checkbox" checked={task.completed} onChange={() => handleToggleTaskLocal(sub.id, task.id)} />
+                              <span className="checkmark-sm" style={{ '--accent-color': sub.color } as React.CSSProperties}></span>
+                            </label>
+                            <span className="tree-task-title" title={task.name}>{task.name}</span>
+                            <span className="tree-task-pages-badge">{getQtyLabel(task.pages, task.quantityType)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -178,9 +249,9 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
           })
         )}
       </div>
-      <div className="drag-instructions">
+      <div className="drag-instructions" style={{ marginTop: '16px' }}>
         <LightbulbIcon size={13} className="drag-instructions-icon" />
-        Espandi le materie per trascinare i singoli capitoli sul calendario
+        Apri la materia per trascinare i singoli compiti sul calendario
       </div>
     </div>
   );

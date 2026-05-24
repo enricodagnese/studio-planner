@@ -27,7 +27,7 @@ export interface CalendarItem {
   name: string; // The task display name (without subject prefix)
   pages?: number; // Quantity value
   quantityType?: TaskQuantityType; // How to display the quantity
-  eventType?: 'esame' | 'svago';   // For extra calendar events
+  eventType?: 'esame' | 'svago' | 'lezione';   // For extra calendar events
   completed: boolean;
 }
 

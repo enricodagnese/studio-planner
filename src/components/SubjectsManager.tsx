@@ -68,6 +68,12 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({ subjects, onUp
   const [taskQuantityType, setTaskQuantityType] = useState<TaskQuantityType>('pagine');
   const [copiedTask, setCopiedTask] = useState<{ name: string; pages: number; category: 'teoria' | 'esercizi' | 'altro'; quantityType: TaskQuantityType } | null>(null);
 
+  // States for inline task editing
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editPages, setEditPages] = useState<number>(10);
+  const [editQuantityType, setEditQuantityType] = useState<TaskQuantityType>('pagine');
+
   const activeSubj = subjects.find(s => s.id === selectedSubjId);
 
   const handleCreateSubject = () => {
@@ -149,29 +155,98 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({ subjects, onUp
     }));
   };
 
-  const renderTaskRow = (t: Task) => (
-    <div key={t.id} className={`column-task-row ${t.completed ? 'completed' : ''}`}>
-      <label className="checkbox-container-sm">
-        <input type="checkbox" checked={t.completed} onChange={() => handleToggleTask(t.id)} />
-        <span className="checkmark-sm" style={{ '--accent-color': activeSubj!.color } as React.CSSProperties}></span>
-      </label>
-      <div className="task-row-details">
-        <span className="task-row-title-text">{t.name}</span>
-        <span className="task-row-pages-text">{getQtyLabel(t.pages, t.quantityType)}</span>
+  const startEditing = (task: Task) => {
+    setEditingTaskId(task.id);
+    setEditName(task.name);
+    setEditPages(task.pages);
+    setEditQuantityType(task.quantityType || 'pagine');
+  };
+
+  const handleSaveEdit = (taskId: string) => {
+    if (!selectedSubjId || !editName.trim()) return;
+    onUpdateSubjects(subjects.map(s => {
+      if (s.id === selectedSubjId) {
+        const updatedTasks = s.tasks.map(t => t.id === taskId ? { ...t, name: editName.trim(), pages: editPages, quantityType: editQuantityType } : t);
+        return { ...s, tasks: updatedTasks };
+      }
+      return s;
+    }));
+    setEditingTaskId(null);
+  };
+
+  const renderTaskRow = (t: Task) => {
+    const isEditing = editingTaskId === t.id;
+    return (
+      <div key={t.id} className={`column-task-row ${t.completed ? 'completed' : ''} ${isEditing ? 'editing-row' : ''}`}>
+        {isEditing ? (
+          <div className="task-row-edit-form" style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '6px', padding: '4px 0' }}>
+            <input
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              className="form-control edit-task-name-input"
+              style={{ fontSize: '11px', padding: '4px 8px', background: 'rgba(10, 10, 12, 0.4)', color: '#fff', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+              required
+            />
+            <div className="edit-task-inputs-row" style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+              <input
+                type="number"
+                min="1"
+                value={editPages}
+                onChange={(e) => setEditPages(parseInt(e.target.value) || 1)}
+                className="form-control edit-task-pages-input text-center"
+                style={{ fontSize: '11px', padding: '3px 4px', width: '45px', background: 'rgba(10, 10, 12, 0.4)', color: '#fff', border: '1px solid var(--border-color)', borderRadius: '4px' }}
+              />
+              <select
+                value={editQuantityType}
+                onChange={(e) => setEditQuantityType(e.target.value as TaskQuantityType)}
+                className="form-control edit-task-select"
+                style={{ fontSize: '10px', padding: '3px', background: 'var(--bg-tertiary)', color: '#fff', border: '1px solid var(--border-color)', borderRadius: '4px', flex: '1', cursor: 'pointer' }}
+              >
+                <option value="pagine">pag</option>
+                <option value="ore-video">video</option>
+                <option value="esercizi">es.</option>
+                <option value="quiz">quiz</option>
+              </select>
+              <button className="btn btn-primary btn-xs" type="button" onClick={() => handleSaveEdit(t.id)} style={{ padding: '4px 8px', fontSize: '9px' }}>✓</button>
+              <button className="btn btn-secondary btn-xs" type="button" onClick={() => setEditingTaskId(null)} style={{ padding: '4px 8px', fontSize: '9px' }}>×</button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <label className="checkbox-container-sm">
+              <input type="checkbox" checked={t.completed} onChange={() => handleToggleTask(t.id)} />
+              <span className="checkmark-sm" style={{ '--accent-color': activeSubj!.color } as React.CSSProperties}></span>
+            </label>
+            <div className="task-row-details" onClick={() => startEditing(t)} style={{ cursor: 'pointer', flex: 1, minWidth: 0 }} title="Clicca per modificare dettagli">
+              <span className="task-row-title-text" style={{ display: 'block', fontSize: '12px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
+              <span className="task-row-pages-text" style={{ fontSize: '10px', color: '#71717a' }}>{getQtyLabel(t.pages, t.quantityType)}</span>
+            </div>
+            <div className="task-row-actions">
+              <button
+                className="btn-copy-task"
+                onClick={() => setCopiedTask({ name: t.name, pages: t.pages, category: t.category, quantityType: t.quantityType || 'pagine' })}
+                title="Copia task"
+                type="button"
+              >
+                <CopyIcon size={11} />
+              </button>
+              <button
+                className="btn-edit-task-trigger"
+                onClick={() => startEditing(t)}
+                title="Modifica capitolo"
+                type="button"
+                style={{ background: 'transparent', border: 'none', color: '#71717a', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px', fontSize: '11px', opacity: 0.6 }}
+              >
+                ✏️
+              </button>
+              <button className="btn-remove-task" onClick={() => handleDeleteTask(t.id)}>×</button>
+            </div>
+          </>
+        )}
       </div>
-      <div className="task-row-actions">
-        <button
-          className="btn-copy-task"
-          onClick={() => setCopiedTask({ name: t.name, pages: t.pages, category: t.category, quantityType: t.quantityType || 'pagine' })}
-          title="Copia task"
-          type="button"
-        >
-          <CopyIcon size={11} />
-        </button>
-        <button className="btn-remove-task" onClick={() => handleDeleteTask(t.id)}>×</button>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderQtyTypeToggle = (category: 'teoria' | 'esercizi' | 'altro') => {
     if (category === 'teoria') {

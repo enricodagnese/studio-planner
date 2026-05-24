@@ -292,7 +292,7 @@ function App() {
 
   const handleAddEvent = (
     title: string,
-    eventType: 'esame' | 'svago',
+    eventType: 'esame' | 'svago' | 'lezione',
     slots: Array<{ dayId: string; slotKey: 'mattina' | 'pomeriggio' | 'sera' }>
   ) => {
     const updatedWeeks = JSON.parse(JSON.stringify(weeks)) as WeekPlan[];
@@ -409,6 +409,7 @@ function App() {
           <div className="sidebar-handle-col">
             <button
               className="sidebar-strip-toggle"
+              style={{ left: isSidebarOpen ? '320px' : '0px' }}
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               title={isSidebarOpen ? 'Chiudi libreria' : 'Apri libreria'}
             >
