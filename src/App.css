@@ -3062,3 +3062,398 @@ body {
   color: #0f172a;
 }
 
+/* ===================================================
+   v3 OVERRIDES — Applied after all previous rules
+   =================================================== */
+
+/* 1. MONTH COLOR — ONLY ON COLUMN HEADER, not the whole column
+   ============================================================= */
+
+/* Reset: remove column-level background/border for month classes */
+.calendar-column.month-mag,
+.calendar-column.month-giu,
+.calendar-column.month-lug {
+  background: rgba(18, 18, 20, 0.35) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Apply month color ONLY to the header div */
+.cal-col-header-month.month-mag {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.18), rgba(52, 211, 153, 0.06));
+  border-bottom: 2px solid rgba(52, 211, 153, 0.35) !important;
+  border-radius: 8px 8px 0 0;
+}
+.cal-col-header-month.month-giu {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(251, 191, 36, 0.06));
+  border-bottom: 2px solid rgba(251, 191, 36, 0.35) !important;
+  border-radius: 8px 8px 0 0;
+}
+.cal-col-header-month.month-lug {
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.18), rgba(248, 113, 113, 0.06));
+  border-bottom: 2px solid rgba(248, 113, 113, 0.35) !important;
+  border-radius: 8px 8px 0 0;
+}
+
+/* Day name & number text: white in dark mode regardless of month */
+.cal-col-header-month .day-name,
+.cal-col-header-month .day-number-highlight {
+  color: #ffffff !important;
+}
+
+/* Month abbrev: use month accent color */
+.cal-col-header-month.month-mag .day-month-neutral { color: rgba(52, 211, 153, 0.85) !important; }
+.cal-col-header-month.month-giu .day-month-neutral { color: rgba(251, 191, 36, 0.85) !important; }
+.cal-col-header-month.month-lug .day-month-neutral { color: rgba(248, 113, 113, 0.85) !important; }
+
+/* Light mode month headers */
+.light-theme .cal-col-header-month.month-mag {
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.12), rgba(52, 211, 153, 0.04));
+  border-bottom-color: rgba(52, 211, 153, 0.3) !important;
+}
+.light-theme .cal-col-header-month.month-giu {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(251, 191, 36, 0.04));
+  border-bottom-color: rgba(251, 191, 36, 0.3) !important;
+}
+.light-theme .cal-col-header-month.month-lug {
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.12), rgba(248, 113, 113, 0.04));
+  border-bottom-color: rgba(248, 113, 113, 0.3) !important;
+}
+.light-theme .cal-col-header-month .day-name,
+.light-theme .cal-col-header-month .day-number-highlight { color: #0f172a !important; }
+.light-theme .cal-col-header-month.month-mag .day-month-neutral { color: #059669 !important; }
+.light-theme .cal-col-header-month.month-giu .day-month-neutral { color: #d97706 !important; }
+.light-theme .cal-col-header-month.month-lug .day-month-neutral { color: #dc2626 !important; }
+
+
+/* 2. TODAY HIGHLIGHT — much more visible
+   ======================================== */
+
+.calendar-column.day-today {
+  border: 2px solid rgba(234, 88, 12, 0.7) !important;
+  box-shadow: 0 0 0 1px rgba(234, 88, 12, 0.2), 0 4px 24px rgba(234, 88, 12, 0.18), inset 0 0 24px rgba(234, 88, 12, 0.04) !important;
+  background: rgba(234, 88, 12, 0.05) !important;
+  position: relative;
+}
+.calendar-column.day-today .cal-col-header-month {
+  background: linear-gradient(135deg, rgba(234, 88, 12, 0.22), rgba(234, 88, 12, 0.08)) !important;
+  border-bottom: 2px solid rgba(234, 88, 12, 0.45) !important;
+}
+.today-badge {
+  background: var(--accent-primary);
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.06em;
+  box-shadow: 0 2px 10px rgba(234, 88, 12, 0.55);
+  animation: todayPulse 2s ease-in-out infinite;
+}
+
+@keyframes todayPulse {
+  0%, 100% { box-shadow: 0 2px 10px rgba(234, 88, 12, 0.55); }
+  50%       { box-shadow: 0 2px 18px rgba(234, 88, 12, 0.85); }
+}
+
+
+/* 3. GENERAL CONTRAST IMPROVEMENTS
+   =================================== */
+
+/* Calendar columns: stronger border, slightly darker base */
+.calendar-column {
+  border-color: rgba(255, 255, 255, 0.09) !important;
+  background: rgba(14, 14, 18, 0.55) !important;
+}
+.calendar-column:hover {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  background: rgba(14, 14, 18, 0.72) !important;
+}
+
+/* Column header: always slightly elevated */
+.column-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Week wrapper label: stronger */
+.week-label {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Glass containers: stronger border */
+.glass-container {
+  border-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+/* Subject grid card: stronger visual identity */
+.subject-grid-card {
+  border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(22, 22, 28, 0.85) !important;
+}
+.subject-grid-card:hover {
+  border-color: var(--accent-color, rgba(255,255,255,0.2)) !important;
+  background: rgba(28, 28, 36, 0.95) !important;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.08) !important;
+}
+.subject-grid-card::before {
+  height: 3px;
+  opacity: 1;
+}
+
+/* Card icon: stronger glow */
+.card-emoji-logo {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 0 12px currentColor);
+}
+
+/* Subject card text: brighter */
+.card-subj-title {
+  color: #ffffff !important;
+  font-size: 15px !important;
+  letter-spacing: -0.01em;
+}
+
+/* Workspace columns: stronger border */
+.workspace-column {
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  background: rgba(14, 14, 18, 0.55) !important;
+}
+
+/* Drag handle icon (replace dot characters) */
+.drag-grip-icon {
+  color: rgba(255, 255, 255, 0.3);
+  display: block;
+}
+.drag-instructions-icon {
+  color: rgba(251, 191, 36, 0.7);
+  flex-shrink: 0;
+}
+
+
+/* 4. REDESIGNED CALENDAR ITEM CARD
+   ==================================== */
+
+.scheduled-item-pill {
+  position: relative;
+  background: rgba(22, 22, 28, 0.75) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 8px !important;
+  padding: 7px 8px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+  cursor: grab;
+  transition: var(--transition-smooth);
+  /* Remove old padding-right that was for action button */
+  padding-right: 8px !important;
+}
+
+.scheduled-item-pill:hover {
+  background: rgba(30, 30, 40, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* Top row of the card */
+.item-header-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Task name in the card (bold, white) */
+.item-name {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #f4f4f5 !important;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Delete button inline in header row */
+.btn-delete-item {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+  line-height: 1;
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  font-size: 14px;
+}
+.scheduled-item-pill:hover .btn-delete-item { opacity: 1; }
+.btn-delete-item:hover {
+  background: rgba(239, 68, 68, 0.18);
+  color: #ef4444;
+}
+
+/* Tags row */
+.item-tags-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* Subject name tag (colored per subject) */
+.item-subject-tag {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+/* Quantity tag (pages / hours / exercises / quiz) */
+.item-qty-tag {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  white-space: nowrap;
+}
+
+/* Color pills: show left border even stronger now */
+.scheduled-item-pill.color-gold  { border-left: 3px solid #fbbf24 !important; }
+.scheduled-item-pill.color-blue  { border-left: 3px solid #60a5fa !important; }
+.scheduled-item-pill.color-emerald { border-left: 3px solid #34d399 !important; }
+.scheduled-item-pill.color-purple  { border-left: 3px solid #a78bfa !important; }
+.scheduled-item-pill.color-red   { border-left: 3px solid #f87171 !important; }
+.scheduled-item-pill.color-pink  { border-left: 3px solid #f472b6 !important; }
+
+/* Old item-pill-actions: hide (replaced by inline delete) */
+.item-pill-actions { display: none !important; }
+
+
+/* 5. QUANTITY TYPE TOGGLE IN SUBJECTS MANAGER FORM
+   =================================================== */
+
+.qty-type-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.qty-type-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.45);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.qty-type-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.qty-type-btn.active {
+  background: rgba(234, 88, 12, 0.15);
+  border-color: rgba(234, 88, 12, 0.5);
+  color: #fb923c;
+}
+
+.qty-input-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* inline-add-row: make it 3 columns when label present */
+.inline-add-row {
+  display: grid;
+  grid-template-columns: auto 70px 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Column cat icon */
+.column-cat-icon {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Logo picker grid: expand to 5 columns for 22 logos */
+.logo-emoji-picker-grid {
+  grid-template-columns: repeat(5, 1fr) !important;
+  gap: 5px !important;
+}
+
+/* Active logo button: use subject color */
+.btn-emoji-selector.active {
+  background: rgba(255,255,255,0.08) !important;
+  border-color: rgba(255,255,255,0.25) !important;
+  box-shadow: 0 0 6px rgba(255,255,255,0.1);
+}
+
+/* Light mode qty type toggle */
+.light-theme .qty-type-btn {
+  background: #f1f5f9;
+  border-color: rgba(15, 23, 42, 0.1);
+  color: #64748b;
+}
+.light-theme .qty-type-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+.light-theme .qty-type-btn.active {
+  background: rgba(234, 88, 12, 0.1);
+  border-color: rgba(234, 88, 12, 0.4);
+  color: #c2410c;
+}
+
+/* Light mode calendar items */
+.light-theme .scheduled-item-pill {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+.light-theme .scheduled-item-pill:hover {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.18) !important;
+}
+.light-theme .item-name { color: #0f172a !important; }
+.light-theme .item-qty-tag {
+  background: rgba(15, 23, 42, 0.05);
+  color: rgba(15, 23, 42, 0.5);
+  border-color: rgba(15, 23, 42, 0.08);
+}
+.light-theme .btn-delete-item { color: rgba(15, 23, 42, 0.25); }
+.light-theme .calendar-column {
+  background: rgba(248, 250, 252, 0.85) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+/* ===================================================
+   END v3 OVERRIDES
+   =================================================== */

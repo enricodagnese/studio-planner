@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import type { Subject, WeekPlan, CalendarItem } from '../types/planner';
-import { PlusIcon } from './Icons';
+import type { Subject, WeekPlan, CalendarItem, TaskQuantityType } from '../types/planner';
+import { PlusIcon, XIcon } from './Icons';
 
 interface WeeklyGridProps {
   activeWeek: WeekPlan;
@@ -10,6 +10,16 @@ interface WeeklyGridProps {
   onUpdateSubjects: (updatedSubjects: Subject[]) => void;
   isFirstWeek?: boolean;
 }
+
+const getQtyLabel = (pages?: number, quantityType?: TaskQuantityType): string => {
+  if (!pages) return '';
+  switch (quantityType) {
+    case 'ore-video': return `${pages}h video`;
+    case 'esercizi':  return `${pages} esercizi`;
+    case 'quiz':      return `${pages} quiz`;
+    default:          return `${pages} pag`;
+  }
+};
 
 export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
   activeWeek,
@@ -23,314 +33,197 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
   const [newTaskName, setNewTaskName] = useState('');
   const [dragOverSlot, setDragOverSlot] = useState<{ dayId: string; slotKey: string } | null>(null);
 
-  // Helper to find preset color class based on subject id
+  // Color class from subject color hex
   const getSubjectColorClass = (subjectId?: string) => {
     if (!subjectId) return 'item-custom';
     const sub = subjects.find(s => s.id === subjectId);
     if (!sub) return 'item-custom';
-    
     const colorsMap: Record<string, string> = {
-      '#fbbf24': 'color-gold',
-      '#60a5fa': 'color-blue',
-      '#34d399': 'color-emerald',
-      '#a78bfa': 'color-purple',
-      '#f87171': 'color-red',
-      '#f472b6': 'color-pink',
-      // Legacy dark colors
-      '#d97706': 'color-gold',
-      '#2563eb': 'color-blue',
-      '#059669': 'color-emerald',
-      '#7c3aed': 'color-purple',
-      '#dc2626': 'color-red',
-      '#db2777': 'color-pink',
+      '#fbbf24': 'color-gold',   '#60a5fa': 'color-blue',
+      '#34d399': 'color-emerald','#a78bfa': 'color-purple',
+      '#f87171': 'color-red',    '#f472b6': 'color-pink',
+      '#d97706': 'color-gold',   '#2563eb': 'color-blue',
+      '#059669': 'color-emerald','#7c3aed': 'color-purple',
+      '#dc2626': 'color-red',    '#db2777': 'color-pink',
     };
     return colorsMap[sub.color] || 'color-gold';
   };
 
-  // Helper to find page count
-  const getSubjectPages = (item: CalendarItem) => {
-    if (item.pages) return `${item.pages} pag`;
-    if (item.subjectId) {
-      const sub = subjects.find(s => s.id === item.subjectId);
-      if (sub) return `${sub.pages} pag`;
-    }
-    return '';
+  // Find subject for a calendar item
+  const getSubjectInfo = (subjectId?: string) => {
+    if (!subjectId) return null;
+    return subjects.find(s => s.id === subjectId) || null;
   };
 
-  // Helper: determine month class for the calendar column background
+  // Month class for header coloring only
   const getMonthClass = (dateLabel: string) => {
-    const month = dateLabel.split(' ')[1]?.toLowerCase() || '';
+    const month = (dateLabel.split(' ')[1] || '').toLowerCase();
     if (month.includes('mag')) return 'month-mag';
     if (month.includes('giu')) return 'month-giu';
     if (month.includes('lug') || month.includes('ago')) return 'month-lug';
     return '';
   };
 
-  // --- Drag & Drop Handlers ---
-
+  // --- Drag & Drop ---
   const handleDragOver = (e: React.DragEvent, dayId: string, slotKey: string) => {
     e.preventDefault();
-    
-    // Dynamically set dropEffect to prevent browser mismatch blocks
     const dragged = (window as any).reactPlannerDraggedItem;
-    if (dragged && dragged.type === 'calendar-item') {
-      e.dataTransfer.dropEffect = 'move';
-    } else {
-      e.dataTransfer.dropEffect = 'copy';
-    }
-
+    e.dataTransfer.dropEffect = dragged?.type === 'calendar-item' ? 'move' : 'copy';
     if (dragOverSlot?.dayId !== dayId || dragOverSlot?.slotKey !== slotKey) {
       setDragOverSlot({ dayId, slotKey });
     }
   };
 
-  const handleDragLeave = () => {
-    setDragOverSlot(null);
-  };
+  const handleDragLeave = () => setDragOverSlot(null);
 
   const handleDrop = (e: React.DragEvent, dayId: string, slotKey: 'mattina' | 'pomeriggio' | 'sera') => {
     e.preventDefault();
     setDragOverSlot(null);
-
-    // Retrieve dragged item from bulletproof global window state
     const dragged = (window as any).reactPlannerDraggedItem;
     if (!dragged) return;
 
     const updatedWeeks = JSON.parse(JSON.stringify(weeks)) as WeekPlan[];
 
     if (dragged.type === 'subject') {
-      // Case 1: Dragging a whole subject from the materials library
-      const subjectId = dragged.id;
-      const originSubject = subjects.find(s => s.id === subjectId);
+      const originSubject = subjects.find(s => s.id === dragged.id);
       if (!originSubject) return;
-
       const newItem: CalendarItem = {
         id: `cal-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         subjectId: originSubject.id,
         name: originSubject.name,
         completed: false,
       };
-
-      const targetWeek = updatedWeeks.find(w => w.id === activeWeek.id);
-      if (!targetWeek) return;
-      const targetDay = targetWeek.days.find(d => d.id === dayId);
+      const targetDay = updatedWeeks.find(w => w.id === activeWeek.id)?.days.find(d => d.id === dayId);
       if (!targetDay) return;
-
       targetDay[slotKey].push(newItem);
       onUpdateAllWeeks(updatedWeeks);
 
     } else if (dragged.type === 'task') {
-      // Case 2: Dragging a specific granular sub-task from the materials library tree
       const originSubject = subjects.find(s => s.id === dragged.subjectId);
       if (!originSubject) return;
-
       const newItem: CalendarItem = {
         id: `cal-task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         subjectId: dragged.subjectId,
-        name: `${originSubject.name}: ${dragged.name}`,
+        name: dragged.name,                      // Just task name, NOT "Subject: Task"
         pages: dragged.pages,
+        quantityType: dragged.quantityType as TaskQuantityType,
         completed: false,
       };
-
-      const targetWeek = updatedWeeks.find(w => w.id === activeWeek.id);
-      if (!targetWeek) return;
-      const targetDay = targetWeek.days.find(d => d.id === dayId);
+      const targetDay = updatedWeeks.find(w => w.id === activeWeek.id)?.days.find(d => d.id === dayId);
       if (!targetDay) return;
-
       targetDay[slotKey].push(newItem);
       onUpdateAllWeeks(updatedWeeks);
 
-      // Auto-remove this task from the subject's task list now that it is scheduled
+      // Auto-remove task from subject after scheduling
       if (dragged.taskId) {
-        const updatedSubjects = subjects.map(s => {
-          if (s.id === dragged.subjectId) {
-            return {
-              ...s,
-              tasks: s.tasks.filter(t => t.id !== dragged.taskId),
-            };
-          }
-          return s;
-        });
-        onUpdateSubjects(updatedSubjects);
+        onUpdateSubjects(subjects.map(s => s.id === dragged.subjectId
+          ? { ...s, tasks: s.tasks.filter(t => t.id !== dragged.taskId) }
+          : s
+        ));
       }
 
     } else if (dragged.type === 'calendar-item') {
-      // Case 3: Dragging an existing calendar item (cross-week & intra-week fully supported!)
       const calendarItemId = dragged.id;
-      const sourceDayId = dragged.sourceDayId;
       const sourceSlotKey = dragged.sourceSlotKey as 'mattina' | 'pomeriggio' | 'sera';
-
       let movedItem: CalendarItem | null = null;
-      
-      // Find and remove from source day of any week
+
       for (const w of updatedWeeks) {
-        const sourceDay = w.days.find(d => d.id === sourceDayId);
+        const sourceDay = w.days.find(d => d.id === dragged.sourceDayId);
         if (sourceDay) {
-          const itemIndex = sourceDay[sourceSlotKey].findIndex((item: CalendarItem) => item.id === calendarItemId);
-          if (itemIndex !== -1) {
-            [movedItem] = sourceDay[sourceSlotKey].splice(itemIndex, 1);
-            break;
-          }
+          const idx = sourceDay[sourceSlotKey].findIndex((i: CalendarItem) => i.id === calendarItemId);
+          if (idx !== -1) { [movedItem] = sourceDay[sourceSlotKey].splice(idx, 1); break; }
         }
       }
-
       if (!movedItem) return;
-
-      // Add to target day in current active week
-      const targetWeek = updatedWeeks.find(w => w.id === activeWeek.id);
-      if (!targetWeek) return;
-      const targetDay = targetWeek.days.find(d => d.id === dayId);
+      const targetDay = updatedWeeks.find(w => w.id === activeWeek.id)?.days.find(d => d.id === dayId);
       if (!targetDay) return;
-
       targetDay[slotKey].push(movedItem);
       onUpdateAllWeeks(updatedWeeks);
     }
 
-    // Reset global drag state
     (window as any).reactPlannerDraggedItem = null;
   };
 
-  const handleCalendarItemDragStart = (
-    e: React.DragEvent,
-    itemId: string,
-    dayId: string,
-    slotKey: 'mattina' | 'pomeriggio' | 'sera'
-  ) => {
+  const handleCalendarItemDragStart = (e: React.DragEvent, itemId: string, dayId: string, slotKey: 'mattina' | 'pomeriggio' | 'sera') => {
     e.dataTransfer.setData('text/plain', itemId);
-    e.dataTransfer.effectAllowed = 'copyMove'; // Enable both copy and move for full compatibility
-    
-    // Set global window drag state for absolute reliability
-    (window as any).reactPlannerDraggedItem = {
-      type: 'calendar-item',
-      id: itemId,
-      sourceDayId: dayId,
-      sourceSlotKey: slotKey
-    };
-
-    // Add visual dragging effect
-    const element = e.currentTarget as HTMLElement;
-    element.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'copyMove';
+    (window as any).reactPlannerDraggedItem = { type: 'calendar-item', id: itemId, sourceDayId: dayId, sourceSlotKey: slotKey };
+    (e.currentTarget as HTMLElement).classList.add('dragging');
   };
 
   const handleCalendarItemDragEnd = (e: React.DragEvent) => {
-    const element = e.currentTarget as HTMLElement;
-    element.classList.remove('dragging');
+    (e.currentTarget as HTMLElement).classList.remove('dragging');
   };
 
-  // --- Task Manipulation Handlers ---
-
+  // --- Task Actions ---
   const handleToggleItem = (dayId: string, slotKey: 'mattina' | 'pomeriggio' | 'sera', itemId: string) => {
-    const updatedWeeks = weeks.map(w => {
+    onUpdateAllWeeks(weeks.map(w => {
       if (w.id === activeWeek.id) {
         const day = w.days.find(d => d.id === dayId);
-        if (day) {
-          const item = day[slotKey].find(i => i.id === itemId);
-          if (item) {
-            item.completed = !item.completed;
-          }
-        }
+        if (day) { const item = day[slotKey].find(i => i.id === itemId); if (item) item.completed = !item.completed; }
       }
       return w;
-    });
-    onUpdateAllWeeks(updatedWeeks);
+    }));
   };
 
   const handleDeleteItem = (dayId: string, slotKey: 'mattina' | 'pomeriggio' | 'sera', itemId: string) => {
-    const updatedWeeks = weeks.map(w => {
+    onUpdateAllWeeks(weeks.map(w => {
       if (w.id === activeWeek.id) {
         const day = w.days.find(d => d.id === dayId);
-        if (day) {
-          day[slotKey] = day[slotKey].filter(i => i.id !== itemId);
-        }
+        if (day) day[slotKey] = day[slotKey].filter(i => i.id !== itemId);
       }
       return w;
-    });
-    onUpdateAllWeeks(updatedWeeks);
+    }));
   };
 
   const handleAddCustomTaskSubmit = (e: React.FormEvent, dayId: string, slotKey: 'mattina' | 'pomeriggio' | 'sera') => {
     e.preventDefault();
     if (!newTaskName.trim()) return;
-
-    // Parse page helper: Es. "Quiz IPv4 (12 pag)" or just custom name
     let parsedName = newTaskName;
     let parsedPages: number | undefined;
-
     const pageRegex = /\((\d+)\s*(?:pag|pagine)?\)/i;
     const match = newTaskName.match(pageRegex);
-    if (match) {
-      parsedPages = parseInt(match[1]);
-      parsedName = newTaskName.replace(pageRegex, '').trim();
-    }
+    if (match) { parsedPages = parseInt(match[1]); parsedName = newTaskName.replace(pageRegex, '').trim(); }
 
-    const newItem: CalendarItem = {
-      id: `cal-custom-${Date.now()}`,
-      name: parsedName,
-      pages: parsedPages,
-      completed: false,
-    };
-
-    const updatedWeeks = weeks.map(w => {
+    const newItem: CalendarItem = { id: `cal-custom-${Date.now()}`, name: parsedName, pages: parsedPages, completed: false };
+    onUpdateAllWeeks(weeks.map(w => {
       if (w.id === activeWeek.id) {
         const day = w.days.find(d => d.id === dayId);
-        if (day) {
-          day[slotKey].push(newItem);
-        }
+        if (day) day[slotKey].push(newItem);
       }
       return w;
-    });
-
-    onUpdateAllWeeks(updatedWeeks);
+    }));
     setNewTaskName('');
     setAddingTaskForSlot(null);
   };
 
-  // Render Slot Header Pill Helper (no emojis/icons as requested)
   const renderSlotHeader = (slotKey: 'mattina' | 'pomeriggio' | 'sera') => {
-    switch (slotKey) {
-      case 'mattina':
-        return (
-          <div className="slot-pill morning-pill">
-            <span>Mattina</span>
-          </div>
-        );
-      case 'pomeriggio':
-        return (
-          <div className="slot-pill afternoon-pill">
-            <span>Pomeriggio</span>
-          </div>
-        );
-      case 'sera':
-        return (
-          <div className="slot-pill evening-pill">
-            <span>Sera</span>
-          </div>
-        );
-    }
+    const labels = { mattina: 'Mattina', pomeriggio: 'Pomeriggio', sera: 'Sera' };
+    const classes = { mattina: 'morning-pill', pomeriggio: 'afternoon-pill', sera: 'evening-pill' };
+    return <div className={`slot-pill ${classes[slotKey]}`}><span>{labels[slotKey]}</span></div>;
   };
 
   return (
     <div className="weekly-calendar-grid">
       {activeWeek.days.map((day) => {
-        const [dayNameOnly] = day.name.split(' ');
-        const dayNumberOnly = day.name.split(' ')[1] || '';
+        const parts = day.name.split(' ');
+        const dayNameOnly = parts[0];
+        const dayNumberOnly = parts[1] || '';
         const monthOnly = day.dateLabel.split(' ')[1] || '';
         const monthClass = getMonthClass(day.dateLabel);
-        const isWeekend = dayNameOnly.toLowerCase().includes('sabato') || dayNameOnly.toLowerCase().includes('domenica');
-        
-        // High-end dynamic current day highlighter
+        const isWeekend = ['sabato', 'domenica'].some(d => dayNameOnly.toLowerCase().includes(d));
+
         const todayDate = new Date();
-        const todayDayNumber = todayDate.getDate();
         const monthsShort = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
-        const todayMonthShort = monthsShort[todayDate.getMonth()];
-        const isToday = day.dateLabel === `${todayDayNumber} ${todayMonthShort}`;
+        const isToday = day.dateLabel === `${todayDate.getDate()} ${monthsShort[todayDate.getMonth()]}`;
 
         return (
-          <div 
-            key={day.id} 
+          <div
+            key={day.id}
             className={`calendar-column glass-container ${monthClass} ${isWeekend ? 'day-weekend' : ''} ${isToday ? 'day-today' : ''}`}
           >
-            <div className="column-header">
+            {/* Column Header — month color applied here only */}
+            <div className={`column-header cal-col-header-month ${monthClass}`}>
               <div className="day-title day-title-row">
                 {isFirstWeek ? (
                   <>
@@ -364,14 +257,17 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                     {renderSlotHeader(slotKey)}
 
                     {items.length === 0 ? (
-                      <div className="slot-placeholder">
-                        <span>Trascina qui</span>
-                      </div>
+                      <div className="slot-placeholder"><span>Trascina qui</span></div>
                     ) : (
                       <div className="slot-items-list">
                         {items.map((item) => {
                           const colorClass = getSubjectColorClass(item.subjectId);
-                          const pageLabel = getSubjectPages(item);
+                          const subject = getSubjectInfo(item.subjectId);
+                          const qtyLabel = getQtyLabel(item.pages, item.quantityType);
+                          // Abbreviate subject name to max 14 chars
+                          const subjLabel = subject
+                            ? (subject.name.length > 14 ? subject.name.slice(0, 13) + '…' : subject.name)
+                            : null;
 
                           return (
                             <div
@@ -381,28 +277,45 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                               onDragEnd={handleCalendarItemDragEnd}
                               className={`scheduled-item-pill ${colorClass} ${item.completed ? 'completed' : ''}`}
                             >
-                              <label className="checkbox-container-sm">
-                                <input
-                                  type="checkbox"
-                                  checked={item.completed}
-                                  onChange={() => handleToggleItem(day.id, slotKey, item.id)}
-                                />
-                                <span className="checkmark-sm"></span>
-                              </label>
-                              <div className="item-text-content">
+                              {/* Top row: checkbox + task name + delete */}
+                              <div className="item-header-row">
+                                <label className="checkbox-container-sm">
+                                  <input
+                                    type="checkbox"
+                                    checked={item.completed}
+                                    onChange={() => handleToggleItem(day.id, slotKey, item.id)}
+                                  />
+                                  <span className="checkmark-sm"></span>
+                                </label>
                                 <span className="item-name" title={item.name}>{item.name}</span>
-                                {pageLabel && <span className="item-pages">{pageLabel}</span>}
-                              </div>
-                              <div className="item-pill-actions">
                                 <button
                                   type="button"
                                   className="btn-delete-item"
                                   onClick={() => handleDeleteItem(day.id, slotKey, item.id)}
                                   title="Rimuovi"
                                 >
-                                  ×
+                                  <XIcon size={9} />
                                 </button>
                               </div>
+
+                              {/* Bottom row: subject tag + quantity tag */}
+                              {(subjLabel || qtyLabel) && (
+                                <div className="item-tags-row">
+                                  {subjLabel && (
+                                    <span
+                                      className="item-subject-tag"
+                                      style={{
+                                        backgroundColor: subject ? `${subject.color}22` : undefined,
+                                        color: subject?.color,
+                                        borderColor: subject ? `${subject.color}44` : undefined,
+                                      }}
+                                    >
+                                      {subjLabel}
+                                    </span>
+                                  )}
+                                  {qtyLabel && <span className="item-qty-tag">{qtyLabel}</span>}
+                                </div>
+                              )}
                             </div>
                           );
                         })}
@@ -410,10 +323,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                     )}
 
                     {addingTaskForSlot?.dayId === day.id && addingTaskForSlot?.slotKey === slotKey ? (
-                      <form
-                        onSubmit={(e) => handleAddCustomTaskSubmit(e, day.id, slotKey)}
-                        className="add-quick-task-form"
-                      >
+                      <form onSubmit={(e) => handleAddCustomTaskSubmit(e, day.id, slotKey)} className="add-quick-task-form">
                         <input
                           type="text"
                           placeholder="Es. Quiz (12 pag) o Ripasso"
@@ -425,12 +335,8 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                         />
                         <div className="quick-form-buttons">
                           <button type="submit" className="btn-quick btn-ok">✓</button>
-                          <button
-                            type="button"
-                            className="btn-quick btn-cancel"
-                            onClick={() => setAddingTaskForSlot(null)}
-                          >
-                            ×
+                          <button type="button" className="btn-quick btn-cancel" onClick={() => setAddingTaskForSlot(null)}>
+                            <XIcon size={10} />
                           </button>
                         </div>
                       </form>
@@ -438,13 +344,10 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                       <div className="slot-action-row">
                         <button
                           className="btn-add-to-slot"
-                          onClick={() => {
-                            setAddingTaskForSlot({ dayId: day.id, slotKey });
-                            setNewTaskName('');
-                          }}
+                          onClick={() => { setAddingTaskForSlot({ dayId: day.id, slotKey }); setNewTaskName(''); }}
                           title="Aggiungi compito rapido"
                         >
-                          <PlusIcon size={12} />
+                          <PlusIcon size={11} />
                           <span>Aggiungi...</span>
                         </button>
                       </div>

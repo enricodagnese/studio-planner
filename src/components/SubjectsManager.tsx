@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import type { Subject, Task } from '../types/planner';
-import { TrashIcon, BookIcon } from './Icons';
+import type { Subject, Task, TaskQuantityType } from '../types/planner';
+import { TrashIcon, BookIcon, PenIcon, SettingsIcon, CopyIcon, ChevronLeftIcon } from './Icons';
 import { CybersecurityLogo } from './CybersecurityLogo';
 
 interface SubjectsManagerProps {
@@ -9,172 +9,146 @@ interface SubjectsManagerProps {
 }
 
 const PRESET_COLORS = [
-  { name: 'Gold', value: '#fbbf24', class: 'color-gold' },
-  { name: 'Blue', value: '#60a5fa', class: 'color-blue' },
+  { name: 'Gold',    value: '#fbbf24', class: 'color-gold'    },
+  { name: 'Blue',    value: '#60a5fa', class: 'color-blue'    },
   { name: 'Emerald', value: '#34d399', class: 'color-emerald' },
-  { name: 'Purple', value: '#a78bfa', class: 'color-purple' },
-  { name: 'Red', value: '#f87171', class: 'color-red' },
-  { name: 'Pink', value: '#f472b6', class: 'color-pink' },
+  { name: 'Purple',  value: '#a78bfa', class: 'color-purple'  },
+  { name: 'Red',     value: '#f87171', class: 'color-red'     },
+  { name: 'Pink',    value: '#f472b6', class: 'color-pink'    },
 ];
 
 const CYBER_LOGOS = [
-  { key: 'shield', name: 'Firewall' },
-  { key: 'lock', name: 'Crittografia' },
-  { key: 'key', name: 'Autenticazione' },
-  { key: 'terminal', name: 'Terminale Hacker' },
-  { key: 'globe', name: 'Sicurezza Rete' },
-  { key: 'radar', name: 'Scanner Minacce' },
-  { key: 'bug', name: 'Analisi Malware' },
-  { key: 'database', name: 'Database Sicuro' },
-  { key: 'cpu', name: 'Sicurezza Chip' },
-  { key: 'server', name: 'Mainframe Sicuro' }
+  { key: 'shield',         name: 'Firewall' },
+  { key: 'lock',           name: 'Crittografia' },
+  { key: 'key',            name: 'Autenticazione' },
+  { key: 'terminal',       name: 'Terminale' },
+  { key: 'globe',          name: 'Sicurezza Rete' },
+  { key: 'radar',          name: 'Scanner Minacce' },
+  { key: 'bug',            name: 'Analisi Malware' },
+  { key: 'database',       name: 'Database Sicuro' },
+  { key: 'cpu',            name: 'Sicurezza Chip' },
+  { key: 'server',         name: 'Mainframe' },
+  { key: 'wifi',           name: 'Sicurezza WiFi' },
+  { key: 'cloud',          name: 'Cloud Security' },
+  { key: 'eye',            name: 'Monitoring/SIEM' },
+  { key: 'zap',            name: 'Exploit/Attacchi' },
+  { key: 'layers',         name: 'Stack Tech' },
+  { key: 'link',           name: 'Networking' },
+  { key: 'alert-triangle', name: 'Incident Response' },
+  { key: 'hard-drive',     name: 'Storage Security' },
+  { key: 'fingerprint',    name: 'Biometria' },
+  { key: 'code',           name: 'Secure Coding' },
+  { key: 'activity',       name: 'Network Monitor' },
+  { key: 'user-check',     name: 'User Auth' },
 ];
 
-export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
-  subjects,
-  onUpdateSubjects,
-}) => {
-  const [selectedSubjId, setSelectedSubjId] = useState<string | null>(null);
+const getQtyLabel = (pages: number, quantityType?: TaskQuantityType): string => {
+  switch (quantityType) {
+    case 'ore-video': return `${pages}h video`;
+    case 'esercizi':  return `${pages} esercizi`;
+    case 'quiz':      return `${pages} quiz`;
+    default:          return `${pages} pag`;
+  }
+};
 
-  // Task creation state
+const getQtyInputLabel = (quantityType: TaskQuantityType): string => {
+  switch (quantityType) {
+    case 'ore-video': return 'Ore';
+    case 'esercizi':  return 'N. Esercizi';
+    case 'quiz':      return 'N. Quiz';
+    default:          return 'Pagine';
+  }
+};
+
+export const SubjectsManager: React.FC<SubjectsManagerProps> = ({ subjects, onUpdateSubjects }) => {
+  const [selectedSubjId, setSelectedSubjId] = useState<string | null>(null);
   const [addingTaskCategory, setAddingTaskCategory] = useState<'teoria' | 'esercizi' | 'altro' | null>(null);
   const [taskName, setTaskName] = useState('');
   const [taskPages, setTaskPages] = useState<number>(10);
+  const [taskQuantityType, setTaskQuantityType] = useState<TaskQuantityType>('pagine');
+  const [copiedTask, setCopiedTask] = useState<{ name: string; pages: number; category: 'teoria' | 'esercizi' | 'altro'; quantityType: TaskQuantityType } | null>(null);
 
-  // Copy/paste clipboard for tasks within subjects
-  const [copiedTask, setCopiedTask] = useState<{ name: string; pages: number; category: 'teoria' | 'esercizi' | 'altro' } | null>(null);
-
-  // Active Subject helper
   const activeSubj = subjects.find(s => s.id === selectedSubjId);
 
-  // Add Subject (Autoselects the new subject immediately to edit!)
   const handleCreateSubject = () => {
     const newSubj: Subject = {
       id: `subj-${Date.now()}`,
-      name: 'Nuova Materia',
-      pages: 30,
-      completed: false,
+      name: 'Nuova Materia', pages: 30, completed: false,
       color: PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)].value,
-      logo: 'shield',
-      description: '',
-      tasks: []
+      logo: 'shield', description: '', tasks: []
     };
     onUpdateSubjects([...subjects, newSubj]);
     setSelectedSubjId(newSubj.id);
   };
 
-  // Delete Subject
   const handleDeleteSubject = (id: string) => {
-    if (window.confirm("Sei sicuro di voler eliminare definitivamente questa materia e tutti i suoi compiti?")) {
-      onUpdateSubjects(subjects.filter((s) => s.id !== id));
+    if (window.confirm('Sei sicuro di voler eliminare definitivamente questa materia e tutti i suoi compiti?')) {
+      onUpdateSubjects(subjects.filter(s => s.id !== id));
       setSelectedSubjId(null);
     }
   };
 
-  // Update a single field inside the active Subject
   const handleUpdateActiveField = (field: keyof Subject, value: any) => {
     if (!selectedSubjId) return;
-    onUpdateSubjects(
-      subjects.map((s) => (s.id === selectedSubjId ? { ...s, [field]: value } : s))
-    );
+    onUpdateSubjects(subjects.map(s => s.id === selectedSubjId ? { ...s, [field]: value } : s));
   };
 
-  // Add Task inside category column
+  const openAddTask = (category: 'teoria' | 'esercizi' | 'altro') => {
+    setAddingTaskCategory(category);
+    setTaskName('');
+    setTaskPages(15);
+    // Default quantity type per category
+    if (category === 'teoria') setTaskQuantityType('pagine');
+    else if (category === 'esercizi') setTaskQuantityType('esercizi');
+    else setTaskQuantityType('pagine');
+  };
+
   const handleAddTask = (e: React.FormEvent, category: 'teoria' | 'esercizi' | 'altro') => {
     e.preventDefault();
     if (!taskName.trim() || !selectedSubjId || !activeSubj) return;
-
     const newTask: Task = {
       id: `task-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-      name: taskName,
-      pages: taskPages,
-      completed: false,
-      category,
+      name: taskName, pages: taskPages, completed: false,
+      category, quantityType: taskQuantityType,
     };
-
-    onUpdateSubjects(
-      subjects.map((s) => {
-        if (s.id === selectedSubjId) {
-          return {
-            ...s,
-            tasks: [...(s.tasks || []), newTask]
-          };
-        }
-        return s;
-      })
-    );
-
+    onUpdateSubjects(subjects.map(s => s.id === selectedSubjId ? { ...s, tasks: [...(s.tasks || []), newTask] } : s));
     setTaskName('');
     setTaskPages(10);
     setAddingTaskCategory(null);
   };
 
-  // Paste a copied task into a specific category column
   const handlePasteTask = (category: 'teoria' | 'esercizi' | 'altro') => {
     if (!copiedTask || !selectedSubjId || !activeSubj) return;
-
     const pastedTask: Task = {
       id: `task-paste-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-      name: copiedTask.name,
-      pages: copiedTask.pages,
-      completed: false,
-      category,
+      name: copiedTask.name, pages: copiedTask.pages, completed: false,
+      category, quantityType: copiedTask.quantityType,
     };
-
-    onUpdateSubjects(
-      subjects.map((s) => {
-        if (s.id === selectedSubjId) {
-          return {
-            ...s,
-            tasks: [...(s.tasks || []), pastedTask]
-          };
-        }
-        return s;
-      })
-    );
+    onUpdateSubjects(subjects.map(s => s.id === selectedSubjId ? { ...s, tasks: [...(s.tasks || []), pastedTask] } : s));
   };
 
-  // Toggle Task Checklist
   const handleToggleTask = (taskId: string) => {
     if (!selectedSubjId) return;
-    onUpdateSubjects(
-      subjects.map((s) => {
-        if (s.id === selectedSubjId) {
-          const updatedTasks = s.tasks.map((t) =>
-            t.id === taskId ? { ...t, completed: !t.completed } : t
-          );
-          const allCompleted = updatedTasks.length > 0 && updatedTasks.every((t) => t.completed);
-          return {
-            ...s,
-            tasks: updatedTasks,
-            completed: allCompleted
-          };
-        }
-        return s;
-      })
-    );
+    onUpdateSubjects(subjects.map(s => {
+      if (s.id === selectedSubjId) {
+        const updatedTasks = s.tasks.map(t => t.id === taskId ? { ...t, completed: !t.completed } : t);
+        return { ...s, tasks: updatedTasks, completed: updatedTasks.length > 0 && updatedTasks.every(t => t.completed) };
+      }
+      return s;
+    }));
   };
 
-  // Delete Task Row
   const handleDeleteTask = (taskId: string) => {
     if (!selectedSubjId) return;
-    onUpdateSubjects(
-      subjects.map((s) => {
-        if (s.id === selectedSubjId) {
-          const updatedTasks = s.tasks.filter((t) => t.id !== taskId);
-          const allCompleted = updatedTasks.length > 0 && updatedTasks.every((t) => t.completed);
-          return {
-            ...s,
-            tasks: updatedTasks,
-            completed: allCompleted
-          };
-        }
-        return s;
-      })
-    );
+    onUpdateSubjects(subjects.map(s => {
+      if (s.id === selectedSubjId) {
+        const updatedTasks = s.tasks.filter(t => t.id !== taskId);
+        return { ...s, tasks: updatedTasks, completed: updatedTasks.length > 0 && updatedTasks.every(t => t.completed) };
+      }
+      return s;
+    }));
   };
 
-  // Render a single task row with copy button
   const renderTaskRow = (t: Task) => (
     <div key={t.id} className={`column-task-row ${t.completed ? 'completed' : ''}`}>
       <label className="checkbox-container-sm">
@@ -183,23 +157,42 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
       </label>
       <div className="task-row-details">
         <span className="task-row-title-text">{t.name}</span>
-        <span className="task-row-pages-text">{t.pages} pag</span>
+        <span className="task-row-pages-text">{getQtyLabel(t.pages, t.quantityType)}</span>
       </div>
       <div className="task-row-actions">
         <button
           className="btn-copy-task"
-          onClick={() => setCopiedTask({ name: t.name, pages: t.pages, category: t.category })}
+          onClick={() => setCopiedTask({ name: t.name, pages: t.pages, category: t.category, quantityType: t.quantityType || 'pagine' })}
           title="Copia task"
           type="button"
         >
-          📋
+          <CopyIcon size={11} />
         </button>
         <button className="btn-remove-task" onClick={() => handleDeleteTask(t.id)}>×</button>
       </div>
     </div>
   );
 
-  // Render column add/paste area
+  const renderQtyTypeToggle = (category: 'teoria' | 'esercizi' | 'altro') => {
+    if (category === 'teoria') {
+      return (
+        <div className="qty-type-toggle">
+          <button type="button" className={`qty-type-btn ${taskQuantityType === 'pagine' ? 'active' : ''}`} onClick={() => setTaskQuantityType('pagine')}>Pagine</button>
+          <button type="button" className={`qty-type-btn ${taskQuantityType === 'ore-video' ? 'active' : ''}`} onClick={() => setTaskQuantityType('ore-video')}>Ore Video</button>
+        </div>
+      );
+    }
+    if (category === 'esercizi') {
+      return (
+        <div className="qty-type-toggle">
+          <button type="button" className={`qty-type-btn ${taskQuantityType === 'esercizi' ? 'active' : ''}`} onClick={() => setTaskQuantityType('esercizi')}>Esercizi</button>
+          <button type="button" className={`qty-type-btn ${taskQuantityType === 'quiz' ? 'active' : ''}`} onClick={() => setTaskQuantityType('quiz')}>Quiz</button>
+        </div>
+      );
+    }
+    return null;
+  };
+
   const renderColumnFooter = (category: 'teoria' | 'esercizi' | 'altro') => (
     <>
       {addingTaskCategory === category ? (
@@ -213,11 +206,11 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
             required
             autoFocus
           />
+          {renderQtyTypeToggle(category)}
           <div className="inline-add-row">
+            <label className="qty-input-label">{getQtyInputLabel(taskQuantityType)}</label>
             <input
-              type="number"
-              min="1"
-              placeholder="Pagine"
+              type="number" min="1" placeholder="0"
               value={taskPages}
               onChange={(e) => setTaskPages(parseInt(e.target.value) || 1)}
               className="form-control text-center"
@@ -231,7 +224,7 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
         </form>
       ) : (
         <div className="column-footer-actions">
-          <button className="btn-column-add-trigger" onClick={() => { setAddingTaskCategory(category); setTaskName(''); setTaskPages(15); }}>
+          <button className="btn-column-add-trigger" onClick={() => openAddTask(category)}>
             + Aggiungi task
           </button>
           {copiedTask && (
@@ -241,7 +234,8 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
               title={`Incolla "${copiedTask.name}"`}
               type="button"
             >
-              📋 Incolla
+              <CopyIcon size={11} />
+              Incolla
             </button>
           )}
         </div>
@@ -249,14 +243,14 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
     </>
   );
 
-  // View 1: Main List Grid (Drawing 1)
+  // View 1: Grid
   if (!selectedSubjId || !activeSubj) {
     return (
       <div className="subjects-manager-container">
         <div className="manager-header">
           <div className="manager-title-group">
             <BookIcon className="panel-icon text-orange" size={24} />
-            <h2>📚 Le tue materie</h2>
+            <h2>Le tue materie</h2>
             <p className="subtitle">Gestisci e organizza le tue materie d'esame in categorie dedicate.</p>
           </div>
         </div>
@@ -276,27 +270,19 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
                 style={{ '--accent-color': subj.color } as React.CSSProperties}
               >
                 <div className="card-emoji-logo" style={{ color: subj.color }}>
-                  <CybersecurityLogo logo={subj.logo || 'shield'} size={42} />
+                  <CybersecurityLogo logo={subj.logo || 'shield'} size={44} />
                 </div>
                 <h3 className="card-subj-title">{subj.name}</h3>
                 {totalCount > 0 ? (
-                  <span className="card-subj-stats">
-                    {completedCount}/{totalCount} Compiti completati
-                  </span>
+                  <span className="card-subj-stats">{completedCount}/{totalCount} Compiti completati</span>
                 ) : (
-                  <span className="card-subj-stats empty-stats">Crea compiti e capitoli</span>
+                  <span className="card-subj-stats empty-stats">Nessun compito ancora</span>
                 )}
                 {subj.completed && <span className="card-completed-badge">✓ Completato</span>}
               </div>
             );
           })}
-
-          {/* Dotted border AGGIUNGI + Card (Drawing 1) */}
-          <div
-            onClick={handleCreateSubject}
-            className="subject-grid-card add-subj-grid-card-btn"
-            title="Crea una nuova materia"
-          >
+          <div onClick={handleCreateSubject} className="subject-grid-card add-subj-grid-card-btn" title="Crea una nuova materia">
             <div className="add-card-plus-icon">+</div>
             <h3 className="add-card-title">AGGIUNGI</h3>
           </div>
@@ -305,17 +291,20 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
     );
   }
 
-  // View 2: Single Subject Workspace (Drawing 2)
-  const theoryTasks = activeSubj.tasks.filter(t => t.category === 'teoria');
+  // View 2: Single Subject Workspace
+  const theoryTasks   = activeSubj.tasks.filter(t => t.category === 'teoria');
   const exerciseTasks = activeSubj.tasks.filter(t => t.category === 'esercizi');
-  const otherTasks = activeSubj.tasks.filter(t => t.category === 'altro');
+  const otherTasks    = activeSubj.tasks.filter(t => t.category === 'altro');
 
   return (
     <div className="subject-workspace-container animate-fade-in">
-      {/* Workspace Header */}
       <div className="workspace-header">
-        <button className="btn btn-secondary btn-sm btn-back-to-grid" onClick={() => { setSelectedSubjId(null); setCopiedTask(null); }}>
-          ⬅ Torna alle materie
+        <button
+          className="btn btn-secondary btn-sm btn-back-to-grid"
+          onClick={() => { setSelectedSubjId(null); setCopiedTask(null); }}
+        >
+          <ChevronLeftIcon size={15} />
+          Torna alle materie
         </button>
         <div className="workspace-title-area">
           <span className="workspace-logo-display">
@@ -325,30 +314,26 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
         </div>
         {copiedTask && (
           <div className="clipboard-indicator">
-            📋 <span>Copiato: <strong>{copiedTask.name}</strong></span>
-            <button className="btn-clear-clipboard" onClick={() => setCopiedTask(null)} title="Svuota clipboard">✕</button>
+            <CopyIcon size={12} />
+            <span>Copiato: <strong>{copiedTask.name}</strong></span>
+            <button className="btn-clear-clipboard" onClick={() => setCopiedTask(null)} title="Svuota clipboard">×</button>
           </div>
         )}
       </div>
 
-      {/* Main Workspace split */}
       <div className="workspace-grid-layout">
-        
-        {/* Left columns (Teoria, Esercizi, Altro) */}
         <div className="workspace-columns-area">
-          
+
           {/* Column 1: Teoria */}
           <div className="workspace-column glass-container">
             <div className="column-header-title">
-              <span className="column-emoji">📚</span>
+              <BookIcon size={16} className="column-cat-icon" />
               <h3>TEORIA</h3>
             </div>
             <div className="column-tasks-list">
-              {theoryTasks.length === 0 ? (
-                <p className="column-empty-hint">Nessun capitolo registrato</p>
-              ) : (
-                theoryTasks.map(renderTaskRow)
-              )}
+              {theoryTasks.length === 0
+                ? <p className="column-empty-hint">Nessun capitolo registrato</p>
+                : theoryTasks.map(renderTaskRow)}
             </div>
             {renderColumnFooter('teoria')}
           </div>
@@ -356,15 +341,13 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
           {/* Column 2: Esercizi */}
           <div className="workspace-column glass-container">
             <div className="column-header-title">
-              <span className="column-emoji">📝</span>
+              <PenIcon size={16} className="column-cat-icon" />
               <h3>ESERCIZI</h3>
             </div>
             <div className="column-tasks-list">
-              {exerciseTasks.length === 0 ? (
-                <p className="column-empty-hint">Nessun esercizio registrato</p>
-              ) : (
-                exerciseTasks.map(renderTaskRow)
-              )}
+              {exerciseTasks.length === 0
+                ? <p className="column-empty-hint">Nessun esercizio registrato</p>
+                : exerciseTasks.map(renderTaskRow)}
             </div>
             {renderColumnFooter('esercizi')}
           </div>
@@ -372,54 +355,40 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
           {/* Column 3: Altro */}
           <div className="workspace-column glass-container">
             <div className="column-header-title">
-              <span className="column-emoji">⚙️</span>
+              <SettingsIcon size={16} className="column-cat-icon" />
               <h3>ALTRO</h3>
             </div>
             <div className="column-tasks-list">
-              {otherTasks.length === 0 ? (
-                <p className="column-empty-hint">Nessun altro task</p>
-              ) : (
-                otherTasks.map(renderTaskRow)
-              )}
+              {otherTasks.length === 0
+                ? <p className="column-empty-hint">Nessun altro task</p>
+                : otherTasks.map(renderTaskRow)}
             </div>
             {renderColumnFooter('altro')}
           </div>
-
         </div>
 
-        {/* Right side: INFO Column/Panel (Drawing 2) */}
+        {/* Right side: Info Panel */}
         <div className="workspace-info-panel glass-container">
-          <div className="panel-title-area">
-            <h4>INFO MATERIA</h4>
-          </div>
+          <div className="panel-title-area"><h4>INFO MATERIA</h4></div>
 
-          {/* Edit Name */}
           <div className="info-field">
             <label>Nome Materia</label>
-            <input
-              type="text"
-              value={activeSubj.name}
-              onChange={(e) => handleUpdateActiveField('name', e.target.value)}
-              className="form-control"
-              required
-            />
+            <input type="text" value={activeSubj.name} onChange={(e) => handleUpdateActiveField('name', e.target.value)} className="form-control" required />
           </div>
 
-          {/* Edit Description (DESC) */}
           <div className="info-field">
-            <label>Descrizione / Syllabus (DESC)</label>
+            <label>Descrizione / Syllabus</label>
             <textarea
               value={activeSubj.description || ''}
               onChange={(e) => handleUpdateActiveField('description', e.target.value)}
-              placeholder="Aggiungi note sull'esame, scadenze o syllabus della materia..."
+              placeholder="Aggiungi note sull'esame, scadenze o syllabus..."
               className="form-control textarea-desc"
               rows={4}
             />
           </div>
 
-          {/* Edit Logo Emoji (LOGO picker) */}
           <div className="info-field">
-            <label>Logo Rappresentativo (LOGO)</label>
+            <label>Logo Rappresentativo</label>
             <div className="logo-emoji-picker-grid">
               {CYBER_LOGOS.map((item) => (
                 <button
@@ -428,16 +397,16 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
                   className={`btn-emoji-selector ${activeSubj.logo === item.key ? 'active' : ''}`}
                   onClick={() => handleUpdateActiveField('logo', item.key)}
                   title={item.name}
+                  style={activeSubj.logo === item.key ? { '--btn-active-color': activeSubj.color } as React.CSSProperties : undefined}
                 >
-                  <CybersecurityLogo logo={item.key} size={18} />
+                  <CybersecurityLogo logo={item.key} size={17} />
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Edit Color theme (COLORE presets) */}
           <div className="info-field">
-            <label>Colore Tema (COLORE)</label>
+            <label>Colore Tema</label>
             <div className="color-selectors color-manager-selectors">
               {PRESET_COLORS.map((c) => (
                 <button
@@ -451,7 +420,6 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
             </div>
           </div>
 
-          {/* Danger delete area */}
           <div className="info-danger-area">
             <button className="btn btn-secondary btn-block btn-delete-subj-workspace" onClick={() => handleDeleteSubject(activeSubj.id)}>
               <TrashIcon size={14} />
@@ -459,7 +427,6 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({
             </button>
           </div>
         </div>
-
       </div>
     </div>
   );

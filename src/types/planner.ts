@@ -1,7 +1,10 @@
+export type TaskQuantityType = 'pagine' | 'ore-video' | 'esercizi' | 'quiz';
+
 export interface Task {
   id: string;
   name: string;
-  pages: number;
+  pages: number; // The quantity value (pages, hours, exercises, quiz count)
+  quantityType?: TaskQuantityType; // How to interpret the quantity
   completed: boolean;
   category: 'teoria' | 'esercizi' | 'altro'; // Task categorization column
 }
@@ -12,7 +15,7 @@ export interface Subject {
   pages: number;
   completed: boolean;
   color: string; // hex or CSS class for custom look
-  logo: string;  // Custom representative emoji/icon (e.g. ☁️, ⚙️)
+  logo: string;  // Custom representative vector icon key
   description?: string; // General description or course notes
   tasks: Task[]; // List of specific tasks or chapters
 }
@@ -20,13 +23,14 @@ export interface Subject {
 export interface CalendarItem {
   id: string;
   subjectId?: string; // Links to a Subject if dragged from the list
-  name: string; // The display name
-  pages?: number; // Optional number of pages for this slot
+  name: string; // The task display name (without subject prefix)
+  pages?: number; // Quantity value
+  quantityType?: TaskQuantityType; // How to display the quantity
   completed: boolean;
 }
 
 export interface DaySchedule {
-  id: string; // e.g. "lunedì-25"
+  id: string; // e.g. "lun-25"
   name: string; // e.g. "Lunedì 25"
   dateLabel: string; // e.g. "25 Mag"
   mattina: CalendarItem[];
