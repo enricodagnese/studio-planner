@@ -4,17 +4,69 @@ import { MaterialsList } from './components/MaterialsList';
 import { WeeklyGrid } from './components/WeeklyGrid';
 import { AddWeekModal } from './components/AddWeekModal';
 import { ImportExport } from './components/ImportExport';
+import { SubjectsManager } from './components/SubjectsManager';
 import { PlusIcon, SunIcon, MoonIcon } from './components/Icons';
 import './App.css';
 
 // Initial Mock Data matching the user's screenshot exactly
 const INITIAL_SUBJECTS: Subject[] = [
-  { id: 'subj-1', name: 'Cloud - LAN e VLAN', pages: 14, completed: false, color: '#d97706' },
-  { id: 'subj-2', name: 'Cloud - Multi QoS', pages: 18, completed: false, color: '#d97706' },
-  { id: 'subj-3', name: 'Cloud - CC Concept', pages: 22, completed: false, color: '#d97706' },
-  { id: 'subj-4', name: 'Cloud - CC Virtualization', pages: 16, completed: false, color: '#d97706' },
-  { id: 'subj-5', name: 'Cloud - CC Container', pages: 23, completed: false, color: '#d97706' },
-  { id: 'subj-6', name: 'Cloud - Network soft.', pages: 17, completed: false, color: '#d97706' }
+  { 
+    id: 'subj-1', 
+    name: 'Cloud - LAN e VLAN', 
+    pages: 14, 
+    completed: false, 
+    color: '#d97706',
+    tasks: [
+      { id: 'task-1-1', name: 'Capitolo 1: Standard LAN', pages: 8, completed: false },
+      { id: 'task-1-2', name: 'Quiz VLAN & Trunking', pages: 6, completed: false }
+    ]
+  },
+  { 
+    id: 'subj-2', 
+    name: 'Cloud - Multi QoS', 
+    pages: 18, 
+    completed: false, 
+    color: '#2563eb',
+    tasks: [
+      { id: 'task-2-1', name: 'Lettura QoS Overview', pages: 10, completed: false },
+      { id: 'task-2-2', name: 'Esercizi code prioritizzazione', pages: 8, completed: false }
+    ]
+  },
+  { 
+    id: 'subj-3', 
+    name: 'Cloud - CC Concept', 
+    pages: 22, 
+    completed: false, 
+    color: '#059669',
+    tasks: [
+      { id: 'task-3-1', name: 'Architettura Cloud Computing', pages: 12, completed: false },
+      { id: 'task-3-2', name: 'Quiz di ricapitolazione', pages: 10, completed: false }
+    ]
+  },
+  { 
+    id: 'subj-4', 
+    name: 'Cloud - CC Virtualization', 
+    pages: 16, 
+    completed: false, 
+    color: '#7c3aed',
+    tasks: []
+  },
+  { 
+    id: 'subj-5', 
+    name: 'Cloud - CC Container', 
+    pages: 23, 
+    completed: false, 
+    color: '#dc2626',
+    tasks: []
+  },
+  { 
+    id: 'subj-6', 
+    name: 'Cloud - Network soft.', 
+    pages: 17, 
+    completed: false, 
+    color: '#db2777',
+    tasks: []
+  }
 ];
 
 const INITIAL_WEEKS: WeekPlan[] = [
@@ -217,7 +269,15 @@ function App() {
   // Load State from LocalStorage or use defaults
   const [subjects, setSubjects] = useState<Subject[]>(() => {
     const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}-subjects`);
-    return saved ? JSON.parse(saved) : INITIAL_SUBJECTS;
+    if (saved) {
+      const parsed = JSON.parse(saved) as Subject[];
+      // Migrate existing state database to support the new tasks array cleanly
+      return parsed.map((s) => ({
+        ...s,
+        tasks: s.tasks || [],
+      }));
+    }
+    return INITIAL_SUBJECTS;
   });
 
   const [weeks, setWeeks] = useState<WeekPlan[]>(() => {
@@ -246,6 +306,7 @@ function App() {
 
   const [showAddWeekModal, setShowAddWeekModal] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState<'planner' | 'subjects'>('planner');
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
     const saved = localStorage.getItem('antigravity-studio-planner-theme');
     return (saved as 'dark' | 'light') || 'dark';
@@ -282,6 +343,7 @@ function App() {
       pages,
       completed: false,
       color,
+      tasks: [],
     };
     setSubjects([...subjects, newSubject]);
   };
@@ -373,6 +435,24 @@ function App() {
           />
         </div>
 
+        {/* Tabbed Navigation Bar */}
+        <div className="header-navigation-tabs">
+          <button
+            className={`nav-tab-btn ${activeTab === 'planner' ? 'active' : ''}`}
+            onClick={() => setActiveTab('planner')}
+            title="Mostra la programmazione del calendario"
+          >
+            📅 Planner
+          </button>
+          <button
+            className={`nav-tab-btn ${activeTab === 'subjects' ? 'active' : ''}`}
+            onClick={() => setActiveTab('subjects')}
+            title="Gestisci le materie e i sotto-task in dettaglio"
+          >
+            📚 Le tue materie
+          </button>
+        </div>
+
         <div className="header-controls">
           {/* Theme Toggle Button */}
           <button
@@ -384,24 +464,28 @@ function App() {
             <span>{theme === 'dark' ? 'Tema Chiaro' : 'Tema Scuro'}</span>
           </button>
 
-          {/* Collapsible Sidebar Toggle Button (Dangerous/Warning style) */}
-          <button
-            className={`btn ${isSidebarOpen ? 'btn-warning' : 'btn-secondary'} btn-sm`}
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            title={isSidebarOpen ? "Nascondi la Libreria Materie" : "Mostra la Libreria Materie"}
-          >
-            <span>{isSidebarOpen ? 'Chiudi Libreria' : 'Apri Libreria'}</span>
-          </button>
+          {/* Collapsible Sidebar Toggle Button (Dangerous/Warning style, only if in planner tab) */}
+          {activeTab === 'planner' && (
+            <button
+              className={`btn ${isSidebarOpen ? 'btn-warning' : 'btn-secondary'} btn-sm`}
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              title={isSidebarOpen ? "Nascondi la Libreria Materie" : "Mostra la Libreria Materie"}
+            >
+              <span>{isSidebarOpen ? 'Chiudi Libreria' : 'Apri Libreria'}</span>
+            </button>
+          )}
 
-          {/* Primary Style for New Week */}
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={() => setShowAddWeekModal(true)}
-            title="Pianifica una nuova settimana"
-          >
-            <PlusIcon size={16} />
-            <span>Nuova Settimana</span>
-          </button>
+          {/* Primary Style for New Week (only if in planner tab) */}
+          {activeTab === 'planner' && (
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => setShowAddWeekModal(true)}
+              title="Pianifica una nuova settimana"
+            >
+              <PlusIcon size={16} />
+              <span>Nuova Settimana</span>
+            </button>
+          )}
 
           {/* Backup Utilities (Secondary) */}
           <ImportExport
@@ -411,22 +495,29 @@ function App() {
         </div>
       </header>
 
-      {/* Main Dashboard Layout (Two Columns) */}
-      <div className={`main-dashboard-layout ${isSidebarOpen ? '' : 'sidebar-closed'}`}>
-        {/* Left Column: Collapsible Materials library (fully unrendered when closed) */}
-        {isSidebarOpen && (
-          <aside className="layout-left-column">
-            <MaterialsList
-              subjects={subjects}
-              onAddSubject={handleAddSubject}
-              onToggleSubject={handleToggleSubject}
-              onDeleteSubject={handleDeleteSubject}
-            />
-          </aside>
-        )}
+      {/* Main Dashboard Layout */}
+      {activeTab === 'subjects' ? (
+        <SubjectsManager
+          subjects={subjects}
+          onUpdateSubjects={setSubjects}
+        />
+      ) : (
+        <div className={`main-dashboard-layout ${isSidebarOpen ? '' : 'sidebar-closed'}`}>
+          {/* Left Column: Collapsible Materials library (fully unrendered when closed) */}
+          {isSidebarOpen && (
+            <aside className="layout-left-column">
+              <MaterialsList
+                subjects={subjects}
+                onAddSubject={handleAddSubject}
+                onToggleSubject={handleToggleSubject}
+                onDeleteSubject={handleDeleteSubject}
+                onUpdateSubjects={setSubjects}
+              />
+            </aside>
+          )}
 
-        {/* Right Column: Calendar grid for the WHOLE MONTH stacked vertically */}
-        <main className="layout-right-column">
+          {/* Right Column: Calendar grid for the WHOLE MONTH stacked vertically */}
+          <main className="layout-right-column">
           {weeks.length > 0 ? (
             weeks.map((week) => {
               const { totalTasks, completedTasks } = calculateWeekStats(week);
@@ -468,6 +559,7 @@ function App() {
           )}
         </main>
       </div>
+      )}
 
       {/* Danger Zone / Reset */}
       <footer className="danger-zone">

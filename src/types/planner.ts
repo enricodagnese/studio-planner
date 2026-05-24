@@ -1,9 +1,17 @@
+export interface Task {
+  id: string;
+  name: string;
+  pages: number;
+  completed: boolean;
+}
+
 export interface Subject {
   id: string;
   name: string;
   pages: number;
   completed: boolean;
   color: string; // hex or CSS class for custom look
+  tasks: Task[]; // List of specific tasks or chapters
 }
 
 export interface CalendarItem {

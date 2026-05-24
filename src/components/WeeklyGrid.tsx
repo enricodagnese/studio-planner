@@ -111,6 +111,26 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
 
       targetDay[slotKey].push(newItem);
       onUpdateAllWeeks(updatedWeeks);
+    } else if (dragged.type === 'task') {
+      // Case 2: Dragging a specific granular sub-task from the materials library tree
+      const originSubject = subjects.find(s => s.id === dragged.subjectId);
+      if (!originSubject) return;
+
+      const newItem: CalendarItem = {
+        id: `cal-task-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        subjectId: dragged.subjectId,
+        name: `${originSubject.name}: ${dragged.name}`,
+        pages: dragged.pages,
+        completed: false,
+      };
+
+      const targetWeek = updatedWeeks.find(w => w.id === activeWeek.id);
+      if (!targetWeek) return;
+      const targetDay = targetWeek.days.find(d => d.id === dayId);
+      if (!targetDay) return;
+
+      targetDay[slotKey].push(newItem);
+      onUpdateAllWeeks(updatedWeeks);
     } else if (dragged.type === 'calendar-item') {
       // Case 2: Dragging an existing calendar item (cross-week & intra-week fully supported!)
       const calendarItemId = dragged.id;
