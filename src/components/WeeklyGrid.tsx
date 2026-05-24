@@ -7,6 +7,7 @@ interface WeeklyGridProps {
   weeks: WeekPlan[];
   subjects: Subject[];
   onUpdateAllWeeks: (updatedWeeks: WeekPlan[]) => void;
+  isFirstWeek?: boolean;
 }
 
 export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
@@ -14,6 +15,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
   weeks,
   subjects,
   onUpdateAllWeeks,
+  isFirstWeek = false,
 }) => {
   const [addingTaskForSlot, setAddingTaskForSlot] = useState<{ dayId: string; slotKey: string } | null>(null);
   const [newTaskName, setNewTaskName] = useState('');
@@ -308,7 +310,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
           >
             <div className="column-header">
               <div className="day-title day-title-row">
-                <span className="day-name">{dayNameOnly}</span>
+                {isFirstWeek && <span className="day-name">{dayNameOnly}</span>}
                 <span className="day-number">{dayNumberOnly}</span>
               </div>
               {isToday && <span className="today-badge">Oggi</span>}

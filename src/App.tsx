@@ -394,31 +394,7 @@ function App() {
 
 
 
-  // Calculate stats for a given week dynamically
-  const calculateWeekStats = (week: WeekPlan) => {
-    let totalTasks = 0;
-    let completedTasks = 0;
-    let totalWeekPages = 0;
 
-    week.days.forEach((d) => {
-      (['mattina', 'pomeriggio', 'sera'] as const).forEach((slotKey) => {
-        const slots = d[slotKey] || [];
-        slots.forEach((item) => {
-          totalTasks++;
-          if (item.completed) completedTasks++;
-
-          if (item.pages && item.pages > 0) {
-            totalWeekPages += item.pages;
-          } else if (item.subjectId) {
-            const sub = subjects.find((s) => s.id === item.subjectId);
-            if (sub) totalWeekPages += sub.pages;
-          }
-        });
-      });
-    });
-
-    return { totalTasks, completedTasks, totalWeekPages };
-  };
 
   return (
     <div className={`app-container ${theme === 'light' ? 'light-theme' : ''}`}>
@@ -519,32 +495,20 @@ function App() {
           {/* Right Column: Calendar grid for the WHOLE MONTH stacked vertically */}
           <main className="layout-right-column">
           {weeks.length > 0 ? (
-            weeks.map((week) => {
-              const { totalTasks, completedTasks } = calculateWeekStats(week);
-              const weekProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
+            weeks.map((week, index) => {
               return (
                 <div key={week.id} className="week-wrapper">
                   <div className="week-wrapper-header">
                     <h2 className="week-title">
                       {week.name.split(':')[1]?.trim() || week.name}
                     </h2>
-                    <div className="week-stats">
-                      {totalTasks > 0 && (
-                        <div className="week-progress-capsule">
-                          <div className="progress-bar-track">
-                            <div className="progress-bar-fill" style={{ width: `${weekProgress}%` }}></div>
-                          </div>
-                          <span className="progress-bar-text">{weekProgress}%</span>
-                        </div>
-                      )}
-                    </div>
                   </div>
                   <WeeklyGrid
                     activeWeek={week}
                     weeks={weeks}
                     subjects={subjects}
                     onUpdateAllWeeks={setWeeks}
+                    isFirstWeek={index === 0}
                   />
                 </div>
               );
