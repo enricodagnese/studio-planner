@@ -1,13 +1,13 @@
 /* Core Stylesheet for Notion-Style Study Planner */
 
 .app-container {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 32px 24px;
+  max-width: 100%;
+  padding: 32px 32px;
   display: flex;
   flex-direction: column;
   gap: 28px;
   min-height: 100vh;
+  width: 100%;
 }
 
 /* Header Area */
@@ -1087,7 +1087,7 @@
 /* Main Dashboard Layout (Two Columns Grid) */
 .main-dashboard-layout {
   display: grid;
-  grid-template-columns: 340px 1fr;
+  grid-template-columns: auto 1fr;
   gap: 24px;
   align-items: start;
   width: 100%;
@@ -1100,13 +1100,107 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  width: 340px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 1;
+  overflow: hidden;
+}
+
+.layout-left-column.collapsed {
+  width: 0;
+  opacity: 0;
+  margin-right: -24px; /* Offset grid gap */
+  pointer-events: none;
 }
 
 .layout-right-column {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 32px;
   min-width: 0; /* Prevents overflow inside grid columns */
+}
+
+/* Eliminate Drag and Drop flickering */
+.time-slot-box.drag-hover * {
+  pointer-events: none;
+}
+
+/* Week wrapper structures */
+.week-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Day-specific custom header colors */
+
+/* Lunedì: Giallo */
+.day-lunedi .column-header {
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.15) 0%, rgba(161, 98, 7, 0.15) 100%);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+.day-lunedi .column-header h3 {
+  color: #fef08a;
+  text-shadow: 0 0 10px rgba(234, 179, 8, 0.2);
+}
+
+/* Martedì: Verde */
+.day-martedi .column-header {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(4, 120, 87, 0.15) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.day-martedi .column-header h3 {
+  color: #a7f3d0;
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+/* Mercoledì: Rosso */
+.day-mercoledi .column-header {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(185, 28, 28, 0.15) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.day-mercoledi .column-header h3 {
+  color: #fecaca;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+}
+
+/* Giovedì: Grigio */
+.day-giovedi .column-header {
+  background: linear-gradient(135deg, rgba(113, 113, 122, 0.15) 0%, rgba(63, 63, 70, 0.15) 100%);
+  border: 1px solid rgba(113, 113, 122, 0.3);
+}
+.day-giovedi .column-header h3 {
+  color: #f4f4f5;
+}
+
+/* Venerdì: Viola */
+.day-venerdi .column-header {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(109, 40, 217, 0.15) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+.day-venerdi .column-header h3 {
+  color: #ddd6fe;
+  text-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+}
+
+/* Sabato: Blu */
+.day-sabato .column-header {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(29, 78, 216, 0.15) 100%);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+.day-sabato .column-header h3 {
+  color: #bfdbfe;
+  text-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+}
+
+/* Domenica: Arancione */
+.day-domenica .column-header {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(194, 65, 12, 0.15) 100%);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+.day-domenica .column-header h3 {
+  color: #ffedd5;
+  text-shadow: 0 0 10px rgba(249, 115, 22, 0.2);
 }
 
 @media (max-width: 1150px) {
@@ -1115,6 +1209,9 @@
   }
   .layout-left-column {
     position: static;
+    width: 100%;
+  }
+  .layout-left-column.collapsed {
+    margin-right: 0;
   }
 }
-

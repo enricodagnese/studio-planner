@@ -4,7 +4,7 @@ import { MaterialsList } from './components/MaterialsList';
 import { WeeklyGrid } from './components/WeeklyGrid';
 import { AddWeekModal } from './components/AddWeekModal';
 import { ImportExport } from './components/ImportExport';
-import { PlusIcon, ChevronLeftIcon, ChevronRightIcon } from './components/Icons';
+import { PlusIcon } from './components/Icons';
 import './App.css';
 
 // Initial Mock Data matching the user's screenshot exactly
@@ -133,6 +133,7 @@ function App() {
   });
 
   const [showAddWeekModal, setShowAddWeekModal] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   // Sync to LocalStorage
   useEffect(() => {
@@ -151,7 +152,7 @@ function App() {
     localStorage.setItem(TITLE_STORAGE_KEY, sessionTitle);
   }, [sessionTitle]);
 
-  const activeWeek = weeks.find((w) => w.id === activeWeekId) || weeks[0];
+
 
   // Subject Actions
   const handleAddSubject = (name: string, pages: number, color: string) => {
@@ -177,10 +178,7 @@ function App() {
     }
   };
 
-  // Week Actions
-  const handleUpdateWeekSchedule = (updatedWeek: WeekPlan) => {
-    setWeeks(weeks.map((w) => (w.id === updatedWeek.id ? updatedWeek : w)));
-  };
+
 
   const handleAddWeek = (newWeek: WeekPlan) => {
     setWeeks([...weeks, newWeek]);
@@ -188,19 +186,7 @@ function App() {
     setShowAddWeekModal(false);
   };
 
-  const handleNextWeek = () => {
-    const currentIndex = weeks.findIndex((w) => w.id === activeWeekId);
-    if (currentIndex < weeks.length - 1) {
-      setActiveWeekId(weeks[currentIndex + 1].id);
-    }
-  };
 
-  const handlePrevWeek = () => {
-    const currentIndex = weeks.findIndex((w) => w.id === activeWeekId);
-    if (currentIndex > 0) {
-      setActiveWeekId(weeks[currentIndex - 1].id);
-    }
-  };
 
   const handleImportState = (importedState: PlannerState) => {
     setWeeks(importedState.weeks);
@@ -224,7 +210,7 @@ function App() {
     }
   };
 
-  const currentWeekIndex = weeks.findIndex((w) => w.id === activeWeekId);
+
 
   return (
     <div className="app-container">
@@ -242,28 +228,14 @@ function App() {
         </div>
 
         <div className="header-controls">
-          {/* Week Selector */}
-          <div className="week-navigator">
-            <button
-              onClick={handlePrevWeek}
-              disabled={currentWeekIndex <= 0}
-              className="btn-nav"
-              title="Settimana precedente"
-            >
-              <ChevronLeftIcon size={18} />
-            </button>
-            <span className="week-display-title">
-              {activeWeek ? activeWeek.name.split(':')[0] : 'Nessuna settimana'}
-            </span>
-            <button
-              onClick={handleNextWeek}
-              disabled={currentWeekIndex >= weeks.length - 1}
-              className="btn-nav"
-              title="Settimana successiva"
-            >
-              <ChevronRightIcon size={18} />
-            </button>
-          </div>
+          {/* Collapsible Sidebar Toggle Button */}
+          <button
+            className={`btn ${isSidebarOpen ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            title={isSidebarOpen ? "Nascondi la Libreria Materie" : "Mostra la Libreria Materie"}
+          >
+            <span>{isSidebarOpen ? 'Chiudi Libreria' : 'Apri Libreria'}</span>
+          </button>
 
           <button
             className="btn btn-secondary btn-sm"
@@ -282,12 +254,10 @@ function App() {
         </div>
       </header>
 
-
-
       {/* Main Dashboard Layout (Two Columns) */}
       <div className="main-dashboard-layout">
-        {/* Left Column: Materials library */}
-        <aside className="layout-left-column">
+        {/* Left Column: Collapsible Materials library */}
+        <aside className={`layout-left-column ${isSidebarOpen ? '' : 'collapsed'}`}>
           <MaterialsList
             subjects={subjects}
             onAddSubject={handleAddSubject}
@@ -296,21 +266,24 @@ function App() {
           />
         </aside>
 
-        {/* Right Column: Calendar grid */}
+        {/* Right Column: Calendar grid for the WHOLE MONTH stacked vertically */}
         <main className="layout-right-column">
-          {activeWeek ? (
-            <div className="calendar-section-wrapper">
-              <div className="calendar-section-header" style={{ marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#ffedd5' }}>
-                  🎯 Programmazione: <span style={{ color: '#d97706', fontWeight: '800' }}>{activeWeek.name}</span>
-                </h2>
+          {weeks.length > 0 ? (
+            weeks.map((week) => (
+              <div key={week.id} className="week-wrapper" style={{ marginBottom: '32px' }}>
+                <div className="week-wrapper-header" style={{ marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#ffedd5', background: 'rgba(255,255,255,0.02)', padding: '6px 14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', letterSpacing: '-0.01em', width: 'max-content' }}>
+                    🗓️ {week.name}
+                  </h2>
+                </div>
+                <WeeklyGrid
+                  activeWeek={week}
+                  weeks={weeks}
+                  subjects={subjects}
+                  onUpdateAllWeeks={setWeeks}
+                />
               </div>
-              <WeeklyGrid
-                activeWeek={activeWeek}
-                subjects={subjects}
-                onUpdateWeekSchedule={handleUpdateWeekSchedule}
-              />
-            </div>
+            ))
           ) : (
             <div className="empty-state glass-container" style={{ padding: '40px' }}>
               <p>Nessuna settimana pianificata attiva.</p>
