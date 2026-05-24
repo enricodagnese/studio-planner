@@ -106,7 +106,7 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
         </div>
       </div>
 
-      <div className="subjects-grid" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <div className="subjects-grid" style={{ display: 'flex', flexDirection: 'column', gap: '14px', paddingBottom: '20px' }}>
         {subjects.length === 0 ? (
           <div className="empty-state">
             <p>Nessun argomento registrato.</p>
