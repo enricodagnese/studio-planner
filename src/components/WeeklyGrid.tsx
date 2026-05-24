@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Subject, WeekPlan, CalendarItem } from '../types/planner';
-import { PlusIcon, SunIcon, MoonIcon, LandscapeIcon } from './Icons';
+import { PlusIcon } from './Icons';
 
 interface WeeklyGridProps {
   activeWeek: WeekPlan;
@@ -63,7 +63,15 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
 
   const handleDragOver = (e: React.DragEvent, dayId: string, slotKey: string) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
+    
+    // Dynamically set dropEffect to prevent browser mismatch blocks
+    const dragged = (window as any).reactPlannerDraggedItem;
+    if (dragged && dragged.type === 'calendar-item') {
+      e.dataTransfer.dropEffect = 'move';
+    } else {
+      e.dataTransfer.dropEffect = 'copy';
+    }
+
     if (dragOverSlot?.dayId !== dayId || dragOverSlot?.slotKey !== slotKey) {
       setDragOverSlot({ dayId, slotKey });
     }
@@ -146,7 +154,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     slotKey: 'mattina' | 'pomeriggio' | 'sera'
   ) => {
     e.dataTransfer.setData('text/plain', itemId);
-    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.effectAllowed = 'copyMove'; // Enable both copy and move for full compatibility
     
     // Set global window drag state for absolute reliability
     (window as any).reactPlannerDraggedItem = {
@@ -155,6 +163,15 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
       sourceDayId: dayId,
       sourceSlotKey: slotKey
     };
+
+    // Add visual dragging effect
+    const element = e.currentTarget as HTMLElement;
+    element.classList.add('dragging');
+  };
+
+  const handleCalendarItemDragEnd = (e: React.DragEvent) => {
+    const element = e.currentTarget as HTMLElement;
+    element.classList.remove('dragging');
   };
 
   // --- Task Manipulation Handlers ---
@@ -225,27 +242,24 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     setAddingTaskForSlot(null);
   };
 
-  // Render Slot Header Pill Helper
+  // Render Slot Header Pill Helper (no emojis/icons as requested)
   const renderSlotHeader = (slotKey: 'mattina' | 'pomeriggio' | 'sera') => {
     switch (slotKey) {
       case 'mattina':
         return (
           <div className="slot-pill morning-pill">
-            <SunIcon size={14} className="slot-icon" />
             <span>Mattina</span>
           </div>
         );
       case 'pomeriggio':
         return (
           <div className="slot-pill afternoon-pill">
-            <LandscapeIcon size={14} className="slot-icon" />
             <span>Pomeriggio</span>
           </div>
         );
       case 'sera':
         return (
           <div className="slot-pill evening-pill">
-            <MoonIcon size={14} className="slot-icon" />
             <span>Sera</span>
           </div>
         );
@@ -256,6 +270,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     <div className="weekly-calendar-grid">
       {activeWeek.days.map((day) => {
         const [dayNameOnly] = day.name.split(' ');
+        const dayNumberOnly = day.name.split(' ')[1] || '';
         const dayColorClass = getDayClass(day.name);
         const isWeekend = dayNameOnly.toLowerCase().includes('sabato') || dayNameOnly.toLowerCase().includes('domenica');
         
@@ -272,8 +287,10 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
             className={`calendar-column glass-container ${dayColorClass} ${isWeekend ? 'day-weekend' : ''} ${isToday ? 'day-today' : ''}`}
           >
             <div className="column-header">
-              <span className="day-name">{dayNameOnly}</span>
-              <span className="day-date">{day.dateLabel}</span>
+              <div className="day-title day-title-row">
+                <span className="day-name">{dayNameOnly}</span>
+                <span className="day-number">{dayNumberOnly}</span>
+              </div>
               {isToday && <span className="today-badge">Oggi</span>}
             </div>
 
@@ -307,6 +324,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                               key={item.id}
                               draggable
                               onDragStart={(e) => handleCalendarItemDragStart(e, item.id, day.id, slotKey)}
+                              onDragEnd={handleCalendarItemDragEnd}
                               className={`scheduled-item-pill ${colorClass} ${item.completed ? 'completed' : ''}`}
                             >
                               <label className="checkbox-container-sm">

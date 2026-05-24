@@ -550,22 +550,39 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px 4px;
+  padding: 10px 4px;
   border-radius: 8px;
   border-bottom: 1px solid var(--border-color);
-  margin-bottom: 4px;
+  margin-bottom: 8px;
+}
+
+.day-title-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
 }
 
 .day-name {
   font-size: 14px;
-  font-weight: 700;
-  color: #ffffff;
+  font-weight: 800;
+  text-transform: capitalize;
+  letter-spacing: -0.01em;
 }
 
-.day-date {
-  font-size: 11px;
-  color: #71717a;
-  margin-top: 1px;
+.day-number {
+  font-size: 12px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff !important;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: var(--transition-smooth);
 }
 
 .today-badge {
@@ -801,6 +818,12 @@ body {
   border-left-color: #27272a !important;
 }
 
+.scheduled-item-pill.dragging {
+  opacity: 0.2;
+  cursor: grabbing;
+  border-style: dashed !important;
+}
+
 .scheduled-item-pill.completed .item-name {
   text-decoration: line-through;
   color: #52525b;
@@ -884,7 +907,7 @@ body {
   background: linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.01) 100%);
   border-bottom: 2px solid rgba(245, 158, 11, 0.3);
 }
-.day-lunedi .day-name {
+.day-lunedi .day-title {
   color: #f59e0b;
 }
 
@@ -893,7 +916,7 @@ body {
   background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.01) 100%);
   border-bottom: 2px solid rgba(16, 185, 129, 0.3);
 }
-.day-martedi .day-name {
+.day-martedi .day-title {
   color: #10b981;
 }
 
@@ -902,7 +925,7 @@ body {
   background: linear-gradient(180deg, rgba(239, 68, 68, 0.08) 0%, rgba(239, 68, 68, 0.01) 100%);
   border-bottom: 2px solid rgba(239, 68, 68, 0.3);
 }
-.day-mercoledi .day-name {
+.day-mercoledi .day-title {
   color: #f87171;
 }
 
@@ -911,7 +934,7 @@ body {
   background: linear-gradient(180deg, rgba(161, 161, 170, 0.08) 0%, rgba(161, 161, 170, 0.01) 100%);
   border-bottom: 2px solid rgba(161, 161, 170, 0.3);
 }
-.day-giovedi .day-name {
+.day-giovedi .day-title {
   color: #d4d4d8;
 }
 
@@ -920,7 +943,7 @@ body {
   background: linear-gradient(180deg, rgba(139, 92, 246, 0.08) 0%, rgba(139, 92, 246, 0.01) 100%);
   border-bottom: 2px solid rgba(139, 92, 246, 0.3);
 }
-.day-venerdi .day-name {
+.day-venerdi .day-title {
   color: #a78bfa;
 }
 
@@ -929,7 +952,7 @@ body {
   background: linear-gradient(180deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.01) 100%);
   border-bottom: 2px solid rgba(59, 130, 246, 0.3);
 }
-.day-sabato .day-name {
+.day-sabato .day-title {
   color: #60a5fa;
 }
 
@@ -938,6 +961,197 @@ body {
   background: linear-gradient(180deg, rgba(234, 88, 12, 0.08) 0%, rgba(234, 88, 12, 0.01) 100%);
   border-bottom: 2px solid rgba(234, 88, 12, 0.3);
 }
-.day-domenica .day-name {
+.day-domenica .day-title {
   color: #fb923c;
 }
+
+/* ===================================================
+   LIGHT MODE PRESETS & OVERRIDES
+   =================================================== */
+
+.app-container.light-theme {
+  --bg-primary: #f8fafc;        /* Soft slate-blue/white background */
+  --bg-secondary: #ffffff;      /* Pure white glass containers */
+  --bg-tertiary: #f1f5f9;       /* Lighter slate inputs and pills */
+  --border-color: rgba(15, 23, 42, 0.08);
+  --border-hover: rgba(15, 23, 42, 0.16);
+  
+  color: #0f172a;               /* Dark Slate text */
+}
+
+/* Light Mode Overrides */
+.light-theme .app-title-editable {
+  color: #0f172a;
+}
+
+.light-theme .btn-secondary {
+  background: #ffffff;
+  color: #334155;
+  border-color: rgba(15, 23, 42, 0.1);
+}
+
+.light-theme .btn-secondary:hover {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.2);
+  color: #0f172a;
+}
+
+.light-theme .main-progress .progress-value {
+  color: #0f172a;
+}
+
+.light-theme .materials-list-panel .title-with-icon h2 {
+  color: #0f172a;
+}
+
+.light-theme .subject-card {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.light-theme .subject-card:hover {
+  background: #f8fafc;
+  border-color: var(--accent-color);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.light-theme .subject-title {
+  color: #1e293b;
+}
+
+.light-theme .pages-badge {
+  background: rgba(15, 23, 42, 0.03);
+  border-color: rgba(15, 23, 42, 0.06);
+  color: #475569;
+}
+
+.light-theme .drag-instructions {
+  color: #64748b;
+}
+
+.light-theme .week-title {
+  color: #0f172a;
+}
+
+.light-theme .week-stat-capsule {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+  color: #334155;
+}
+
+.light-theme .stat-value-highlight {
+  color: #0f172a;
+}
+
+.light-theme .progress-bar-track {
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.light-theme .calendar-column {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.light-theme .calendar-column:hover {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+.light-theme .calendar-column.day-weekend {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.05);
+}
+
+.light-theme .calendar-column.day-today {
+  border-color: var(--accent-primary);
+  background: #fff8f5;
+}
+
+.light-theme .day-title {
+  /* Day name is already styled */
+}
+
+.light-theme .day-number {
+  background: rgba(15, 23, 42, 0.05);
+  border-color: rgba(15, 23, 42, 0.08);
+  color: #0f172a !important;
+  box-shadow: none;
+}
+
+.light-theme .time-slot-box {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.05);
+}
+
+.light-theme .time-slot-box.drag-hover {
+  background: #fff8f5 !important;
+  box-shadow: 0 4px 16px rgba(234, 88, 12, 0.1);
+}
+
+.light-theme .scheduled-item-pill {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.light-theme .scheduled-item-pill:hover {
+  background: #f8fafc;
+  border-color: rgba(15, 23, 42, 0.15);
+}
+
+.light-theme .item-name {
+  color: #1e293b;
+}
+
+.light-theme .checkmark-sm {
+  background-color: #ffffff;
+  border-color: rgba(15, 23, 42, 0.2);
+}
+
+.light-theme .checkmark {
+  background-color: #ffffff;
+  border-color: rgba(15, 23, 42, 0.2);
+}
+
+.light-theme .btn-add-to-slot {
+  color: #64748b;
+}
+
+.light-theme .btn-add-to-slot:hover {
+  background: rgba(15, 23, 42, 0.03);
+  color: #334155;
+}
+
+.light-theme .slot-placeholder {
+  color: rgba(15, 23, 42, 0.25);
+  border-color: rgba(15, 23, 42, 0.06);
+}
+
+.light-theme .form-control {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.15);
+  color: #0f172a;
+}
+
+.light-theme .form-control:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(234, 88, 12, 0.1);
+}
+
+.light-theme .add-subject-form {
+  background: #ffffff;
+  border-color: rgba(15, 23, 42, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.light-theme .danger-zone .btn-danger-text {
+  color: #94a3b8;
+}
+
+.light-theme .danger-zone .btn-danger-text:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+}
+
