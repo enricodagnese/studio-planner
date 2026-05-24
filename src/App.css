@@ -4086,7 +4086,8 @@ body {
 }
 
 .calendar-column.day-today .column-header .day-name,
-.calendar-column.day-today .column-header .day-number-highlight {
+.calendar-column.day-today .column-header .day-number-highlight,
+.calendar-column.day-today .column-header .day-month-neutral {
   color: #ffffff !important;
 }
 
@@ -4096,7 +4097,8 @@ body {
 }
 
 .light-theme .calendar-column.day-today .column-header .day-name,
-.light-theme .calendar-column.day-today .column-header .day-number-highlight {
+.light-theme .calendar-column.day-today .column-header .day-number-highlight,
+.light-theme .calendar-column.day-today .column-header .day-month-neutral {
   color: #0f172a !important;
 }
 

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import type { Subject } from '../types/planner';
-import { BookIcon, LightbulbIcon, GripVerticalIcon, ChevronRightIcon } from './Icons';
+import type { Subject, WeekPlan } from '../types/planner';
+import { BookIcon, GripVerticalIcon, ChevronRightIcon } from './Icons';
 import { CybersecurityLogo } from './CybersecurityLogo';
 
 interface MaterialsListProps {
   subjects: Subject[];
+  weeks?: WeekPlan[];
   onAddSubject: (name: string, pages: number, color: string) => void;
   onToggleSubject: (id: string) => void;
   onDeleteSubject: (id: string) => void;
@@ -31,6 +32,7 @@ const getQtyLabel = (pages: number, quantityType?: string): string => {
 
 export const MaterialsList: React.FC<MaterialsListProps> = ({
   subjects,
+  weeks,
   onUpdateSubjects,
 }) => {
   const [expandedSubjIds, setExpandedSubjIds] = useState<Record<string, boolean>>({});
@@ -79,6 +81,22 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
     );
   };
 
+  const scheduledTaskIds = new Set<string>();
+  if (weeks) {
+    for (const w of weeks) {
+      for (const d of w.days) {
+        for (const slot of ['mattina', 'pomeriggio', 'sera'] as const) {
+          const items = d[slot] || [];
+          for (const item of items) {
+            if (item.taskId) {
+              scheduledTaskIds.add(item.taskId);
+            }
+          }
+        }
+      }
+    }
+  }
+
   return (
     <div className="materials-list-panel glass-container" style={{ gap: '10px' }}>
       <div className="panel-header" style={{ paddingLeft: '8px', marginTop: '6px', marginBottom: '2px' }}>
@@ -99,9 +117,9 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
             const presetColor = PRESET_COLORS.find(c => c.value === sub.color);
             const colorClass = presetColor ? presetColor.class : 'color-gold';
             const tasksList = sub.tasks || [];
-            const theoryTasks = tasksList.filter(t => t.category === 'teoria' && !t.completed);
-            const exerciseTasks = tasksList.filter(t => t.category === 'esercizi' && !t.completed);
-            const otherTasks = tasksList.filter(t => t.category === 'altro' && !t.completed);
+            const theoryTasks = tasksList.filter(t => t.category === 'teoria' && !t.completed && !scheduledTaskIds.has(t.id));
+            const exerciseTasks = tasksList.filter(t => t.category === 'esercizi' && !t.completed && !scheduledTaskIds.has(t.id));
+            const otherTasks = tasksList.filter(t => t.category === 'altro' && !t.completed && !scheduledTaskIds.has(t.id));
             const hasTasks = theoryTasks.length > 0 || exerciseTasks.length > 0 || otherTasks.length > 0;
             const isExpanded = !!expandedSubjIds[sub.id];
 
@@ -114,6 +132,8 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
                     '--accent-color': sub.color,
                     paddingLeft: '14px',
                     paddingRight: '14px',
+                    marginLeft: '10px',
+                    marginRight: '10px',
                     borderLeft: `4px solid ${sub.color}`,
                     background: 'rgba(30, 31, 41, 0.75)',
                     display: 'flex',
@@ -159,7 +179,7 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
                 </div>
 
                 {isExpanded && hasTasks && (
-                  <div className="subject-sub-tasks-tree animate-slide-down" style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingLeft: '12px', borderLeft: '1.5px dashed rgba(255,255,255,0.08)', marginLeft: '22px' }}>
+                  <div className="subject-sub-tasks-tree animate-slide-down" style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingLeft: '12px', borderLeft: '1.5px dashed rgba(255,255,255,0.08)', marginLeft: '32px', marginRight: '10px' }}>
                     {theoryTasks.length > 0 && (
                       <div className="task-category-group" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                         <div className="task-category-header" style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '0.06em', color: '#71717a', textTransform: 'uppercase', paddingLeft: '6px', marginBottom: '2px' }}>Teoria</div>
@@ -241,10 +261,6 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
             );
           })
         )}
-      </div>
-      <div className="drag-instructions" style={{ marginTop: '16px' }}>
-        <LightbulbIcon size={13} className="drag-instructions-icon" />
-        Apri la materia per trascinare i singoli compiti sul calendario
       </div>
     </div>
   );

@@ -397,6 +397,7 @@ function App() {
           <aside className={`layout-left-column ${isSidebarOpen ? '' : 'sidebar-panel-closed'}`}>
             <MaterialsList
               subjects={subjects}
+              weeks={weeks}
               onAddSubject={handleAddSubject}
               onToggleSubject={handleToggleSubject}
               onDeleteSubject={handleDeleteSubject}
