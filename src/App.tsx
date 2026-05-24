@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import type { PlannerState, Subject, WeekPlan } from './types/planner';
-import { StatsDashboard } from './components/StatsDashboard';
 import { MaterialsList } from './components/MaterialsList';
 import { WeeklyGrid } from './components/WeeklyGrid';
 import { AddWeekModal } from './components/AddWeekModal';
@@ -283,39 +282,45 @@ function App() {
         </div>
       </header>
 
-      {/* Statistics dashboard */}
-      <StatsDashboard subjects={subjects} weeks={weeks} />
 
-      {/* Materials checklist panel */}
-      <MaterialsList
-        subjects={subjects}
-        onAddSubject={handleAddSubject}
-        onToggleSubject={handleToggleSubject}
-        onDeleteSubject={handleDeleteSubject}
-      />
 
-      {/* Week Grid Panel */}
-      {activeWeek ? (
-        <div className="calendar-section-wrapper">
-          <div className="calendar-section-header" style={{ marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#ffedd5' }}>
-              🎯 Programmazione: <span style={{ color: '#d97706', fontWeight: '800' }}>{activeWeek.name}</span>
-            </h2>
-          </div>
-          <WeeklyGrid
-            activeWeek={activeWeek}
+      {/* Main Dashboard Layout (Two Columns) */}
+      <div className="main-dashboard-layout">
+        {/* Left Column: Materials library */}
+        <aside className="layout-left-column">
+          <MaterialsList
             subjects={subjects}
-            onUpdateWeekSchedule={handleUpdateWeekSchedule}
+            onAddSubject={handleAddSubject}
+            onToggleSubject={handleToggleSubject}
+            onDeleteSubject={handleDeleteSubject}
           />
-        </div>
-      ) : (
-        <div className="empty-state glass-container" style={{ padding: '40px' }}>
-          <p>Nessuna settimana pianificata attiva.</p>
-          <button className="btn btn-primary" onClick={() => setShowAddWeekModal(true)} style={{ marginTop: '12px' }}>
-            Crea la prima settimana
-          </button>
-        </div>
-      )}
+        </aside>
+
+        {/* Right Column: Calendar grid */}
+        <main className="layout-right-column">
+          {activeWeek ? (
+            <div className="calendar-section-wrapper">
+              <div className="calendar-section-header" style={{ marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#ffedd5' }}>
+                  🎯 Programmazione: <span style={{ color: '#d97706', fontWeight: '800' }}>{activeWeek.name}</span>
+                </h2>
+              </div>
+              <WeeklyGrid
+                activeWeek={activeWeek}
+                subjects={subjects}
+                onUpdateWeekSchedule={handleUpdateWeekSchedule}
+              />
+            </div>
+          ) : (
+            <div className="empty-state glass-container" style={{ padding: '40px' }}>
+              <p>Nessuna settimana pianificata attiva.</p>
+              <button className="btn btn-primary" onClick={() => setShowAddWeekModal(true)} style={{ marginTop: '12px' }}>
+                Crea la prima settimana
+              </button>
+            </div>
+          )}
+        </main>
+      </div>
 
       {/* Danger Zone / Reset */}
       <footer className="danger-zone">

@@ -1083,3 +1083,38 @@
   color: #ef4444;
   background: rgba(239, 68, 68, 0.05);
 }
+
+/* Main Dashboard Layout (Two Columns Grid) */
+.main-dashboard-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  align-items: start;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.layout-left-column {
+  position: sticky;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.layout-right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0; /* Prevents overflow inside grid columns */
+}
+
+@media (max-width: 1150px) {
+  .main-dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+  .layout-left-column {
+    position: static;
+  }
+}
+
