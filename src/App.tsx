@@ -292,7 +292,7 @@ function App() {
 
   const handleAddEvent = (
     title: string,
-    eventType: 'esame' | 'svago' | 'lezione',
+    eventType: 'esame' | 'svago' | 'lezione' | 'altro',
     slots: Array<{ dayId: string; slotKey: 'mattina' | 'pomeriggio' | 'sera' }>
   ) => {
     const updatedWeeks = JSON.parse(JSON.stringify(weeks)) as WeekPlan[];

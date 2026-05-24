@@ -4212,4 +4212,39 @@ body {
   padding: 10px 12px !important;
 }
 
+/* Special event type: Altro */
+.event-altro {
+  background: rgba(167, 139, 250, 0.12) !important;
+  border: 1px solid rgba(167, 139, 250, 0.4) !important;
+  border-left: 4px solid #a78bfa !important; /* Purple left accent */
+}
+
+.event-altro .item-name {
+  color: #d8b4fe !important;
+  font-weight: 700 !important;
+}
+
+.event-badge-altro {
+  background: rgba(167, 139, 250, 0.2) !important;
+  color: #c084fc !important;
+  border: 1px solid rgba(167, 139, 250, 0.3) !important;
+}
+
+/* Confirm modal style for Altro button */
+.btn-event-confirm.btn-altro {
+  background: #8b5cf6 !important;
+  color: #ffffff !important;
+}
+
+.btn-event-confirm.btn-altro:hover {
+  background: #a78bfa !important;
+}
+
+.event-type-btn.active.altro-type-btn {
+  background: rgba(167, 139, 250, 0.12) !important;
+  border-color: #a78bfa !important;
+  color: #a78bfa !important;
+  box-shadow: 0 0 16px rgba(167, 139, 250, 0.2) !important;
+}
+
 

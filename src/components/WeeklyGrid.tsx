@@ -29,6 +29,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
 }) => {
   const [addingTaskForSlot, setAddingTaskForSlot] = useState<{ dayId: string; slotKey: string } | null>(null);
   const [newTaskName, setNewTaskName] = useState('');
+  const [quickTaskCategory, setQuickTaskCategory] = useState<string>('studio');
   const [dragOverSlot, setDragOverSlot] = useState<{ dayId: string; slotKey: string } | null>(null);
 
   const getSubjectColorClass = (subjectId?: string) => {
@@ -222,7 +223,15 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     const match = newTaskName.match(pageRegex);
     if (match) { parsedPages = parseInt(match[1]); parsedName = newTaskName.replace(pageRegex, '').trim(); }
 
-    const newItem: CalendarItem = { id: `cal-custom-${Date.now()}`, name: parsedName, pages: parsedPages, completed: false };
+    let newItem: CalendarItem;
+    if (quickTaskCategory === 'studio') {
+      newItem = { id: `cal-custom-${Date.now()}`, name: parsedName, pages: parsedPages, completed: false };
+    } else if (quickTaskCategory.startsWith('subj-')) {
+      newItem = { id: `cal-custom-subj-${Date.now()}`, subjectId: quickTaskCategory, name: parsedName, pages: parsedPages, completed: false };
+    } else {
+      newItem = { id: `cal-custom-event-${Date.now()}`, name: parsedName, eventType: quickTaskCategory as 'esame' | 'svago' | 'lezione' | 'altro', completed: false };
+    }
+
     onUpdateAllWeeks(weeks.map(w => ({
       ...w,
       days: w.days.map(d => d.id !== dayId ? d : {
@@ -341,7 +350,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                                 <span className="item-name" title={item.name}>{item.name}</span>
                                 {isEvent && (
                                   <span className={`event-type-badge event-badge-${item.eventType}`}>
-                                    {item.eventType === 'esame' ? 'ESAME' : item.eventType === 'svago' ? 'SVAGO' : 'LEZIONE'}
+                                    {item.eventType === 'esame' ? 'ESAME' : item.eventType === 'svago' ? 'SVAGO' : item.eventType === 'lezione' ? 'LEZIONE' : 'ALTRO'}
                                   </span>
                                 )}
                                 <button
@@ -379,7 +388,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                     )}
 
                     {addingTaskForSlot?.dayId === day.id && addingTaskForSlot?.slotKey === slotKey ? (
-                      <form onSubmit={(e) => handleAddCustomTaskSubmit(e, day.id, slotKey)} className="add-quick-task-form">
+                      <form onSubmit={(e) => handleAddCustomTaskSubmit(e, day.id, slotKey)} className="add-quick-task-form" style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                         <input
                           type="text"
                           placeholder="Es. Quiz (12 pag) o Ripasso"
@@ -389,7 +398,36 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                           autoFocus
                           required
                         />
-                        <div className="quick-form-buttons">
+                        <select
+                          value={quickTaskCategory}
+                          onChange={(e) => setQuickTaskCategory(e.target.value)}
+                          className="quick-select"
+                          style={{
+                            background: '#1a1b24',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '4px',
+                            color: '#e4e4e7',
+                            fontSize: '11px',
+                            padding: '4px 6px',
+                            width: '100%',
+                            cursor: 'pointer',
+                            outline: 'none'
+                          }}
+                        >
+                          <optgroup label="COMPITI DI STUDIO" style={{ background: '#1a1b24', color: '#a1a1aa' }}>
+                            <option value="studio" style={{ color: '#e4e4e7' }}>📝 Compito Generico</option>
+                            {subjects.map(s => (
+                              <option key={s.id} value={s.id} style={{ color: '#e4e4e7' }}>📚 {s.name}</option>
+                            ))}
+                          </optgroup>
+                          <optgroup label="EVENTI EXTRA" style={{ background: '#1a1b24', color: '#a1a1aa' }}>
+                            <option value="esame" style={{ color: '#e4e4e7' }}>🔴 Esame</option>
+                            <option value="svago" style={{ color: '#e4e4e7' }}>🔵 Svago</option>
+                            <option value="lezione" style={{ color: '#e4e4e7' }}>🟢 Lezione</option>
+                            <option value="altro" style={{ color: '#e4e4e7' }}>🟣 Altro</option>
+                          </optgroup>
+                        </select>
+                        <div className="quick-form-buttons" style={{ marginTop: '2px' }}>
                           <button type="submit" className="btn-quick btn-ok">✓</button>
                           <button type="button" className="btn-quick btn-cancel" onClick={() => setAddingTaskForSlot(null)}>
                             <XIcon size={10} />
@@ -400,8 +438,8 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                       <div className="slot-action-row">
                         <button
                           className="btn-add-to-slot"
-                          onClick={() => { setAddingTaskForSlot({ dayId: day.id, slotKey }); setNewTaskName(''); }}
-                          title="Aggiungi compito rapido"
+                          onClick={() => { setAddingTaskForSlot({ dayId: day.id, slotKey }); setNewTaskName(''); setQuickTaskCategory('studio'); }}
+                          title="Aggiungi compito o evento rapido"
                         >
                           <PlusIcon size={11} />
                           <span>Aggiungi...</span>

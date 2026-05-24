@@ -7,7 +7,7 @@ interface AddEventModalProps {
   onClose: () => void;
   onConfirm: (
     title: string,
-    eventType: 'esame' | 'svago' | 'lezione',
+    eventType: 'esame' | 'svago' | 'lezione' | 'altro',
     slots: Array<{ dayId: string; slotKey: 'mattina' | 'pomeriggio' | 'sera' }>
   ) => void;
 }
@@ -20,7 +20,7 @@ const SLOT_LABELS = {
 
 export const AddEventModal: React.FC<AddEventModalProps> = ({ weeks, onClose, onConfirm }) => {
   const [title, setTitle] = useState('');
-  const [eventType, setEventType] = useState<'esame' | 'svago' | 'lezione'>('esame');
+  const [eventType, setEventType] = useState<'esame' | 'svago' | 'lezione' | 'altro'>('esame');
   const [selectedSlots, setSelectedSlots] = useState<Set<string>>(new Set());
 
   const toggleSlot = (dayId: string, slotKey: string) => {
@@ -76,7 +76,7 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ weeks, onClose, on
           {/* Event Type Toggle */}
           <div className="event-form-group">
             <label className="event-form-label">Tipologia</label>
-            <div className="event-type-toggle" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+            <div className="event-type-toggle" style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '8px' }}>
               <button
                 type="button"
                 className={`event-type-btn esame-type-btn ${eventType === 'esame' ? 'active' : ''}`}
@@ -100,6 +100,14 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ weeks, onClose, on
               >
                 <VideoIcon size={13} />
                 LEZIONE
+              </button>
+              <button
+                type="button"
+                className={`event-type-btn altro-type-btn ${eventType === 'altro' ? 'active' : ''}`}
+                onClick={() => setEventType('altro')}
+              >
+                <CalendarIcon size={13} />
+                ALTRO
               </button>
             </div>
           </div>
@@ -162,7 +170,7 @@ export const AddEventModal: React.FC<AddEventModalProps> = ({ weeks, onClose, on
           </button>
           <button
             type="submit"
-            className={`btn btn-event-confirm ${eventType === 'esame' ? 'btn-esame' : eventType === 'svago' ? 'btn-svago' : 'btn-lezione'}`}
+            className={`btn btn-event-confirm ${eventType === 'esame' ? 'btn-esame' : eventType === 'svago' ? 'btn-svago' : eventType === 'lezione' ? 'btn-lezione' : 'btn-altro'}`}
             disabled={!title.trim() || selectedSlots.size === 0}
           >
             Aggiungi {selectedSlots.size > 0 ? `(${selectedSlots.size} slot)` : ''} all'agenda
