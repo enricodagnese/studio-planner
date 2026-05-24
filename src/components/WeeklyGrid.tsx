@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Subject, WeekPlan, CalendarItem, DaySchedule } from '../types/planner';
-import { TrashIcon, PlusIcon, SunIcon, MoonIcon, LandscapeIcon } from './Icons';
+import type { Subject, WeekPlan, CalendarItem } from '../types/planner';
+import { PlusIcon, SunIcon, MoonIcon, LandscapeIcon } from './Icons';
 
 interface WeeklyGridProps {
   activeWeek: WeekPlan;

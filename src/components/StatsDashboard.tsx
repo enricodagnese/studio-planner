@@ -1,5 +1,5 @@
 import React from 'react';
-import { Subject, WeekPlan } from '../types/planner';
+import type { Subject, WeekPlan } from '../types/planner';
 import { BookIcon, FlameIcon, AwardIcon } from './Icons';
 
 interface StatsDashboardProps {
@@ -57,7 +57,6 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ subjects, weeks 
 
   // Let's compute study streak
   // A day is considered studied if at least one scheduled task in it is completed
-  let streak = 0;
   const allDaysSorted: { dateStr: string; studied: boolean }[] = [];
   
   // Collect all days in chron order (assuming weeks are ordered)

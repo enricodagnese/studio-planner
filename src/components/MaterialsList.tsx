@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Subject } from '../types/planner';
+import type { Subject } from '../types/planner';
 import { PlusIcon, TrashIcon, BookIcon } from './Icons';
 
 interface MaterialsListProps {

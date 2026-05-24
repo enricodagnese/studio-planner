@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { PlannerState } from '../types/planner';
+import type { PlannerState } from '../types/planner';
 import { DownloadIcon, UploadIcon } from './Icons';
 
 interface ImportExportProps {

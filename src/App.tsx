@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { PlannerState, Subject, WeekPlan } from './types/planner';
+import { useState, useEffect } from 'react';
+import type { PlannerState, Subject, WeekPlan } from './types/planner';
 import { StatsDashboard } from './components/StatsDashboard';
 import { MaterialsList } from './components/MaterialsList';
 import { WeeklyGrid } from './components/WeeklyGrid';

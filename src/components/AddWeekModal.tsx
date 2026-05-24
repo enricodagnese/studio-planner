@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { WeekPlan, DaySchedule } from '../types/planner';
+import type { WeekPlan, DaySchedule } from '../types/planner';
 
 interface AddWeekModalProps {
   onClose: () => void;
