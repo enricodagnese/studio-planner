@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Subject } from '../types/planner';
-import { PlusIcon, TrashIcon, BookIcon } from './Icons';
+import { PlusIcon, BookIcon } from './Icons';
 
 interface MaterialsListProps {
   subjects: Subject[];
@@ -141,31 +141,27 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
                 className={`subject-card draggable-card ${colorClass} ${sub.completed ? 'completed' : ''}`}
                 style={{ '--accent-color': sub.color } as React.CSSProperties}
               >
-                <div className="card-drag-handle">
-                  <div className="drag-dots">:::</div>
+                <div className="card-drag-handle" title="Trascina per pianificare">
+                  <div className="drag-dots">⋮⋮</div>
                 </div>
+                <label className="checkbox-container">
+                  <input
+                    type="checkbox"
+                    checked={sub.completed}
+                    onChange={() => onToggleSubject(sub.id)}
+                  />
+                  <span className="checkmark"></span>
+                </label>
                 <div className="card-main-content">
-                  <div className="card-header-row">
-                    <label className="checkbox-container">
-                      <input
-                        type="checkbox"
-                        checked={sub.completed}
-                        onChange={() => onToggleSubject(sub.id)}
-                      />
-                      <span className="checkmark"></span>
-                    </label>
-                    <span className="subject-title">{sub.name}</span>
-                  </div>
-                  <div className="subject-meta">
-                    <span className="pages-badge">{sub.pages} pag</span>
-                  </div>
+                  <span className="subject-title">{sub.name}</span>
+                  <span className="pages-badge">{sub.pages} pag</span>
                 </div>
                 <button
-                  className="btn-icon btn-delete-card"
+                  className="btn-delete-card"
                   onClick={() => onDeleteSubject(sub.id)}
                   title="Elimina materia"
                 >
-                  <TrashIcon size={14} />
+                  ×
                 </button>
               </div>
             );

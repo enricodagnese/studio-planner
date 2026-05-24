@@ -255,11 +255,26 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
   return (
     <div className="weekly-calendar-grid">
       {activeWeek.days.map((day) => {
+        const [dayNameOnly] = day.name.split(' ');
         const dayColorClass = getDayClass(day.name);
+        const isWeekend = dayNameOnly.toLowerCase().includes('sabato') || dayNameOnly.toLowerCase().includes('domenica');
+        
+        // High-end dynamic current day highlighter
+        const todayDate = new Date();
+        const todayDayNumber = todayDate.getDate();
+        const monthsShort = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+        const todayMonthShort = monthsShort[todayDate.getMonth()];
+        const isToday = day.dateLabel === `${todayDayNumber} ${todayMonthShort}`;
+
         return (
-          <div key={day.id} className={`calendar-column glass-container ${dayColorClass}`}>
+          <div 
+            key={day.id} 
+            className={`calendar-column glass-container ${dayColorClass} ${isWeekend ? 'day-weekend' : ''} ${isToday ? 'day-today' : ''}`}
+          >
             <div className="column-header">
-              <h3>{day.name}</h3>
+              <span className="day-name">{dayNameOnly}</span>
+              <span className="day-date">{day.dateLabel}</span>
+              {isToday && <span className="today-badge">Oggi</span>}
             </div>
 
             <div className="slots-container">
@@ -277,41 +292,47 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                   >
                     {renderSlotHeader(slotKey)}
 
-                    <div className="slot-items-list">
-                      {items.map((item) => {
-                        const colorClass = getSubjectColorClass(item.subjectId);
-                        const pageLabel = getSubjectPages(item);
+                    {items.length === 0 ? (
+                      <div className="slot-placeholder">
+                        <span>Trascina qui</span>
+                      </div>
+                    ) : (
+                      <div className="slot-items-list">
+                        {items.map((item) => {
+                          const colorClass = getSubjectColorClass(item.subjectId);
+                          const pageLabel = getSubjectPages(item);
 
-                        return (
-                          <div
-                            key={item.id}
-                            draggable
-                            onDragStart={(e) => handleCalendarItemDragStart(e, item.id, day.id, slotKey)}
-                            className={`scheduled-item-pill ${colorClass} ${item.completed ? 'completed' : ''}`}
-                          >
-                            <label className="checkbox-container-sm">
-                              <input
-                                type="checkbox"
-                                checked={item.completed}
-                                onChange={() => handleToggleItem(day.id, slotKey, item.id)}
-                              />
-                              <span className="checkmark-sm"></span>
-                            </label>
-                            <div className="item-text-content">
-                              <span className="item-name" title={item.name}>{item.name}</span>
-                              {pageLabel && <span className="item-pages">{pageLabel}</span>}
-                            </div>
-                            <button
-                              className="btn-delete-item"
-                              onClick={() => handleDeleteItem(day.id, slotKey, item.id)}
-                              title="Rimuovi"
+                          return (
+                            <div
+                              key={item.id}
+                              draggable
+                              onDragStart={(e) => handleCalendarItemDragStart(e, item.id, day.id, slotKey)}
+                              className={`scheduled-item-pill ${colorClass} ${item.completed ? 'completed' : ''}`}
                             >
-                              ×
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
+                              <label className="checkbox-container-sm">
+                                <input
+                                  type="checkbox"
+                                  checked={item.completed}
+                                  onChange={() => handleToggleItem(day.id, slotKey, item.id)}
+                                />
+                                <span className="checkmark-sm"></span>
+                              </label>
+                              <div className="item-text-content">
+                                <span className="item-name" title={item.name}>{item.name}</span>
+                                {pageLabel && <span className="item-pages">{pageLabel}</span>}
+                              </div>
+                              <button
+                                className="btn-delete-item"
+                                onClick={() => handleDeleteItem(day.id, slotKey, item.id)}
+                                title="Rimuovi"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
 
                     {addingTaskForSlot?.dayId === day.id && addingTaskForSlot?.slotKey === slotKey ? (
                       <form

@@ -212,6 +212,32 @@ function App() {
 
 
 
+  // Calculate stats for a given week dynamically
+  const calculateWeekStats = (week: WeekPlan) => {
+    let totalTasks = 0;
+    let completedTasks = 0;
+    let totalWeekPages = 0;
+
+    week.days.forEach((d) => {
+      (['mattina', 'pomeriggio', 'sera'] as const).forEach((slotKey) => {
+        const slots = d[slotKey] || [];
+        slots.forEach((item) => {
+          totalTasks++;
+          if (item.completed) completedTasks++;
+
+          if (item.pages && item.pages > 0) {
+            totalWeekPages += item.pages;
+          } else if (item.subjectId) {
+            const sub = subjects.find((s) => s.id === item.subjectId);
+            if (sub) totalWeekPages += sub.pages;
+          }
+        });
+      });
+    });
+
+    return { totalTasks, completedTasks, totalWeekPages };
+  };
+
   return (
     <div className="app-container">
       {/* Top Header */}
@@ -228,17 +254,18 @@ function App() {
         </div>
 
         <div className="header-controls">
-          {/* Collapsible Sidebar Toggle Button */}
+          {/* Collapsible Sidebar Toggle Button (Dangerous/Warning style) */}
           <button
-            className={`btn ${isSidebarOpen ? 'btn-primary' : 'btn-secondary'} btn-sm`}
+            className={`btn ${isSidebarOpen ? 'btn-warning' : 'btn-secondary'} btn-sm`}
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             title={isSidebarOpen ? "Nascondi la Libreria Materie" : "Mostra la Libreria Materie"}
           >
             <span>{isSidebarOpen ? 'Chiudi Libreria' : 'Apri Libreria'}</span>
           </button>
 
+          {/* Primary Style for New Week */}
           <button
-            className="btn btn-secondary btn-sm"
+            className="btn btn-primary btn-sm"
             onClick={() => setShowAddWeekModal(true)}
             title="Pianifica una nuova settimana"
           >
@@ -246,7 +273,7 @@ function App() {
             <span>Nuova Settimana</span>
           </button>
 
-          {/* Backup Utilities */}
+          {/* Backup Utilities (Secondary) */}
           <ImportExport
             plannerState={{ weeks, subjects, activeWeekId }}
             onImportState={handleImportState}
@@ -271,16 +298,44 @@ function App() {
         {/* Right Column: Calendar grid for the WHOLE MONTH stacked vertically */}
         <main className="layout-right-column">
           {weeks.length > 0 ? (
-            weeks.map((week) => (
-              <div key={week.id} className="week-wrapper" style={{ marginBottom: '24px' }}>
-                <WeeklyGrid
-                  activeWeek={week}
-                  weeks={weeks}
-                  subjects={subjects}
-                  onUpdateAllWeeks={setWeeks}
-                />
-              </div>
-            ))
+            weeks.map((week, index) => {
+              const { totalTasks, completedTasks, totalWeekPages } = calculateWeekStats(week);
+              const weekProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+              return (
+                <div key={week.id} className="week-wrapper">
+                  <div className="week-wrapper-header">
+                    <h2 className="week-title">
+                      Settimana {index + 1} <span className="week-date-range">· {week.name.split(':')[1]?.trim() || week.name}</span>
+                    </h2>
+                    <div className="week-stats">
+                      <div className="week-stat-capsule">
+                        <span className="stat-label">📋 Task completati:</span>
+                        <span className="stat-value-highlight">{completedTasks}/{totalTasks}</span>
+                      </div>
+                      <div className="week-stat-capsule">
+                        <span className="stat-label">📖 Pagine totali:</span>
+                        <span className="stat-value-highlight">{totalWeekPages} pag</span>
+                      </div>
+                      {totalTasks > 0 && (
+                        <div className="week-progress-capsule">
+                          <div className="progress-bar-track">
+                            <div className="progress-bar-fill" style={{ width: `${weekProgress}%` }}></div>
+                          </div>
+                          <span className="progress-bar-text">{weekProgress}%</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <WeeklyGrid
+                    activeWeek={week}
+                    weeks={weeks}
+                    subjects={subjects}
+                    onUpdateAllWeeks={setWeeks}
+                  />
+                </div>
+              );
+            })
           ) : (
             <div className="empty-state glass-container" style={{ padding: '40px' }}>
               <p>Nessuna settimana pianificata attiva.</p>
