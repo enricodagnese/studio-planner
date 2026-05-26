@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import type { WeekPlan, Subject, CalendarItem } from '../types/planner';
+import type { WeekPlan, Subject, CalendarItem, TaskQuantityType } from '../types/planner';
 import { 
   PlusIcon, 
   TrashIcon, 
@@ -8,7 +8,8 @@ import {
   ClockIcon, 
   SunIcon, 
   MoonIcon,
-  PenIcon
+  PenIcon,
+  XIcon
 } from './Icons';
 
 interface TodayFocusProps {
@@ -257,16 +258,68 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
     }
   };
 
-  const getSubjectColor = (subjectId?: string) => {
-    if (!subjectId) return undefined;
-    const sub = subjects.find(s => s.id === subjectId);
-    return sub ? sub.color : undefined;
+  const handleDeleteItem = (dayId: string, slotKey: 'mattina' | 'pomeriggio' | 'sera', itemId: string) => {
+    let foundItem: CalendarItem | null = null;
+    for (const w of weeks) {
+      const day = w.days.find(d => d.id === dayId);
+      if (day) {
+        foundItem = day[slotKey].find(i => i.id === itemId) || null;
+        if (foundItem) break;
+      }
+    }
+
+    onUpdateAllWeeks(weeks.map(w => ({
+      ...w,
+      days: w.days.map(d => d.id !== dayId ? d : {
+        ...d,
+        [slotKey]: d[slotKey].filter(i => i.id !== itemId),
+      }),
+    })));
+
+    if (foundItem && foundItem.subjectId && foundItem.taskId) {
+      const item = foundItem;
+      onUpdateSubjects(subjects.map(s => {
+        if (s.id !== item.subjectId) return s;
+        const updatedTasks = s.tasks.map(t => t.id === item.taskId ? { ...t, completed: false } : t);
+        return {
+          ...s,
+          tasks: updatedTasks,
+          completed: false,
+        };
+      }));
+    }
   };
 
-  const getSubjectName = (subjectId?: string) => {
-    if (!subjectId) return '';
+  const getQtyLabel = (pages?: number, quantityType?: TaskQuantityType): string => {
+    if (!pages) return '';
+    switch (quantityType) {
+      case 'ore-video': return `${pages}h video`;
+      case 'esercizi':  return `${pages} esercizi`;
+      case 'quiz':      return `${pages} quiz`;
+      default:          return `${pages} pag`;
+    }
+  };
+
+  const getSubjectColorClass = (subjectId?: string) => {
+    if (!subjectId) return 'item-custom';
     const sub = subjects.find(s => s.id === subjectId);
-    return sub ? sub.name : '';
+    if (!sub) return 'item-custom';
+    const colorsMap: Record<string, string> = {
+      '#fbbf24': 'color-gold',   '#60a5fa': 'color-blue',
+      '#34d399': 'color-emerald','#a78bfa': 'color-purple',
+      '#f87171': 'color-red',    '#f472b6': 'color-pink',
+    };
+    return colorsMap[sub.color] || 'color-gold';
+  };
+
+  const getEventColor = (eventType?: string) => {
+    if (!eventType) return undefined;
+    return eventColors[eventType as keyof typeof eventColors];
+  };
+
+  const getSubjectInfo = (subjectId?: string) => {
+    if (!subjectId) return null;
+    return subjects.find(s => s.id === subjectId) || null;
   };
 
   const getGreeting = () => {
@@ -282,23 +335,6 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
     } else {
       return "Buonasera Enrico";
     }
-  };
-
-  const getContrastTextColor = (hexColor?: string) => {
-    if (!hexColor) return '#ffffff';
-    let color = hexColor;
-    if (hexColor.includes('var(--event-esame-color)')) color = '#ef4444';
-    else if (hexColor.includes('var(--event-svago-color)')) color = '#3b82f6';
-    else if (hexColor.includes('var(--event-lezione-color)')) color = '#10b981';
-    else if (hexColor.includes('var(--event-altro-color)')) color = '#a78bfa';
-    
-    const hex = color.replace('#', '');
-    if (hex.length < 6) return '#ffffff';
-    const r = parseInt(hex.substr(0, 2), 16);
-    const g = parseInt(hex.substr(2, 2), 16);
-    const b = parseInt(hex.substr(4, 2), 16);
-    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-    return (yiq >= 140) ? '#18181b' : '#ffffff';
   };
 
   return (
@@ -384,129 +420,76 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                     Nessun compito o evento programmato.
                   </div>
                 ) : (
-                  items.map((item) => {
-                    const isEvent = !!item.eventType;
-                    const subColor = getSubjectColor(item.subjectId);
-                    const subName = getSubjectName(item.subjectId);
+                  <div className="slot-items-list">
+                    {items.map((item) => {
+                      const isEvent = !!item.eventType;
+                      const colorClass = isEvent ? '' : getSubjectColorClass(item.subjectId);
+                      const subject = isEvent ? null : getSubjectInfo(item.subjectId);
+                      const qtyLabel = getQtyLabel(item.pages, item.quantityType);
+                      const subjLabel = subject
+                        ? (subject.name.length > 14 ? subject.name.slice(0, 13) + '…' : subject.name)
+                        : null;
 
-                    const activeColor = isEvent 
-                      ? (eventColors[item.eventType as keyof typeof eventColors] || '#ea580c')
-                      : (subColor || '#ea580c');
-                      
-                    const contrastTextColor = getContrastTextColor(activeColor);
-
-                    return (
-                      <div 
-                        key={item.id} 
-                        className={`today-task-row ${item.completed ? 'completed' : ''}`}
-                        style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          padding: '16px 20px', 
-                          borderRadius: '12px',
-                          background: activeColor,
-                          border: '1px solid rgba(255, 255, 255, 0.12)',
-                          color: contrastTextColor,
-                          transition: 'all 0.2s ease',
-                          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
-                          textDecoration: 'none'
-                        }}
-                      >
-                        {/* Big Quadratino Checkbox */}
-                        <label style={{ 
-                          position: 'relative', 
-                          display: 'inline-block', 
-                          width: '26px', 
-                          height: '26px', 
-                          marginRight: '16px',
-                          cursor: 'pointer',
-                          flexShrink: 0
-                        }}>
-                          <input 
-                            type="checkbox" 
-                            checked={item.completed} 
-                            onChange={() => handleToggleItem(activeDay.id, slotKey, item.id)}
-                            style={{ 
-                              position: 'absolute', 
-                              opacity: 0, 
-                              cursor: 'pointer', 
-                              height: 0, 
-                              width: 0 
-                            }}
-                          />
-                          <span 
-                            style={{ 
-                              position: 'absolute', 
-                              top: 0, 
-                              left: 0, 
-                              height: '26px', 
-                              width: '26px', 
-                              background: 'rgba(255, 255, 255, 0.18)', 
-                              border: `2px solid ${contrastTextColor}`, 
-                              borderRadius: '6px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: 'all 0.2s ease',
-                              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.15)'
-                            }}
-                          >
-                            {item.completed && (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={contrastTextColor} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="20 6 9 17 5 12" />
-                              </svg>
-                            )}
-                          </span>
-                        </label>
-
-                        {/* Info details */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
-                          <span className="item-name" style={{ 
-                            fontSize: '17px', 
-                            fontWeight: 700, 
-                            color: contrastTextColor, 
-                            textDecoration: item.completed ? 'line-through' : 'none', 
-                            opacity: item.completed ? 0.65 : 1 
-                          }}>
-                            {item.name}
-                          </span>
-                          
-                          {/* Tag Subject/Event underneath */}
-                          {(subName || isEvent) && (
-                            <span style={{ 
-                              fontSize: '10.5px', 
-                              fontWeight: 800, 
-                              color: contrastTextColor, 
-                              background: 'rgba(255, 255, 255, 0.25)', 
-                              padding: '2px 8px', 
-                              borderRadius: '4px', 
-                              textTransform: 'uppercase', 
-                              letterSpacing: '0.04em',
-                              marginTop: '4px',
-                              alignSelf: 'flex-start'
-                            }}>
-                              {isEvent ? item.eventType : subName}
+                      return (
+                        <div 
+                          key={item.id} 
+                          className={`scheduled-item-pill ${colorClass} ${isEvent ? `event-pill event-${item.eventType}` : ''} ${item.completed ? 'completed' : ''}`}
+                        >
+                          {/* Top row: checkbox + name + [event badge] + delete */}
+                          <div className="item-header-row">
+                            <label className="checkbox-container-sm">
+                              <input 
+                                type="checkbox" 
+                                checked={item.completed} 
+                                onChange={() => handleToggleItem(activeDay.id, slotKey, item.id)}
+                              />
+                              <span 
+                                className="checkmark-sm"
+                                style={{ 
+                                  '--accent-color': isEvent ? getEventColor(item.eventType) : undefined 
+                                } as React.CSSProperties}
+                              ></span>
+                            </label>
+                            <span className="item-name" title={item.name}>
+                              {item.name}
                             </span>
+                            {isEvent && (
+                              <span className={`event-type-badge event-badge-${item.eventType}`}>
+                                {item.eventType === 'esame' ? 'ESAME' : item.eventType === 'svago' ? 'SVAGO' : item.eventType === 'lezione' ? 'LEZIONE' : 'ALTRO'}
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              className="btn-delete-item"
+                              onClick={() => handleDeleteItem(activeDay.id, slotKey, item.id)}
+                              title="Rimuovi"
+                            >
+                              <XIcon size={9} />
+                            </button>
+                          </div>
+
+                          {/* Bottom row: subject tag + quantity tag (only for task items) */}
+                          {!isEvent && (subjLabel || qtyLabel) && (
+                            <div className="item-tags-row">
+                              {subjLabel && (
+                                <span 
+                                  className="item-subject-tag"
+                                  style={{
+                                    backgroundColor: subject ? `${subject.color}22` : undefined,
+                                    color: subject?.color,
+                                    borderColor: subject ? `${subject.color}44` : undefined,
+                                  }}
+                                >
+                                  {subjLabel}
+                                </span>
+                              )}
+                              {qtyLabel && <span className="item-qty-tag">{qtyLabel}</span>}
+                            </div>
                           )}
                         </div>
-
-                        {/* Pages/Quantity on the right */}
-                        {!isEvent && item.pages && (
-                          <span style={{ 
-                            fontSize: '13.5px', 
-                            color: contrastTextColor, 
-                            fontWeight: 700,
-                            opacity: 0.95,
-                            marginLeft: 'auto',
-                            paddingLeft: '16px',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            {item.pages} pagine
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })
+                      );
+                    })}
+                  </div>
                 )}
               </div>
             </div>
