@@ -3648,24 +3648,24 @@ body {
 }
 
 .event-esame {
-  background: rgba(239, 68, 68, 0.12) !important;
-  border: 1px solid rgba(239, 68, 68, 0.4) !important;
-  border-left: 4px solid #ef4444 !important;
+  background: var(--event-esame-bg) !important;
+  border: 1px solid var(--event-esame-border) !important;
+  border-left: 4px solid var(--event-esame-color) !important;
 }
 
 .event-esame .item-name {
-  color: #fca5a5 !important;
+  color: var(--event-esame-color) !important;
   font-weight: 700 !important;
 }
 
 .event-svago {
-  background: rgba(59, 130, 246, 0.12) !important;
-  border: 1px solid rgba(59, 130, 246, 0.4) !important;
-  border-left: 4px solid #3b82f6 !important;
+  background: var(--event-svago-bg) !important;
+  border: 1px solid var(--event-svago-border) !important;
+  border-left: 4px solid var(--event-svago-color) !important;
 }
 
 .event-svago .item-name {
-  color: #93c5fd !important;
+  color: var(--event-svago-color) !important;
   font-weight: 700 !important;
 }
 
@@ -3681,15 +3681,15 @@ body {
 }
 
 .event-badge-esame {
-  background: rgba(239, 68, 68, 0.2) !important;
-  color: #f87171 !important;
-  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  background: var(--event-esame-bg) !important;
+  color: var(--event-esame-color) !important;
+  border: 1px solid var(--event-esame-border) !important;
 }
 
 .event-badge-svago {
-  background: rgba(59, 130, 246, 0.2) !important;
-  color: #60a5fa !important;
-  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  background: var(--event-svago-bg) !important;
+  color: var(--event-svago-color) !important;
+  border: 1px solid var(--event-svago-border) !important;
 }
 
 /* Event Modal Styling (Premium Glassmorphism Overlay) */
@@ -4159,20 +4159,20 @@ body {
 
 /* Special event type: Lezione */
 .event-lezione {
-  background: rgba(16, 185, 129, 0.12) !important;
-  border: 1px solid rgba(16, 185, 129, 0.4) !important;
-  border-left: 4px solid #10b981 !important; /* Emerald green left accent for lessons */
+  background: var(--event-lezione-bg) !important;
+  border: 1px solid var(--event-lezione-border) !important;
+  border-left: 4px solid var(--event-lezione-color) !important;
 }
 
 .event-lezione .item-name {
-  color: #a7f3d0 !important;
+  color: var(--event-lezione-color) !important;
   font-weight: 700 !important;
 }
 
 .event-badge-lezione {
-  background: rgba(16, 185, 129, 0.2) !important;
-  color: #34d399 !important;
-  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  background: var(--event-lezione-bg) !important;
+  color: var(--event-lezione-color) !important;
+  border: 1px solid var(--event-lezione-border) !important;
 }
 
 /* Confirm modal style for Lezione button */
@@ -4214,20 +4214,20 @@ body {
 
 /* Special event type: Altro */
 .event-altro {
-  background: rgba(167, 139, 250, 0.12) !important;
-  border: 1px solid rgba(167, 139, 250, 0.4) !important;
-  border-left: 4px solid #a78bfa !important; /* Purple left accent */
+  background: var(--event-altro-bg) !important;
+  border: 1px solid var(--event-altro-border) !important;
+  border-left: 4px solid var(--event-altro-color) !important;
 }
 
 .event-altro .item-name {
-  color: #d8b4fe !important;
+  color: var(--event-altro-color) !important;
   font-weight: 700 !important;
 }
 
 .event-badge-altro {
-  background: rgba(167, 139, 250, 0.2) !important;
-  color: #c084fc !important;
-  border: 1px solid rgba(167, 139, 250, 0.3) !important;
+  background: var(--event-altro-bg) !important;
+  color: var(--event-altro-color) !important;
+  border: 1px solid var(--event-altro-border) !important;
 }
 
 /* Confirm modal style for Altro button */

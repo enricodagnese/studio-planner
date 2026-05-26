@@ -65,17 +65,45 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   };
 
   // 2. --- Pomodoro Timer Widget ---
-  const [timerMode, setTimerMode] = useState<'classic' | 'hard'>('classic');
-  const [timeLeft, setTimeLeft] = useState(25 * 60); // default 25 min
+  const [timerVersion, setTimerVersion] = useState<'classic' | 'potter'>(() => {
+    const saved = localStorage.getItem('antigravity-studio-planner-timer-version');
+    return (saved as 'classic' | 'potter') || 'classic';
+  });
+  const [timerMode, setTimerMode] = useState<'study' | 'short' | 'long'>(() => {
+    const saved = localStorage.getItem('antigravity-studio-planner-timer-mode');
+    return (saved as 'study' | 'short' | 'long') || 'study';
+  });
+
+  const timerSettings = {
+    classic: {
+      study: { label: 'Pomodoro', duration: 25 * 60, color: '#ba4f4f' },
+      short: { label: 'Short Break', duration: 5 * 60, color: '#38858a' },
+      long: { label: 'Long Break', duration: 15 * 60, color: '#397097' }
+    },
+    potter: {
+      study: { label: 'Hogwarts Study', duration: 50 * 60, color: '#740001' },
+      short: { label: 'Common Room', duration: 10 * 60, color: '#1a472a' },
+      long: { label: 'Great Hall Feast', duration: 20 * 60, color: '#0e1a40' }
+    }
+  };
+
+  const currentSettings = timerSettings[timerVersion][timerMode];
+  const [timeLeft, setTimeLeft] = useState(currentSettings.duration);
   const [timerRunning, setTimerRunning] = useState(false);
   const timerIntervalRef = useRef<any>(null);
 
-  // When mode changes, reset duration
+  // Save timer selections
+  useEffect(() => {
+    localStorage.setItem('antigravity-studio-planner-timer-version', timerVersion);
+    localStorage.setItem('antigravity-studio-planner-timer-mode', timerMode);
+  }, [timerVersion, timerMode]);
+
+  // When version or mode changes, reset duration and stop timer
   useEffect(() => {
     setTimerRunning(false);
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    setTimeLeft(timerMode === 'classic' ? 25 * 60 : 50 * 60);
-  }, [timerMode]);
+    setTimeLeft(timerSettings[timerVersion][timerMode].duration);
+  }, [timerVersion, timerMode]);
 
   // Handle countdown loop
   useEffect(() => {
@@ -106,7 +134,8 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
 
   const resetTimer = () => {
     setTimerRunning(false);
-    setTimeLeft(timerMode === 'classic' ? 25 * 60 : 50 * 60);
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    setTimeLeft(timerSettings[timerVersion][timerMode].duration);
   };
 
   const formatTime = (seconds: number) => {
@@ -260,6 +289,21 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
     return sub ? sub.name : '';
   };
 
+  const getGreeting = () => {
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    const timeVal = hours * 60 + minutes; // minutes since midnight
+    const sixThirty = 6 * 60 + 30; // 06:30
+    const fourteen = 14 * 60; // 14:00
+    
+    if (timeVal >= sixThirty && timeVal < fourteen) {
+      return "Buongiorno Enrico!";
+    } else {
+      return "Buonasera Enrico";
+    }
+  };
+
   return (
     <div className="today-focus-dashboard animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '30px', padding: '10px 10px 40px 10px' }}>
       
@@ -270,7 +314,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
         <header className="today-nav-header glass-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderRadius: '12px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
             <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff', margin: 0 }}>
-              BUONGIORNO ENRICO!
+              {getGreeting()}
             </h1>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span className="selected-day-label" style={{ fontSize: '13px', fontWeight: 600, color: '#f8fafc' }}>
@@ -321,10 +365,10 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
           const slotLabels = { mattina: 'Mattina', pomeriggio: 'Pomeriggio', sera: 'Sera' };
 
           return (
-            <div key={slotKey} className="today-slot-card glass-container animate-slide-down" style={{ borderRadius: '12px', overflow: 'hidden' }}>
-              <div className="today-slot-header" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 20px', background: 'rgba(255,255,255,0.01)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+            <div key={slotKey} className="today-slot-card-borderless animate-slide-down" style={{ background: 'transparent', border: 'none', borderBottom: slotKey === 'sera' ? 'none' : '1px solid rgba(255,255,255,0.06)', paddingBottom: slotKey === 'sera' ? '0' : '20px', marginBottom: '10px' }}>
+              <div className="today-slot-header" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 0', background: 'transparent', borderBottom: 'none' }}>
                 {slotIcons[slotKey]}
-                <h3 style={{ fontSize: '14px', fontWeight: 700, color: '#f4f4f5', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#f4f4f5', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
                   {slotLabels[slotKey]}
                 </h3>
                 <span className="slot-items-count" style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', color: '#a1a1aa', fontWeight: 600 }}>
@@ -332,7 +376,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                 </span>
               </div>
 
-              <div className="today-slot-body" style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div className="today-slot-body" style={{ padding: '8px 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {items.length === 0 ? (
                   <div className="today-slot-empty" style={{ fontSize: '12px', color: '#52525b', fontStyle: 'italic', padding: '8px 0' }}>
                     Nessun compito o evento programmato.
@@ -343,6 +387,18 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                     const subColor = getSubjectColor(item.subjectId);
                     const subName = getSubjectName(item.subjectId);
 
+                    const activeColor = isEvent 
+                      ? `var(--event-${item.eventType}-color)` 
+                      : (subColor || '#ea580c');
+                      
+                    const rowBackground = isEvent 
+                      ? `var(--event-${item.eventType}-bg)` 
+                      : `${activeColor}15`;
+                      
+                    const rowBorderColor = isEvent
+                      ? `var(--event-${item.eventType}-border)`
+                      : `${activeColor}30`;
+
                     return (
                       <div 
                         key={item.id} 
@@ -350,15 +406,17 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                         style={{ 
                           display: 'flex', 
                           alignItems: 'center', 
-                          padding: '10px 14px', 
-                          borderRadius: '8px',
-                          borderLeftWidth: '4px',
+                          padding: '12px 16px', 
+                          borderRadius: '10px',
+                          borderLeftWidth: '5px',
                           borderLeftStyle: 'solid',
-                          borderLeftColor: isEvent ? `var(--event-${item.eventType}-color)` : (subColor || '#d97706'),
-                          background: isEvent ? `var(--event-${item.eventType}-bg)` : 'rgba(255,255,255,0.015)',
-                          borderTop: '1px solid rgba(255,255,255,0.03)',
-                          borderRight: '1px solid rgba(255,255,255,0.03)',
-                          borderBottom: '1px solid rgba(255,255,255,0.03)'
+                          borderLeftColor: activeColor,
+                          background: rowBackground,
+                          borderTop: `1px solid ${rowBorderColor}`,
+                          borderRight: `1px solid ${rowBorderColor}`,
+                          borderBottom: `1px solid ${rowBorderColor}`,
+                          transition: 'all 0.2s ease',
+                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
                         }}
                       >
                         {/* Checkbox */}
@@ -371,25 +429,25 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                           <span 
                             className="checkmark-sm"
                             style={{ 
-                              '--accent-color': isEvent ? `var(--event-${item.eventType}-color)` : subColor 
+                              '--accent-color': activeColor 
                             } as React.CSSProperties}
                           ></span>
                         </label>
 
                         {/* Info details */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', flex: 1 }}>
-                          <span className="item-name" style={{ fontSize: '13.5px', fontWeight: 600, color: '#ffffff' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
+                          <span className="item-name" style={{ fontSize: '15px', fontWeight: 600, color: '#ffffff', textDecoration: item.completed ? 'line-through' : 'none', opacity: item.completed ? 0.6 : 1 }}>
                             {item.name}
                           </span>
                           {!isEvent && (subName || item.pages) && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                               {subName && (
-                                <span style={{ fontSize: '10px', fontWeight: 700, color: subColor, background: `${subColor}15`, padding: '1px 5px', borderRadius: '4px' }}>
+                                <span style={{ fontSize: '10.5px', fontWeight: 800, color: activeColor, background: `${activeColor}20`, padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
                                   {subName}
                                 </span>
                               )}
                               {item.pages && (
-                                <span style={{ fontSize: '10px', color: '#71717a' }}>
+                                <span style={{ fontSize: '11px', color: '#a1a1aa', fontWeight: 500 }}>
                                   {item.pages} pagine
                                 </span>
                               )}
@@ -417,26 +475,36 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
       <div className="today-widgets-col" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
         {/* Widget 1: POMODORO TIMER */}
-        <div className="widget-card glass-container" style={{ padding: '20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <h4 style={{ fontSize: '11px', fontWeight: 800, color: '#a1a1aa', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '14px', width: '100%', textAlign: 'center' }}>
-            Pomodoro Timer
-          </h4>
+        <div className="widget-card pomodoro-widget-card" style={{ 
+          background: currentSettings.color, 
+          padding: '24px', 
+          borderRadius: '16px', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center',
+          transition: 'background-color 0.5s ease',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)'
+        }}>
           
-          {/* Modes pill selector */}
-          <div className="timer-mode-pills" style={{ display: 'flex', background: '#18181b', padding: '4px', borderRadius: '8px', width: '100%', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.03)' }}>
+          {/* Version Selector: Classic vs Harry Potter */}
+          <div className="version-selector-container" style={{ display: 'flex', background: 'rgba(0,0,0,0.2)', padding: '4px', borderRadius: '8px', width: '100%', marginBottom: '16px' }}>
             <button 
               type="button" 
-              onClick={() => setTimerMode('classic')}
+              onClick={() => setTimerVersion('classic')}
               style={{ 
                 flex: 1, 
                 border: 'none', 
-                background: timerMode === 'classic' ? 'rgba(255,255,255,0.06)' : 'transparent', 
-                color: timerMode === 'classic' ? '#ffffff' : '#71717a', 
-                fontSize: '11px', 
+                background: timerVersion === 'classic' ? 'rgba(255,255,255,0.1)' : 'transparent', 
+                color: '#ffffff', 
+                fontSize: '12px', 
                 fontWeight: 700, 
-                padding: '6px 0', 
+                padding: '8px 0', 
                 borderRadius: '6px', 
                 cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
                 transition: 'all 0.2s ease'
               }}
             >
@@ -444,50 +512,159 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
             </button>
             <button 
               type="button" 
-              onClick={() => setTimerMode('hard')}
+              onClick={() => setTimerVersion('potter')}
               style={{ 
                 flex: 1, 
                 border: 'none', 
-                background: timerMode === 'hard' ? 'rgba(255,255,255,0.06)' : 'transparent', 
-                color: timerMode === 'hard' ? '#ffffff' : '#71717a', 
-                fontSize: '11px', 
+                background: timerVersion === 'potter' ? 'rgba(255,255,255,0.1)' : 'transparent', 
+                color: '#ffd700', 
+                fontSize: '12px', 
                 fontWeight: 700, 
-                padding: '6px 0', 
+                padding: '8px 0', 
                 borderRadius: '6px', 
                 cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
                 transition: 'all 0.2s ease'
               }}
             >
-              Hard
+              <span>🧙‍♂️ Harry Potter</span>
             </button>
           </div>
 
+          <h4 style={{ fontSize: '11px', fontWeight: 800, color: 'rgba(255, 255, 255, 0.7)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '14px', width: '100%', textAlign: 'center' }}>
+            {timerVersion === 'potter' ? 'Hogwarts Focus Timer' : 'Classic Pomodoro'}
+          </h4>
+          
+          {/* Modes pill selector */}
+          <div className="timer-mode-pills" style={{ 
+            display: 'flex', 
+            background: 'rgba(0, 0, 0, 0.2)', 
+            padding: '4px', 
+            borderRadius: '10px', 
+            width: '100%', 
+            marginBottom: '24px' 
+          }}>
+            {(['study', 'short', 'long'] as const).map((m) => {
+              const isActive = timerMode === m;
+              const label = timerSettings[timerVersion][m].label;
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setTimerMode(m)}
+                  style={{
+                    flex: 1,
+                    border: 'none',
+                    background: isActive ? 'rgba(0, 0, 0, 0.45)' : 'transparent',
+                    color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.6)',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    padding: '8px 4px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    textAlign: 'center',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
           {/* Time Display */}
-          <div className="timer-time-display" style={{ fontSize: '48px', fontWeight: 900, fontFamily: 'monospace', letterSpacing: '0.02em', color: timerRunning ? '#f43f5e' : '#ffffff', marginBottom: '20px', textShadow: timerRunning ? '0 0 10px rgba(244,63,94,0.15)' : 'none' }}>
+          <div className="timer-time-display" style={{ 
+            fontSize: '64px', 
+            fontWeight: 800, 
+            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', 
+            letterSpacing: '-0.02em', 
+            color: '#ffffff', 
+            marginBottom: '24px', 
+            lineHeight: 1 
+          }}>
             {formatTime(timeLeft)}
           </div>
 
           {/* Control Buttons */}
-          <div style={{ display: 'flex', gap: '10px', width: '100%' }}>
+          <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
             <button 
               type="button" 
-              className={`btn ${timerRunning ? 'btn-secondary' : 'btn-primary'}`} 
               onClick={toggleTimer}
-              style={{ flex: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+              style={{ 
+                flex: 2, 
+                background: '#ffffff', 
+                color: currentSettings.color, 
+                border: 'none', 
+                borderRadius: '8px', 
+                padding: '12px 20px', 
+                fontSize: '14px', 
+                fontWeight: 700, 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.05em', 
+                cursor: 'pointer', 
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                gap: '6px',
+                transition: 'all 0.2s ease'
+              }}
             >
-              <ClockIcon size={14} />
+              <ClockIcon size={14} style={{ color: currentSettings.color }} />
               <span>{timerRunning ? 'Pausa' : 'Start'}</span>
             </button>
             
             <button 
               type="button" 
-              className="btn btn-secondary" 
               onClick={resetTimer}
-              style={{ flex: 1, justifyContent: 'center' }}
+              style={{ 
+                flex: 1, 
+                background: 'rgba(255, 255, 255, 0.15)', 
+                color: '#ffffff', 
+                border: '1px solid rgba(255, 255, 255, 0.25)', 
+                borderRadius: '8px', 
+                padding: '12px 14px', 
+                fontSize: '12px', 
+                fontWeight: 700, 
+                textTransform: 'uppercase', 
+                letterSpacing: '0.05em', 
+                cursor: 'pointer',
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                transition: 'all 0.2s ease'
+              }}
             >
               Reset
             </button>
           </div>
+
+          {/* Hogwarts Ambient ASMR Player */}
+          {timerVersion === 'potter' && (
+            <div className="hogwarts-player-wrapper" style={{ width: '100%', marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  🏰 Hogwarts Ambience ASMR
+                </span>
+              </div>
+              <iframe
+                width="100%"
+                height="160"
+                src="https://www.youtube.com/embed/TZrt8Ktl8hk?autoplay=0&mute=0"
+                title="Hogwarts Library Ambience"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                style={{ borderRadius: '10px', border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}
+              ></iframe>
+            </div>
+          )}
         </div>
 
         {/* Widget 2: STREAK */}
