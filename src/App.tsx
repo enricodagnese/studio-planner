@@ -458,6 +458,7 @@ function App() {
           subjects={subjects}
           onUpdateAllWeeks={setWeeks}
           onUpdateSubjects={setSubjects}
+          eventColors={eventColors}
         />
       )}
 

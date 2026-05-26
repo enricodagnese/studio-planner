@@ -16,6 +16,12 @@ interface TodayFocusProps {
   subjects: Subject[];
   onUpdateAllWeeks: (updatedWeeks: WeekPlan[]) => void;
   onUpdateSubjects: (updatedSubjects: Subject[]) => void;
+  eventColors?: {
+    esame: string;
+    svago: string;
+    lezione: string;
+    altro: string;
+  };
 }
 
 interface QuickTodo {
@@ -28,7 +34,8 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   weeks,
   subjects,
   onUpdateAllWeeks,
-  onUpdateSubjects
+  onUpdateSubjects,
+  eventColors = { esame: '#ef4444', svago: '#3b82f6', lezione: '#10b981', altro: '#a78bfa' }
 }) => {
   // 1. --- Navigation & Date Logic ---
   // Create a flat array of all scheduled days for easier navigation
@@ -302,11 +309,11 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
         
         {/* Navigation Date Header */}
         <header className="today-nav-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0px', background: 'transparent', border: 'none', borderRadius: '0px' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px', flexWrap: 'wrap' }}>
-            <h1 style={{ fontSize: '36px', fontWeight: 800, fontFamily: "'Outfit', -apple-system, BlinkMacSystemFont, sans-serif", letterSpacing: '-0.03em', color: '#ffffff', margin: 0, textTransform: 'uppercase' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap' }}>
+            <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff', margin: 0, textTransform: 'uppercase' }}>
               {getGreeting()}
             </h1>
-            <span className="selected-day-label" style={{ fontSize: '20px', fontWeight: 600, color: 'rgba(255, 255, 255, 0.7)', fontFamily: "'Outfit', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+            <span className="selected-day-label" style={{ fontSize: '15px', fontWeight: 600, color: 'rgba(255, 255, 255, 0.7)' }}>
               {activeDay?.name} {activeDay?.dateLabel.split(' ')[0]} {activeDay?.dateLabel.split(' ')[1]}
             </span>
           </div>
@@ -383,7 +390,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                     const subName = getSubjectName(item.subjectId);
 
                     const activeColor = isEvent 
-                      ? `var(--event-${item.eventType}-color)` 
+                      ? (eventColors[item.eventType as keyof typeof eventColors] || '#ea580c')
                       : (subColor || '#ea580c');
                       
                     const contrastTextColor = getContrastTextColor(activeColor);
@@ -391,7 +398,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                     return (
                       <div 
                         key={item.id} 
-                        className={`today-task-row scheduled-item-pill ${isEvent ? `event-pill event-${item.eventType}` : ''} ${item.completed ? 'completed' : ''}`}
+                        className={`today-task-row ${item.completed ? 'completed' : ''}`}
                         style={{ 
                           display: 'flex', 
                           alignItems: 'center', 
