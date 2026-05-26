@@ -428,16 +428,16 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
                           }}
                         >
                           <optgroup label="COMPITI DI STUDIO" style={{ background: '#1a1b24', color: '#a1a1aa' }}>
-                            <option value="studio" style={{ color: '#e4e4e7' }}>📝 Compito Generico</option>
+                            <option value="studio" style={{ color: '#e4e4e7' }}>Compito Generico</option>
                             {subjects.map(s => (
-                              <option key={s.id} value={s.id} style={{ color: '#e4e4e7' }}>📚 {s.name}</option>
+                              <option key={s.id} value={s.id} style={{ color: '#e4e4e7' }}>{s.name}</option>
                             ))}
                           </optgroup>
                           <optgroup label="EVENTI EXTRA" style={{ background: '#1a1b24', color: '#a1a1aa' }}>
-                            <option value="esame" style={{ color: '#e4e4e7' }}>🔴 Esame</option>
-                            <option value="svago" style={{ color: '#e4e4e7' }}>🔵 Svago</option>
-                            <option value="lezione" style={{ color: '#e4e4e7' }}>🟢 Lezione</option>
-                            <option value="altro" style={{ color: '#e4e4e7' }}>🟣 Altro</option>
+                            <option value="esame" style={{ color: '#e4e4e7' }}>Esame</option>
+                            <option value="svago" style={{ color: '#e4e4e7' }}>Svago</option>
+                            <option value="lezione" style={{ color: '#e4e4e7' }}>Lezione</option>
+                            <option value="altro" style={{ color: '#e4e4e7' }}>Altro</option>
                           </optgroup>
                         </select>
                         <div className="quick-form-buttons" style={{ marginTop: '2px' }}>

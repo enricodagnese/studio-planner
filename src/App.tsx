@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import type { PlannerState, Subject, WeekPlan } from './types/planner';
 import { MaterialsList } from './components/MaterialsList';
 import { WeeklyGrid } from './components/WeeklyGrid';
-import { ImportExport } from './components/ImportExport';
 import { SubjectsManager } from './components/SubjectsManager';
 import { AddEventModal } from './components/AddEventModal';
-import { PlusIcon, CalendarIcon, BookIcon, ChevronLeftIcon, ChevronRightIcon } from './components/Icons';
+import { SettingsModal } from './components/SettingsModal';
+import { TodayFocus } from './components/TodayFocus';
+import { PlusIcon, CalendarIcon, BookIcon, ChevronLeftIcon, ChevronRightIcon, FlameIcon, SettingsIcon } from './components/Icons';
 import './App.css';
 
 
@@ -205,10 +206,32 @@ function App() {
   });
 
   const [showAddEventModal, setShowAddEventModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState<'planner' | 'subjects'>('planner');
+  const [activeTab, setActiveTab] = useState<'oggi' | 'planner' | 'subjects'>('oggi');
   const [theme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('antigravity-studio-planner-theme') as 'dark' | 'light') || 'dark';
+  });
+
+  const [eventColors, setEventColors] = useState<{
+    esame: string;
+    svago: string;
+    lezione: string;
+    altro: string;
+  }>(() => {
+    const saved = localStorage.getItem('antigravity-studio-planner-event-colors');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed.esame && parsed.svago && parsed.lezione && parsed.altro) return parsed;
+      } catch (e) {}
+    }
+    return {
+      esame: '#ef4444',
+      svago: '#3b82f6',
+      lezione: '#10b981',
+      altro: '#a78bfa'
+    };
   });
 
 
@@ -222,6 +245,7 @@ function App() {
   useEffect(() => { localStorage.setItem(`${LOCAL_STORAGE_KEY}-weeks`, JSON.stringify(weeks)); }, [weeks]);
   useEffect(() => { localStorage.setItem(`${LOCAL_STORAGE_KEY}-activeWeekId`, activeWeekId); }, [activeWeekId]);
   useEffect(() => { localStorage.setItem(TITLE_STORAGE_KEY, sessionTitle); }, [sessionTitle]);
+  useEffect(() => { localStorage.setItem('antigravity-studio-planner-event-colors', JSON.stringify(eventColors)); }, [eventColors]);
 
   // Sync task completed state from subjects to calendar items
   useEffect(() => {
@@ -339,6 +363,26 @@ function App() {
 
   return (
     <div className={`app-container ${theme === 'light' ? 'light-theme' : ''}`}>
+      <style>{`
+        :root {
+          --event-esame-color: ${eventColors.esame};
+          --event-svago-color: ${eventColors.svago};
+          --event-lezione-color: ${eventColors.lezione};
+          --event-altro-color: ${eventColors.altro};
+          
+          --event-esame-bg: ${eventColors.esame}1f;
+          --event-esame-border: ${eventColors.esame}66;
+          
+          --event-svago-bg: ${eventColors.svago}1f;
+          --event-svago-border: ${eventColors.svago}66;
+          
+          --event-lezione-bg: ${eventColors.lezione}1f;
+          --event-lezione-border: ${eventColors.lezione}66;
+          
+          --event-altro-bg: ${eventColors.altro}1f;
+          --event-altro-border: ${eventColors.altro}66;
+        }
+      `}</style>
       <header className="app-header">
         <div className="header-title-container">
           <div className="session-badge">
@@ -355,6 +399,14 @@ function App() {
         </div>
 
         <div className="header-navigation-tabs">
+          <button
+            className={`nav-tab-btn ${activeTab === 'oggi' ? 'active' : ''}`}
+            onClick={() => setActiveTab('oggi')}
+            title="Visualizza il focus della giornata odierna"
+          >
+            <FlameIcon size={15} />
+            Oggi
+          </button>
           <button
             className={`nav-tab-btn ${activeTab === 'planner' ? 'active' : ''}`}
             onClick={() => setActiveTab('planner')}
@@ -374,7 +426,7 @@ function App() {
         </div>
 
         <div className="header-controls">
-          {activeTab === 'planner' && (
+          {(activeTab === 'planner' || activeTab === 'oggi') && (
             <button
               className="btn btn-primary btn-sm"
               onClick={() => setShowAddEventModal(true)}
@@ -384,14 +436,32 @@ function App() {
               <span>Aggiungi Evento</span>
             </button>
           )}
-          <ImportExport plannerState={{ weeks, subjects, activeWeekId }} onImportState={handleImportState} />
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => setShowSettingsModal(true)}
+            title="Apri le impostazioni del workspace"
+          >
+            <SettingsIcon size={15} />
+            <span>Impostazioni</span>
+          </button>
         </div>
       </header>
 
 
-      {activeTab === 'subjects' ? (
+      {activeTab === 'subjects' && (
         <SubjectsManager subjects={subjects} onUpdateSubjects={setSubjects} onResetAll={handleResetAll} />
-      ) : (
+      )}
+
+      {activeTab === 'oggi' && (
+        <TodayFocus
+          weeks={weeks}
+          subjects={subjects}
+          onUpdateAllWeeks={setWeeks}
+          onUpdateSubjects={setSubjects}
+        />
+      )}
+
+      {activeTab === 'planner' && (
         <div className="main-dashboard-layout">
           {/* Sidebar — always in DOM, animated via CSS */}
           <aside className={`layout-left-column ${isSidebarOpen ? '' : 'sidebar-panel-closed'}`}>
@@ -433,13 +503,24 @@ function App() {
         </div>
       )}
 
-
-
       {showAddEventModal && (
         <AddEventModal
           weeks={weeks}
           onClose={() => setShowAddEventModal(false)}
           onConfirm={handleAddEvent}
+        />
+      )}
+
+      {showSettingsModal && (
+        <SettingsModal
+          weeks={weeks}
+          subjects={subjects}
+          activeWeekId={activeWeekId}
+          onImportState={handleImportState}
+          onResetAll={handleResetAll}
+          eventColors={eventColors}
+          onChangeEventColors={setEventColors}
+          onClose={() => setShowSettingsModal(false)}
         />
       )}
     </div>
