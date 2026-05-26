@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { WeekPlan, Subject, CalendarItem } from '../types/planner';
 import { 
   FlameIcon, 
-  XIcon, 
   PlusIcon, 
   TrashIcon, 
   ChevronLeftIcon, 
@@ -11,7 +10,6 @@ import {
   SunIcon, 
   MoonIcon,
   LandscapeIcon,
-  CheckIcon,
   PenIcon
 } from './Icons';
 
@@ -70,7 +68,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   const [timerMode, setTimerMode] = useState<'classic' | 'hard'>('classic');
   const [timeLeft, setTimeLeft] = useState(25 * 60); // default 25 min
   const [timerRunning, setTimerRunning] = useState(false);
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timerIntervalRef = useRef<any>(null);
 
   // When mode changes, reset duration
   useEffect(() => {
