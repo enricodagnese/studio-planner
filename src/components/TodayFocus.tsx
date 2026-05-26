@@ -8,7 +8,6 @@ import {
   ClockIcon, 
   SunIcon, 
   MoonIcon,
-  LandscapeIcon,
   PenIcon
 } from './Icons';
 
@@ -52,8 +51,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   const [selectedDayIndex, setSelectedDayIndex] = useState(initialIndex);
   const activeDay = allDays[selectedDayIndex];
 
-  // Helper to check if a day is today
-  const isActualToday = activeDay?.dateLabel === todayDateLabel;
+
 
   const handlePrevDay = () => {
     if (selectedDayIndex > 0) setSelectedDayIndex(selectedDayIndex - 1);
@@ -279,32 +277,38 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
     }
   };
 
+  const getContrastTextColor = (hexColor?: string) => {
+    if (!hexColor) return '#ffffff';
+    let color = hexColor;
+    if (hexColor.includes('var(--event-esame-color)')) color = '#ef4444';
+    else if (hexColor.includes('var(--event-svago-color)')) color = '#3b82f6';
+    else if (hexColor.includes('var(--event-lezione-color)')) color = '#10b981';
+    else if (hexColor.includes('var(--event-altro-color)')) color = '#a78bfa';
+    
+    const hex = color.replace('#', '');
+    if (hex.length < 6) return '#ffffff';
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 140) ? '#18181b' : '#ffffff';
+  };
+
   return (
-    <div className="today-focus-dashboard animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '30px', padding: '10px 10px 40px 10px' }}>
+    <div className="today-focus-dashboard animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '30px', padding: '10px 0px 40px 0px' }}>
       
       {/* LEFT COLUMN: Agenda del Giorno */}
       <div className="today-agenda-col" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
         {/* Navigation Date Header */}
-        <header className="today-nav-header glass-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', borderRadius: '12px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff', margin: 0 }}>
+        <header className="today-nav-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0px', background: 'transparent', border: 'none', borderRadius: '0px' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '14px', flexWrap: 'wrap' }}>
+            <h1 style={{ fontSize: '36px', fontWeight: 800, fontFamily: "'Outfit', -apple-system, BlinkMacSystemFont, sans-serif", letterSpacing: '-0.03em', color: '#ffffff', margin: 0, textTransform: 'uppercase' }}>
               {getGreeting()}
             </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span className="selected-day-label" style={{ fontSize: '13px', fontWeight: 600, color: '#f8fafc' }}>
-                {activeDay?.name} {activeDay?.dateLabel.split(' ')[1]}
-              </span>
-              <span style={{ fontSize: '11px', color: '#71717a' }}>•</span>
-              <span style={{ fontSize: '11px', color: '#71717a', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
-                {activeDay?.weekName}
-              </span>
-              {isActualToday && (
-                <span className="today-nav-badge" style={{ background: 'rgba(234,88,12,0.15)', color: '#ea580c', border: '1px solid rgba(234,88,12,0.3)', padding: '1px 5px', fontSize: '9px', fontWeight: 800, borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.04em', marginLeft: '4px' }}>
-                  Oggi
-                </span>
-              )}
-            </div>
+            <span className="selected-day-label" style={{ fontSize: '20px', fontWeight: 600, color: 'rgba(255, 255, 255, 0.7)', fontFamily: "'Outfit', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+              {activeDay?.name} {activeDay?.dateLabel.split(' ')[0]} {activeDay?.dateLabel.split(' ')[1]}
+            </span>
           </div>
 
           <div className="day-nav-buttons" style={{ display: 'flex', gap: '8px' }}>
@@ -314,6 +318,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
               onClick={handlePrevDay} 
               disabled={selectedDayIndex === 0}
               title="Giorno Precedente"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
             >
               <ChevronLeftIcon size={16} />
             </button>
@@ -323,6 +328,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
               onClick={handleNextDay} 
               disabled={selectedDayIndex === allDays.length - 1}
               title="Giorno Successivo"
+              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
             >
               <ChevronRightIcon size={16} />
             </button>
@@ -333,11 +339,25 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
         {(['mattina', 'pomeriggio', 'sera'] as const).map((slotKey) => {
           const items = activeDay ? activeDay[slotKey] || [] : [];
           const slotIcons = {
-            mattina: <LandscapeIcon size={16} className="text-gold" />,
-            pomeriggio: <SunIcon size={16} className="text-orange" />,
-            sera: <MoonIcon size={16} className="text-purple" />
+            mattina: (
+              <svg xmlns="http://www.w3.org/2000/svg" width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#fbbf24' }}>
+                <path d="M12 2v4" />
+                <path d="m4.93 4.93 2.83 2.83" />
+                <path d="M2 12h4" />
+                <path d="M18 12h4" />
+                <path d="m16.24 7.76 2.83-2.83" />
+                <path d="M2 20h20" />
+                <path d="M19 17a7 7 0 0 0-14 0" />
+              </svg>
+            ),
+            pomeriggio: <SunIcon size={18} className="text-orange" style={{ color: '#f97316' }} />,
+            sera: <MoonIcon size={18} className="text-purple" style={{ color: '#a855f7' }} />
           };
-          const slotLabels = { mattina: 'Mattina', pomeriggio: 'Pomeriggio', sera: 'Sera' };
+          const slotLabels = { 
+            mattina: 'Mattina (8:30 - 13:30)', 
+            pomeriggio: 'Pomeriggio (14:30 - 19:30)', 
+            sera: 'Sera (21:30 - 23:00)' 
+          };
 
           return (
             <div key={slotKey} className="today-slot-card-borderless animate-slide-down" style={{ background: 'transparent', border: 'none', borderBottom: slotKey === 'sera' ? 'none' : '1px solid rgba(255,255,255,0.06)', paddingBottom: slotKey === 'sera' ? '0' : '20px', marginBottom: '10px' }}>
@@ -366,13 +386,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                       ? `var(--event-${item.eventType}-color)` 
                       : (subColor || '#ea580c');
                       
-                    const rowBackground = isEvent 
-                      ? `var(--event-${item.eventType}-bg)` 
-                      : `${activeColor}15`;
-                      
-                    const rowBorderColor = isEvent
-                      ? `var(--event-${item.eventType}-border)`
-                      : `${activeColor}30`;
+                    const contrastTextColor = getContrastTextColor(activeColor);
 
                     return (
                       <div 
@@ -381,59 +395,106 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                         style={{ 
                           display: 'flex', 
                           alignItems: 'center', 
-                          padding: '12px 16px', 
-                          borderRadius: '10px',
-                          borderLeftWidth: '5px',
-                          borderLeftStyle: 'solid',
-                          borderLeftColor: activeColor,
-                          background: rowBackground,
-                          borderTop: `1px solid ${rowBorderColor}`,
-                          borderRight: `1px solid ${rowBorderColor}`,
-                          borderBottom: `1px solid ${rowBorderColor}`,
+                          padding: '16px 20px', 
+                          borderRadius: '12px',
+                          background: activeColor,
+                          border: '1px solid rgba(255, 255, 255, 0.12)',
+                          color: contrastTextColor,
                           transition: 'all 0.2s ease',
-                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+                          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
+                          textDecoration: 'none'
                         }}
                       >
-                        {/* Checkbox */}
-                        <label className="checkbox-container-sm" style={{ marginRight: '12px' }}>
+                        {/* Big Quadratino Checkbox */}
+                        <label style={{ 
+                          position: 'relative', 
+                          display: 'inline-block', 
+                          width: '26px', 
+                          height: '26px', 
+                          marginRight: '16px',
+                          cursor: 'pointer',
+                          flexShrink: 0
+                        }}>
                           <input 
                             type="checkbox" 
                             checked={item.completed} 
                             onChange={() => handleToggleItem(activeDay.id, slotKey, item.id)}
+                            style={{ 
+                              position: 'absolute', 
+                              opacity: 0, 
+                              cursor: 'pointer', 
+                              height: 0, 
+                              width: 0 
+                            }}
                           />
                           <span 
-                            className="checkmark-sm"
                             style={{ 
-                              '--accent-color': activeColor 
-                            } as React.CSSProperties}
-                          ></span>
+                              position: 'absolute', 
+                              top: 0, 
+                              left: 0, 
+                              height: '26px', 
+                              width: '26px', 
+                              background: 'rgba(255, 255, 255, 0.18)', 
+                              border: `2px solid ${contrastTextColor}`, 
+                              borderRadius: '6px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.2s ease',
+                              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.15)'
+                            }}
+                          >
+                            {item.completed && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={contrastTextColor} strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 5 12" />
+                              </svg>
+                            )}
+                          </span>
                         </label>
 
                         {/* Info details */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flex: 1 }}>
-                          <span className="item-name" style={{ fontSize: '15px', fontWeight: 600, color: '#ffffff', textDecoration: item.completed ? 'line-through' : 'none', opacity: item.completed ? 0.6 : 1 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
+                          <span className="item-name" style={{ 
+                            fontSize: '17px', 
+                            fontWeight: 700, 
+                            color: contrastTextColor, 
+                            textDecoration: item.completed ? 'line-through' : 'none', 
+                            opacity: item.completed ? 0.65 : 1 
+                          }}>
                             {item.name}
                           </span>
-                          {!isEvent && (subName || item.pages) && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              {subName && (
-                                <span style={{ fontSize: '10.5px', fontWeight: 800, color: activeColor, background: `${activeColor}20`, padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-                                  {subName}
-                                </span>
-                              )}
-                              {item.pages && (
-                                <span style={{ fontSize: '11px', color: '#a1a1aa', fontWeight: 500 }}>
-                                  {item.pages} pagine
-                                </span>
-                              )}
-                            </div>
+                          
+                          {/* Tag Subject/Event underneath */}
+                          {(subName || isEvent) && (
+                            <span style={{ 
+                              fontSize: '10.5px', 
+                              fontWeight: 800, 
+                              color: contrastTextColor, 
+                              background: 'rgba(255, 255, 255, 0.25)', 
+                              padding: '2px 8px', 
+                              borderRadius: '4px', 
+                              textTransform: 'uppercase', 
+                              letterSpacing: '0.04em',
+                              marginTop: '4px',
+                              alignSelf: 'flex-start'
+                            }}>
+                              {isEvent ? item.eventType : subName}
+                            </span>
                           )}
                         </div>
 
-                        {/* Event Category Badge */}
-                        {isEvent && (
-                          <span className={`event-type-badge event-badge-${item.eventType}`} style={{ fontSize: '8px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                            {item.eventType}
+                        {/* Pages/Quantity on the right */}
+                        {!isEvent && item.pages && (
+                          <span style={{ 
+                            fontSize: '13.5px', 
+                            color: contrastTextColor, 
+                            fontWeight: 700,
+                            opacity: 0.95,
+                            marginLeft: 'auto',
+                            paddingLeft: '16px',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {item.pages} pagine
                           </span>
                         )}
                       </div>
