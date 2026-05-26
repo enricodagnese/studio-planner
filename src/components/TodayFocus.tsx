@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { WeekPlan, Subject, CalendarItem } from '../types/planner';
 import { 
-  FlameIcon, 
   PlusIcon, 
   TrashIcon, 
   ChevronLeftIcon, 
@@ -173,31 +172,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
     }
   };
 
-  // 3. --- Streak Widget ---
-  const [streakDays, setStreakDays] = useState<number>(() => {
-    const saved = localStorage.getItem('antigravity-studio-planner-streak');
-    return saved ? parseInt(saved) : 5; // default 5 as in sketch
-  });
-
-  useEffect(() => {
-    localStorage.setItem('antigravity-studio-planner-streak', streakDays.toString());
-  }, [streakDays]);
-
-  // Compute completed tasks today
-  const getTodayTasksProgress = () => {
-    if (!activeDay) return { completed: 0, total: 0 };
-    const slots = ['mattina', 'pomeriggio', 'sera'] as const;
-    let completed = 0;
-    let total = 0;
-    for (const slot of slots) {
-      const items = activeDay[slot] || [];
-      total += items.length;
-      completed += items.filter(i => i.completed).length;
-    }
-    return { completed, total };
-  };
-
-  const progress = getTodayTasksProgress();
+  // Streak Widget removed per user request
 
   // 4. --- Quick Todo Widget ("TO DO: aggiungere") ---
   const [quickTodos, setQuickTodos] = useState<QuickTodo[]>(() => {
@@ -667,67 +642,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
           )}
         </div>
 
-        {/* Widget 2: STREAK */}
-        <div className="widget-card glass-container animate-fade-in" style={{ padding: '18px 20px', borderRadius: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 800, color: '#a1a1aa', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              Streak
-            </span>
-            <div style={{ display: 'flex', gap: '4px' }}>
-              <button 
-                type="button" 
-                onClick={() => setStreakDays(Math.max(0, streakDays - 1))}
-                style={{ width: '18px', height: '18px', background: 'rgba(255,255,255,0.04)', border: 'none', borderRadius: '4px', color: '#a1a1aa', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                -
-              </button>
-              <button 
-                type="button" 
-                onClick={() => setStreakDays(streakDays + 1)}
-                style={{ width: '18px', height: '18px', background: 'rgba(255,255,255,0.04)', border: 'none', borderRadius: '4px', color: '#a1a1aa', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                +
-              </button>
-            </div>
-          </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', background: 'rgba(234, 88, 12, 0.03)', border: '1px solid rgba(234, 88, 12, 0.08)', padding: '10px 14px', borderRadius: '8px', marginBottom: '12px' }}>
-            <div className="streak-fire-container" style={{ background: 'rgba(234, 88, 12, 0.1)', padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(234, 88, 12, 0.25)' }}>
-              <FlameIcon size={24} style={{ color: '#ea580c' }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '18px', fontWeight: 900, color: '#ffffff', letterSpacing: '-0.01em', lineHeight: '1.2' }}>
-                {streakDays} GIORNI
-              </span>
-              <span style={{ fontSize: '10px', color: '#71717a', fontWeight: 600 }}>
-                {progress.total > 0 && progress.completed === progress.total 
-                  ? 'Tutti i compiti finiti oggi!' 
-                  : `${progress.completed} di ${progress.total} completati`}
-              </span>
-            </div>
-          </div>
-
-          {/* 7-day progress visualizer dots */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '2px 4px' }}>
-            {[...Array(7)].map((_, i) => {
-              const isActive = i < 5; // default 5 active days visual
-              return (
-                <div 
-                  key={i} 
-                  style={{ 
-                    width: '10px', 
-                    height: '10px', 
-                    borderRadius: '50%', 
-                    background: isActive ? '#ea580c' : 'rgba(255, 255, 255, 0.06)',
-                    boxShadow: isActive ? '0 0 8px rgba(234, 88, 12, 0.6)' : 'none',
-                    transition: 'all 0.3s ease'
-                  }} 
-                  title={`Giorno ${i + 1}`}
-                />
-              );
-            })}
-          </div>
-        </div>
 
         {/* Widget 3: TO DO LIST ("TO DO: aggiungere") */}
         <div className="widget-card glass-container animate-fade-in" style={{ padding: '18px 20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
