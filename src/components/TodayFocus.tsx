@@ -3,8 +3,6 @@ import type { WeekPlan, Subject, CalendarItem, TaskQuantityType } from '../types
 import { 
   PlusIcon, 
   TrashIcon, 
-  ChevronLeftIcon, 
-  ChevronRightIcon, 
   ClockIcon, 
   SunIcon, 
   MoonIcon,
@@ -56,19 +54,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   // Find index of today
   const todayIndex = allDays.findIndex(d => d.dateLabel === todayDateLabel);
   const initialIndex = todayIndex !== -1 ? todayIndex : 0;
-
-  const [selectedDayIndex, setSelectedDayIndex] = useState(initialIndex);
-  const activeDay = allDays[selectedDayIndex];
-
-
-
-  const handlePrevDay = () => {
-    if (selectedDayIndex > 0) setSelectedDayIndex(selectedDayIndex - 1);
-  };
-
-  const handleNextDay = () => {
-    if (selectedDayIndex < allDays.length - 1) setSelectedDayIndex(selectedDayIndex + 1);
-  };
+  const activeDay = allDays[initialIndex];
 
   // 2. --- Pomodoro Timer Widget (Redesigned & Customizable) ---
   const [timerMode, setTimerMode] = useState<'study' | 'short' | 'long'>(() => {
@@ -377,6 +363,8 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                 <path d="M19 17a7 7 0 0 0-14 0" />
               </svg>
             ),
+            pomeriggio: <SunIcon size={18} style={{ color: '#f97316' }} />,
+            sera: <MoonIcon size={18} style={{ color: '#a855f7' }} />
           };
           const slotLabels = { 
             mattina: 'Mattina', 
@@ -473,7 +461,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                         </div>
                       );
                     })}
-                  </div></div>
+                  </div>
                 )}
               </div>
             </div>
