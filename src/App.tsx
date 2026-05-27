@@ -480,7 +480,6 @@ function App() {
           <div className="sidebar-handle-col">
             <button
               className="sidebar-strip-toggle"
-              style={{ left: isSidebarOpen ? '360px' : '0px' }}
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               title={isSidebarOpen ? 'Chiudi libreria' : 'Apri libreria'}
             >

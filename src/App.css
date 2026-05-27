@@ -3149,26 +3149,31 @@ body {
    ======================================== */
 
 .calendar-column.day-today {
-  border: 1px solid var(--border-color) !important;
-  box-shadow: none !important;
+  border: 1.5px solid #ea580c !important; /* Premium orange glowing border */
+  box-shadow: 0 0 15px rgba(234, 88, 12, 0.15) !important;
   background: transparent !important;
   position: relative;
 }
 .calendar-column.day-today .cal-col-header-month {
-  background: #ea580c !important; /* Solid orange, completely non-transparent */
-  border-bottom: 2px solid var(--accent-primary) !important;
+  background: rgba(234, 88, 12, 0.08) !important; /* Soft premium orange tint */
+  border-bottom: 2px solid #ea580c !important;
 }
 .today-badge {
-  background: var(--accent-primary);
-  color: #ffffff;
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #ea580c !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
   font-size: 9px;
   font-weight: 800;
   text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: 4px;
-  letter-spacing: 0.06em;
-  box-shadow: 0 2px 10px rgba(234, 88, 12, 0.55);
-  animation: todayPulse 2s ease-in-out infinite;
+  padding: 2px 10px;
+  border-radius: 999px; /* Rounded pill look */
+  letter-spacing: 0.08em;
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.4) !important;
+  z-index: 10;
 }
 
 @keyframes todayPulse {
@@ -3330,6 +3335,7 @@ body {
 
 /* Subject name tag (colored per subject) */
 .item-subject-tag {
+  display: none !important;
   font-size: 9px;
   font-weight: 700;
   padding: 1px 5px;
@@ -3539,12 +3545,12 @@ body {
   align-items: center !important;
   justify-content: center !important;
   cursor: pointer !important;
-  position: fixed !important; /* Fixed at screen edges! */
+  position: absolute !important; /* Positioned absolutely inside relative parent sidebar-handle-col */
   z-index: 99999 !important;
-  left: 0; /* Updated via inline styles in App.tsx */
+  left: -2px !important; /* Anchored perfectly on the seam boundary */
   padding: 0 !important;
   top: 220px !important; /* Perfect visual height on screen */
-  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s, transform 0.2s, border-color 0.2s !important;
+  transition: background-color 0.2s, transform 0.2s, border-color 0.2s !important;
 }
 
 .sidebar-strip-toggle:hover {
@@ -4087,32 +4093,7 @@ body {
 }
 
 /* Today Header highlight ONLY (no column arancione border) */
-.calendar-column.day-today {
-  border-color: var(--border-color) !important; /* Reset border to standard */
-  box-shadow: none !important;
-}
-
-.calendar-column.day-today .column-header {
-  background: #ea580c !important; /* Solid orange, completely non-transparent */
-  border-bottom: 2px solid var(--accent-primary) !important;
-}
-
-.calendar-column.day-today .column-header .day-name,
-.calendar-column.day-today .column-header .day-number-highlight,
-.calendar-column.day-today .column-header .day-month-neutral {
-  color: #ffffff !important;
-}
-
-.light-theme .calendar-column.day-today .column-header {
-  background: #ea580c !important; /* Solid orange, completely non-transparent for light theme too */
-  border-bottom: 2px solid var(--accent-primary) !important;
-}
-
-.light-theme .calendar-column.day-today .column-header .day-name,
-.light-theme .calendar-column.day-today .column-header .day-number-highlight,
-.light-theme .calendar-column.day-today .column-header .day-month-neutral {
-  color: #ffffff !important; /* White text on solid orange background */
-}
+/* Today Header highlight override removed to restore premium soft glow */
 
 /* Day Past visual suppression */
 .calendar-column.day-past {

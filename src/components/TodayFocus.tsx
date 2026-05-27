@@ -309,18 +309,25 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   };
 
   const getGreeting = () => {
-    const now = new Date();
-    const hours = now.getHours();
-    const minutes = now.getMinutes();
-    const timeVal = hours * 60 + minutes; // minutes since midnight
-    const eightThirty = 8 * 60 + 30; // 08:30
-    const fourteen = 14 * 60; // 14:00
-    
-    if (timeVal >= eightThirty && timeVal < fourteen) {
-      return "Buongiorno Enrico, oggi è:";
-    } else {
-      return "Buonasera Enrico, oggi è:";
-    }
+    return "Bentornato Enrico, oggi è:";
+  };
+
+  const getFullMonthName = (dateLabel?: string): string => {
+    if (!dateLabel) return '';
+    const month = dateLabel.split(' ')[1]?.toLowerCase() || '';
+    if (month.includes('mag')) return 'Maggio';
+    if (month.includes('giu')) return 'Giugno';
+    if (month.includes('lug')) return 'Luglio';
+    if (month.includes('ago')) return 'Agosto';
+    if (month.includes('set')) return 'Settembre';
+    if (month.includes('ott')) return 'Ottobre';
+    if (month.includes('nov')) return 'Novembre';
+    if (month.includes('dic')) return 'Dicembre';
+    if (month.includes('gen')) return 'Gennaio';
+    if (month.includes('feb')) return 'Febbraio';
+    if (month.includes('mar')) return 'Marzo';
+    if (month.includes('apr')) return 'Aprile';
+    return month;
   };
 
   const getMonthColor = (dateLabel?: string) => {
@@ -340,11 +347,11 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
         
         {/* Clean Left-Aligned Header */}
         <header style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '15px 0px 5px 0px', background: 'transparent', border: 'none', borderRadius: '0px', boxShadow: 'none' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff', margin: 0, textTransform: 'uppercase' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff', margin: 0 }}>
             {getGreeting()}
           </h1>
           <span className="selected-day-label" style={{ fontSize: '18px', fontWeight: 700, color: getMonthColor(activeDay?.dateLabel), marginTop: '4px', textTransform: 'capitalize' }}>
-            {activeDay?.name}, {activeDay?.dateLabel.split(' ')[0]} {activeDay?.dateLabel.split(' ')[1]}
+            {activeDay?.name} {getFullMonthName(activeDay?.dateLabel)}
           </span>
         </header>
 
