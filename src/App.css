@@ -3335,7 +3335,6 @@ body {
 
 /* Subject name tag (colored per subject) */
 .item-subject-tag {
-  display: none !important;
   font-size: 9px;
   font-weight: 700;
   padding: 1px 5px;
@@ -3529,7 +3528,9 @@ body {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  position: relative !important;
+  position: sticky !important; /* Sticks next to the sticky sidebar */
+  top: 24px !important;
+  height: 280px !important; /* Exact height of the Libreria Materie box for centering */
   z-index: 99 !important;
   user-select: none !important;
 }
@@ -3545,11 +3546,12 @@ body {
   align-items: center !important;
   justify-content: center !important;
   cursor: pointer !important;
-  position: absolute !important; /* Positioned absolutely inside relative parent sidebar-handle-col */
+  position: absolute !important; /* Positioned absolutely inside sticky sidebar-handle-col */
   z-index: 99999 !important;
   left: -2px !important; /* Anchored perfectly on the seam boundary */
   padding: 0 !important;
-  top: 220px !important; /* Perfect visual height on screen */
+  top: 50% !important; /* Center vertically inside the sticky container */
+  transform: translateY(-50%) !important;
   transition: background-color 0.2s, transform 0.2s, border-color 0.2s !important;
 }
 
@@ -3558,7 +3560,7 @@ body {
   color: #ffffff !important;
   border-color: var(--accent-primary) !important;
   box-shadow: 0 4px 16px var(--accent-glow) !important;
-  transform: scaleY(1.05) !important;
+  transform: translateY(-50%) scaleY(1.05) !important; /* Maintain centering offset on scale */
 }
 
 .light-theme .sidebar-strip-toggle {
@@ -4372,6 +4374,40 @@ body {
   .today-widgets-col {
     order: -1; /* Place widgets on top on mobile */
   }
+}
+
+/* Scoped visual rules for tags and past days */
+.today-focus-dashboard .item-subject-tag {
+  display: none !important;
+}
+
+.calendar-column.day-past .item-tags-row {
+  display: none !important;
+}
+
+.calendar-column.day-past:hover .item-tags-row {
+  display: flex !important;
+}
+
+/* Prevent clipping of today-badge and keep column/badge in front of others */
+.weekly-calendar-grid {
+  overflow: visible !important;
+}
+
+.calendar-column {
+  overflow: visible !important;
+}
+
+.column-header {
+  overflow: visible !important;
+}
+
+.calendar-column.day-today {
+  z-index: 5 !important;
+}
+
+.today-badge {
+  z-index: 999 !important;
 }
 
 

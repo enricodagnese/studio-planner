@@ -70,9 +70,9 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   const [showTimerSettings, setShowTimerSettings] = useState(false);
 
   const timerSettings = {
-    study: { label: 'Studio', duration: customDurations.study * 60, color: '#ba4f4f' },
-    short: { label: 'Pausa Breve', duration: customDurations.short * 60, color: '#2d5f85' },
-    long: { label: 'Pausa Lunga', duration: customDurations.long * 60, color: '#1d3d54' }
+    study: { label: 'Pomodoro', duration: customDurations.study * 60, color: '#c15c5c' },
+    short: { label: 'Short Break', duration: customDurations.short * 60, color: '#478282' },
+    long: { label: 'Long Break', duration: customDurations.long * 60, color: '#417575' }
   };
 
   const currentSettings = timerSettings[timerMode];
@@ -570,8 +570,8 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                   style={{
                     flex: 1,
                     border: 'none',
-                    background: isActive ? 'rgba(0, 0, 0, 0.45)' : 'transparent',
-                    color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.6)',
+                    background: isActive ? 'rgba(0, 0, 0, 0.18)' : 'transparent',
+                    color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
                     fontSize: '11px',
                     fontWeight: 700,
                     padding: '8px 4px',
@@ -628,8 +628,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                 transition: 'all 0.2s ease'
               }}
             >
-              <ClockIcon size={14} style={{ color: currentSettings.color }} />
-              <span>{timerRunning ? 'Pausa' : 'Start'}</span>
+              <span>{timerRunning ? 'PAUSA' : 'START'}</span>
             </button>
             
             <button 
