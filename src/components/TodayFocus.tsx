@@ -69,9 +69,9 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   const [showTimerSettings, setShowTimerSettings] = useState(false);
 
   const timerSettings = {
-    study: { label: 'Pomodoro', duration: customDurations.study * 60, color: '#c15c5c' },
-    short: { label: 'Short Break', duration: customDurations.short * 60, color: '#478282' },
-    long: { label: 'Long Break', duration: customDurations.long * 60, color: '#417575' }
+    study: { label: 'Pomodoro', duration: customDurations.study * 60, color: '#bf5555' },
+    short: { label: 'Short Break', duration: customDurations.short * 60, color: '#4a8f8f' },
+    long: { label: 'Long Break', duration: customDurations.long * 60, color: '#3d7a7a' }
   };
 
   const currentSettings = timerSettings[timerMode];
