@@ -498,25 +498,27 @@ body {
   color: var(--accent-primary);
 }
 
-/* Weekly Grid */
+/* Weekly Grid (Flexbox Accordion Redesign) */
 .weekly-calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 12px;
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100% !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  overflow: hidden !important; /* No scrollbar */
 }
 
-@media (max-width: 1360px) {
+@media (max-width: 1024px) {
   .weekly-calendar-grid {
-    grid-template-columns: repeat(7, minmax(160px, 1fr));
-    overflow-x: auto;
-    padding-bottom: 12px;
+    gap: 8px !important;
   }
 }
 
 @media (max-width: 768px) {
   .weekly-calendar-grid {
-    grid-template-columns: 1fr;
-    overflow-x: visible;
+    flex-direction: column !important;
+    overflow-y: visible !important;
   }
 }
 
@@ -530,12 +532,22 @@ body {
   flex-direction: column;
   gap: 12px;
   min-height: 480px;
-  transition: var(--transition-smooth);
+  flex: 1.5 !important;
+  min-width: 130px !important;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .calendar-column:hover {
   border-color: rgba(255, 255, 255, 0.09);
   background: rgba(18, 18, 20, 0.5);
+}
+
+@media (max-width: 768px) {
+  .calendar-column {
+    width: 100% !important;
+    min-width: 100% !important;
+    flex: none !important;
+  }
 }
 
 /* Weekend Days - Soft Gray Tint */
@@ -4108,6 +4120,16 @@ body {
   border-color: rgba(255, 255, 255, 0.04) !important;
   opacity: 0.45 !important;
   box-shadow: none !important;
+  flex: 0.55 !important;
+  min-width: 90px !important;
+}
+
+.calendar-column.day-past:hover {
+  flex: 1.5 !important;
+  opacity: 0.95 !important;
+  min-width: 130px !important;
+  background: rgba(14, 14, 18, 0.72) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
 }
 
 .calendar-column.day-past .column-header {
@@ -4136,7 +4158,7 @@ body {
 /* Left alignment for calendar item titles */
 .scheduled-item-pill {
   display: flex !important;
-  align-items: center !important;
+  align-items: flex-start !important;
   justify-content: flex-start !important;
   gap: 8px !important;
   text-align: left !important;

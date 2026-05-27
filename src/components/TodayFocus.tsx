@@ -9,7 +9,8 @@ import {
   SunIcon, 
   MoonIcon,
   PenIcon,
-  XIcon
+  XIcon,
+  SettingsIcon
 } from './Icons';
 
 interface TodayFocusProps {
@@ -69,46 +70,45 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
     if (selectedDayIndex < allDays.length - 1) setSelectedDayIndex(selectedDayIndex + 1);
   };
 
-  // 2. --- Pomodoro Timer Widget ---
-  const [timerVersion, setTimerVersion] = useState<'classic' | 'potter'>(() => {
-    const saved = localStorage.getItem('antigravity-studio-planner-timer-version');
-    return (saved as 'classic' | 'potter') || 'classic';
-  });
+  // 2. --- Pomodoro Timer Widget (Redesigned & Customizable) ---
   const [timerMode, setTimerMode] = useState<'study' | 'short' | 'long'>(() => {
     const saved = localStorage.getItem('antigravity-studio-planner-timer-mode');
     return (saved as 'study' | 'short' | 'long') || 'study';
   });
 
+  const [customDurations, setCustomDurations] = useState<{ study: number; short: number; long: number }>(() => {
+    const saved = localStorage.getItem('antigravity-studio-planner-pomodoro-durations');
+    return saved ? JSON.parse(saved) : { study: 25, short: 5, long: 15 };
+  });
+
+  const [showTimerSettings, setShowTimerSettings] = useState(false);
+
   const timerSettings = {
-    classic: {
-      study: { label: 'Pomodoro', duration: 25 * 60, color: '#ba4f4f' },
-      short: { label: 'Short Break', duration: 5 * 60, color: '#38858a' },
-      long: { label: 'Long Break', duration: 15 * 60, color: '#397097' }
-    },
-    potter: {
-      study: { label: 'Hogwarts Study', duration: 50 * 60, color: '#740001' },
-      short: { label: 'Common Room', duration: 10 * 60, color: '#1a472a' },
-      long: { label: 'Great Hall Feast', duration: 20 * 60, color: '#0e1a40' }
-    }
+    study: { label: 'Studio', duration: customDurations.study * 60, color: '#ba4f4f' },
+    short: { label: 'Pausa Breve', duration: customDurations.short * 60, color: '#2d5f85' },
+    long: { label: 'Pausa Lunga', duration: customDurations.long * 60, color: '#1d3d54' }
   };
 
-  const currentSettings = timerSettings[timerVersion][timerMode];
+  const currentSettings = timerSettings[timerMode];
   const [timeLeft, setTimeLeft] = useState(currentSettings.duration);
   const [timerRunning, setTimerRunning] = useState(false);
   const timerIntervalRef = useRef<any>(null);
 
-  // Save timer selections
+  // Save mode and durations
   useEffect(() => {
-    localStorage.setItem('antigravity-studio-planner-timer-version', timerVersion);
     localStorage.setItem('antigravity-studio-planner-timer-mode', timerMode);
-  }, [timerVersion, timerMode]);
+  }, [timerMode]);
 
-  // When version or mode changes, reset duration and stop timer
   useEffect(() => {
-    setTimerRunning(false);
-    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    setTimeLeft(timerSettings[timerVersion][timerMode].duration);
-  }, [timerVersion, timerMode]);
+    localStorage.setItem('antigravity-studio-planner-pomodoro-durations', JSON.stringify(customDurations));
+  }, [customDurations]);
+
+  // When mode or durations change, reset duration if timer not running
+  useEffect(() => {
+    if (!timerRunning) {
+      setTimeLeft(timerSettings[timerMode].duration);
+    }
+  }, [timerMode, customDurations, timerRunning]);
 
   // Handle countdown loop
   useEffect(() => {
@@ -140,7 +140,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   const resetTimer = () => {
     setTimerRunning(false);
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    setTimeLeft(timerSettings[timerVersion][timerMode].duration);
+    setTimeLeft(timerSettings[timerMode].duration);
   };
 
   const formatTime = (seconds: number) => {
@@ -327,14 +327,23 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
     const hours = now.getHours();
     const minutes = now.getMinutes();
     const timeVal = hours * 60 + minutes; // minutes since midnight
-    const sixThirty = 6 * 60 + 30; // 06:30
+    const eightThirty = 8 * 60 + 30; // 08:30
     const fourteen = 14 * 60; // 14:00
     
-    if (timeVal >= sixThirty && timeVal < fourteen) {
-      return "Buongiorno Enrico!";
+    if (timeVal >= eightThirty && timeVal < fourteen) {
+      return "Buongiorno Enrico, oggi è:";
     } else {
-      return "Buonasera Enrico";
+      return "Buonasera Enrico, oggi è:";
     }
+  };
+
+  const getMonthColor = (dateLabel?: string) => {
+    if (!dateLabel) return 'rgba(255, 255, 255, 0.7)';
+    const month = dateLabel.split(' ')[1]?.toLowerCase() || '';
+    if (month.includes('mag')) return '#34d399'; // Maggio
+    if (month.includes('giu')) return '#fbbf24'; // Giugno
+    if (month.includes('lug') || month.includes('ago')) return '#f87171'; // Luglio/Agosto
+    return 'rgba(255, 255, 255, 0.7)';
   };
 
   return (
@@ -343,39 +352,14 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
       {/* LEFT COLUMN: Agenda del Giorno */}
       <div className="today-agenda-col" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
-        {/* Navigation Date Header */}
-        <header className="today-nav-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0px', background: 'transparent', border: 'none', borderRadius: '0px' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap' }}>
-            <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff', margin: 0, textTransform: 'uppercase' }}>
-              {getGreeting()}
-            </h1>
-            <span className="selected-day-label" style={{ fontSize: '15px', fontWeight: 600, color: 'rgba(255, 255, 255, 0.7)' }}>
-              {activeDay?.name} {activeDay?.dateLabel.split(' ')[0]} {activeDay?.dateLabel.split(' ')[1]}
-            </span>
-          </div>
-
-          <div className="day-nav-buttons" style={{ display: 'flex', gap: '8px' }}>
-            <button 
-              type="button" 
-              className="btn btn-secondary btn-icon-only" 
-              onClick={handlePrevDay} 
-              disabled={selectedDayIndex === 0}
-              title="Giorno Precedente"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-            >
-              <ChevronLeftIcon size={16} />
-            </button>
-            <button 
-              type="button" 
-              className="btn btn-secondary btn-icon-only" 
-              onClick={handleNextDay} 
-              disabled={selectedDayIndex === allDays.length - 1}
-              title="Giorno Successivo"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-            >
-              <ChevronRightIcon size={16} />
-            </button>
-          </div>
+        {/* Clean Left-Aligned Header */}
+        <header style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '15px 0px 5px 0px', background: 'transparent', border: 'none', borderRadius: '0px', boxShadow: 'none' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff', margin: 0, textTransform: 'uppercase' }}>
+            {getGreeting()}
+          </h1>
+          <span className="selected-day-label" style={{ fontSize: '18px', fontWeight: 700, color: getMonthColor(activeDay?.dateLabel), marginTop: '4px', textTransform: 'capitalize' }}>
+            {activeDay?.name}, {activeDay?.dateLabel.split(' ')[0]} {activeDay?.dateLabel.split(' ')[1]}
+          </span>
         </header>
 
         {/* 3 Time Slots Blocks (Mattina, Pomeriggio, Sera) */}
@@ -393,13 +377,11 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                 <path d="M19 17a7 7 0 0 0-14 0" />
               </svg>
             ),
-            pomeriggio: <SunIcon size={18} className="text-orange" style={{ color: '#f97316' }} />,
-            sera: <MoonIcon size={18} className="text-purple" style={{ color: '#a855f7' }} />
           };
           const slotLabels = { 
-            mattina: 'Mattina (8:30 - 13:30)', 
-            pomeriggio: 'Pomeriggio (14:30 - 19:30)', 
-            sera: 'Sera (21:30 - 23:00)' 
+            mattina: 'Mattina', 
+            pomeriggio: 'Pomeriggio', 
+            sera: 'Sera' 
           };
 
           return (
@@ -450,7 +432,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                                 } as React.CSSProperties}
                               ></span>
                             </label>
-                            <span className="item-name" title={item.name}>
+                            <span className="item-name" style={{ fontSize: '16px', fontWeight: 700 }} title={item.name}>
                               {item.name}
                             </span>
                             {isEvent && (
@@ -470,7 +452,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
 
                           {/* Bottom row: subject tag + quantity tag (only for task items) */}
                           {!isEvent && (subjLabel || qtyLabel) && (
-                            <div className="item-tags-row">
+                            <div className="item-tags-row" style={{ marginTop: '4px', alignSelf: 'flex-start', justifyContent: 'flex-start' }}>
                               {subjLabel && (
                                 <span 
                                   className="item-subject-tag"
@@ -478,18 +460,20 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                                     backgroundColor: subject ? `${subject.color}22` : undefined,
                                     color: subject?.color,
                                     borderColor: subject ? `${subject.color}44` : undefined,
+                                    fontSize: '10.5px',
+                                    padding: '2px 6px'
                                   }}
                                 >
                                   {subjLabel}
                                 </span>
                               )}
-                              {qtyLabel && <span className="item-qty-tag">{qtyLabel}</span>}
+                              {qtyLabel && <span className="item-qty-tag" style={{ fontSize: '10.5px', padding: '2px 6px' }}>{qtyLabel}</span>}
                             </div>
                           )}
                         </div>
                       );
                     })}
-                  </div>
+                  </div></div>
                 )}
               </div>
             </div>
@@ -512,57 +496,64 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
           boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)'
         }}>
           
-          {/* Version Selector: Classic vs Harry Potter */}
-          <div className="version-selector-container" style={{ display: 'flex', background: 'rgba(0,0,0,0.2)', padding: '4px', borderRadius: '8px', width: '100%', marginBottom: '16px' }}>
+          {/* Header Row: Title and Settings Toggle Button */}
+          <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+            <h4 style={{ fontSize: '11px', fontWeight: 800, color: 'rgba(255, 255, 255, 0.7)', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
+              Pomodoro Timer
+            </h4>
             <button 
               type="button" 
-              onClick={() => setTimerVersion('classic')}
-              style={{ 
-                flex: 1, 
-                border: 'none', 
-                background: timerVersion === 'classic' ? 'rgba(255,255,255,0.1)' : 'transparent', 
-                color: '#ffffff', 
-                fontSize: '12px', 
-                fontWeight: 700, 
-                padding: '8px 0', 
-                borderRadius: '6px', 
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                transition: 'all 0.2s ease'
-              }}
+              onClick={() => setShowTimerSettings(!showTimerSettings)} 
+              style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', display: 'flex', padding: '4px', borderRadius: '4px', transition: 'all 0.2s' }}
+              title="Impostazioni Durata"
             >
-              Classic
-            </button>
-            <button 
-              type="button" 
-              onClick={() => setTimerVersion('potter')}
-              style={{ 
-                flex: 1, 
-                border: 'none', 
-                background: timerVersion === 'potter' ? 'rgba(255,255,255,0.1)' : 'transparent', 
-                color: '#ffd700', 
-                fontSize: '12px', 
-                fontWeight: 700, 
-                padding: '8px 0', 
-                borderRadius: '6px', 
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <span>🧙‍♂️ Harry Potter</span>
+              <SettingsIcon size={16} />
             </button>
           </div>
 
-          <h4 style={{ fontSize: '11px', fontWeight: 800, color: 'rgba(255, 255, 255, 0.7)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '14px', width: '100%', textAlign: 'center' }}>
-            {timerVersion === 'potter' ? 'Hogwarts Focus Timer' : 'Classic Pomodoro'}
-          </h4>
+          {/* Inline Settings Panel */}
+          {showTimerSettings && (
+            <div className="timer-settings-panel" style={{ width: '100%', background: 'rgba(0,0,0,0.25)', padding: '12px', borderRadius: '8px', marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Definisci Durata (Minuti)
+              </span>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>Studio</label>
+                  <input 
+                    type="number" 
+                    min="1" 
+                    max="180"
+                    value={customDurations.study} 
+                    onChange={(e) => setCustomDurations({ ...customDurations, study: Math.max(1, parseInt(e.target.value) || 1) })}
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', color: '#fff', fontSize: '11px', padding: '4px 6px', outline: 'none' }}
+                  />
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>Pausa B.</label>
+                  <input 
+                    type="number" 
+                    min="1" 
+                    max="60"
+                    value={customDurations.short} 
+                    onChange={(e) => setCustomDurations({ ...customDurations, short: Math.max(1, parseInt(e.target.value) || 1) })}
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', color: '#fff', fontSize: '11px', padding: '4px 6px', outline: 'none' }}
+                  />
+                </div>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '9px', color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>Pausa L.</label>
+                  <input 
+                    type="number" 
+                    min="1" 
+                    max="120"
+                    value={customDurations.long} 
+                    onChange={(e) => setCustomDurations({ ...customDurations, long: Math.max(1, parseInt(e.target.value) || 1) })}
+                    style={{ width: '100%', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', color: '#fff', fontSize: '11px', padding: '4px 6px', outline: 'none' }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* Modes pill selector */}
           <div className="timer-mode-pills" style={{ 
@@ -575,7 +566,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
           }}>
             {(['study', 'short', 'long'] as const).map((m) => {
               const isActive = timerMode === m;
-              const label = timerSettings[timerVersion][m].label;
+              const label = timerSettings[m].label;
               return (
                 <button
                   key={m}
@@ -670,38 +661,17 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
               Reset
             </button>
           </div>
-
-          {/* Hogwarts Ambient ASMR Player */}
-          {timerVersion === 'potter' && (
-            <div className="hogwarts-player-wrapper" style={{ width: '100%', marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
-                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.7)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  🏰 Hogwarts Ambience ASMR
-                </span>
-              </div>
-              <iframe
-                width="100%"
-                height="160"
-                src="https://www.youtube.com/embed/TZrt8Ktl8hk?autoplay=0&mute=0"
-                title="Hogwarts Library Ambience"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                style={{ borderRadius: '10px', border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}
-              ></iframe>
-            </div>
-          )}
         </div>
 
 
 
-        {/* Widget 3: TO DO LIST ("TO DO: aggiungere") */}
-        <div className="widget-card glass-container animate-fade-in" style={{ padding: '18px 20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {/* Widget 3: TO DO LIST ("To Do aggiuntivi:") */}
+        <div className="widget-card glass-container animate-fade-in" style={{ padding: '18px 20px', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '12px', background: '#181822', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '11px', fontWeight: 800, color: '#a1a1aa', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              To Do: aggiungere
+            <span style={{ fontSize: '11px', fontWeight: 800, color: '#ffffff', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+              To Do aggiuntivi:
             </span>
-            <PenIcon size={12} className="text-gold" />
+            <PenIcon size={12} className="text-gold" style={{ color: '#fbbf24' }} />
           </div>
 
           {/* Quick Todo Form */}
@@ -713,10 +683,10 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
               onChange={(e) => setNewTodoText(e.target.value)}
               style={{ 
                 flex: 1, 
-                background: '#18181b', 
-                border: '1px solid rgba(255,255,255,0.06)', 
+                background: '#0d0d12', 
+                border: '1px solid rgba(255,255,255,0.15)', 
                 borderRadius: '6px', 
-                color: '#e4e4e7', 
+                color: '#ffffff', 
                 fontSize: '11px', 
                 padding: '6px 10px',
                 outline: 'none'
@@ -745,7 +715,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
           {/* Quick Todos List */}
           <div className="quick-todos-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '160px', overflowY: 'auto', paddingRight: '2px' }}>
             {quickTodos.length === 0 ? (
-              <div style={{ fontSize: '11px', color: '#52525b', fontStyle: 'italic', padding: '4px 0' }}>
+              <div style={{ fontSize: '11px', color: '#71717a', fontStyle: 'italic', padding: '4px 0' }}>
                 Nessun compito extra inserito.
               </div>
             ) : (
@@ -756,11 +726,11 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                   style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
-                    background: 'rgba(255,255,255,0.01)', 
-                    border: '1px solid rgba(255,255,255,0.03)', 
+                    background: 'rgba(0, 0, 0, 0.25)', 
+                    border: '1px solid rgba(255, 255, 255, 0.08)', 
                     padding: '8px 10px', 
                     borderRadius: '6px',
-                    opacity: todo.completed ? 0.5 : 1,
+                    opacity: todo.completed ? 0.6 : 1,
                     transition: 'all 0.2s ease'
                   }}
                 >
@@ -772,13 +742,13 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                     />
                     <span className="checkmark-sm" style={{ '--accent-color': '#ea580c' } as React.CSSProperties}></span>
                   </label>
-                  <span style={{ fontSize: '12px', color: '#e4e4e7', textDecoration: todo.completed ? 'line-through' : 'none', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={todo.name}>
+                  <span style={{ fontSize: '12px', color: todo.completed ? 'rgba(255, 255, 255, 0.4)' : '#ffffff', textDecoration: todo.completed ? 'line-through' : 'none', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={todo.name}>
                     {todo.name}
                   </span>
                   <button 
                     type="button" 
                     onClick={() => handleDeleteQuickTodo(todo.id)}
-                    style={{ background: 'transparent', border: 'none', color: '#71717a', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    style={{ background: 'transparent', border: 'none', color: '#a1a1aa', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     title="Elimina"
                   >
                     <TrashIcon size={12} />
