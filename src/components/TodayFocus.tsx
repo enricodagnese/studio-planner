@@ -3,7 +3,6 @@ import type { WeekPlan, Subject, CalendarItem, TaskQuantityType } from '../types
 import { 
   PlusIcon, 
   TrashIcon, 
-  ClockIcon, 
   SunIcon, 
   MoonIcon,
   PenIcon,
