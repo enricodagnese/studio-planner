@@ -479,7 +479,7 @@ function App() {
           {/* Sidebar toggle strip — always visible at boundary */}
           <div className="sidebar-handle-col">
             <button
-              className="sidebar-strip-toggle"
+              className={`sidebar-strip-toggle ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               title={isSidebarOpen ? 'Chiudi libreria' : 'Apri libreria'}
             >

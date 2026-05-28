@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { WeekPlan, Subject, CalendarItem, TaskQuantityType } from '../types/planner';
+import SoundUtility from '../utils/audio';
 import { 
   PlusIcon, 
   TrashIcon, 
@@ -119,13 +120,20 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   }, [timerRunning]);
 
   const toggleTimer = () => {
-    setTimerRunning(!timerRunning);
+    const nextRunning = !timerRunning;
+    setTimerRunning(nextRunning);
+    if (nextRunning) {
+      SoundUtility.playTimerStart();
+    } else {
+      SoundUtility.playTimerPause();
+    }
   };
 
   const resetTimer = () => {
     setTimerRunning(false);
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     setTimeLeft(timerSettings[timerMode].duration);
+    SoundUtility.playTimerPause();
   };
 
   const formatTime = (seconds: number) => {
@@ -136,31 +144,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
 
   // Sound Synthesizer via Web Audio API (Triple C5-E5-G5 Major Chime)
   const playCompletionSound = () => {
-    try {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioContextClass) return;
-      const ctx = new AudioContextClass();
-      
-      const playTone = (time: number, freq: number, duration: number) => {
-        const osc = ctx.createOscillator();
-        const gainNode = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, time);
-        gainNode.gain.setValueAtTime(0.15, time);
-        gainNode.gain.exponentialRampToValueAtTime(0.0001, time + duration);
-        osc.connect(gainNode);
-        gainNode.connect(ctx.destination);
-        osc.start(time);
-        osc.stop(time + duration);
-      };
-      
-      const now = ctx.currentTime;
-      playTone(now, 523.25, 0.4);       // C5
-      playTone(now + 0.15, 659.25, 0.4);  // E5
-      playTone(now + 0.3, 783.99, 0.5);   // G5
-    } catch (e) {
-      console.warn("Sintesi audio bloccata o non supportata dal browser: ", e);
-    }
+    SoundUtility.playTimerComplete();
   };
 
   // Streak Widget removed per user request
@@ -193,12 +177,22 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   };
 
   const handleToggleQuickTodo = (id: string) => {
-    setQuickTodos(quickTodos.map(todo => 
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
-    ));
+    let played = false;
+    setQuickTodos(quickTodos.map(todo => {
+      if (todo.id === id) {
+        const nextVal = !todo.completed;
+        if (nextVal && !played) {
+          SoundUtility.playTaskCompleted();
+          played = true;
+        }
+        return { ...todo, completed: nextVal };
+      }
+      return todo;
+    }));
   };
 
   const handleDeleteQuickTodo = (id: string) => {
+    SoundUtility.playTaskDeleted();
     setQuickTodos(quickTodos.filter(todo => todo.id !== id));
   };
 
@@ -214,6 +208,10 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
     }
     if (!foundItem) return;
     const newCompleted = !foundItem.completed;
+
+    if (newCompleted) {
+      SoundUtility.playTaskCompleted();
+    }
 
     // Update calendar weeks immutably
     const updatedWeeks = weeks.map(w => ({
@@ -251,6 +249,10 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
         foundItem = day[slotKey].find(i => i.id === itemId) || null;
         if (foundItem) break;
       }
+    }
+
+    if (foundItem) {
+      SoundUtility.playTaskDeleted();
     }
 
     onUpdateAllWeeks(weeks.map(w => ({

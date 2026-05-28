@@ -4447,5 +4447,17 @@ body {
   z-index: 999 !important;
 }
 
+/* Dock sidebar toggle handle to the very left edge of the browser screen when closed */
+.sidebar-strip-toggle.sidebar-closed {
+  position: fixed !important;
+  left: 0 !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  border-radius: 0 6px 6px 0 !important;
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.45) !important;
+  border-left: none !important; /* Hide left border since it's flush against the screen */
+  z-index: 999999 !important;
+}
+
 
 

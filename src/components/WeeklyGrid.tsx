@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { Subject, WeekPlan, CalendarItem, TaskQuantityType } from '../types/planner';
 import { PlusIcon, XIcon } from './Icons';
+import SoundUtility from '../utils/audio';
 
 interface WeeklyGridProps {
   activeWeek: WeekPlan;
@@ -163,6 +164,10 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     if (!foundItem) return;
     const newCompleted = !foundItem.completed;
 
+    if (newCompleted) {
+      SoundUtility.playTaskCompleted();
+    }
+
     // Update calendar weeks immutably
     onUpdateAllWeeks(weeks.map(w => ({
       ...w,
@@ -199,6 +204,10 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
         foundItem = day[slotKey].find(i => i.id === itemId) || null;
         if (foundItem) break;
       }
+    }
+
+    if (foundItem) {
+      SoundUtility.playTaskDeleted();
     }
 
     onUpdateAllWeeks(weeks.map(w => ({
