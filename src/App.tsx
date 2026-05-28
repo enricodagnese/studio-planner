@@ -7,6 +7,7 @@ import { AddEventModal } from './components/AddEventModal';
 import { SettingsModal } from './components/SettingsModal';
 import { TodayFocus } from './components/TodayFocus';
 import { PlusIcon, CalendarIcon, BookIcon, ChevronLeftIcon, ChevronRightIcon, FlameIcon, SettingsIcon } from './components/Icons';
+import SoundUtility from './utils/audio';
 import './App.css';
 
 
@@ -401,7 +402,7 @@ function App() {
         <div className="header-navigation-tabs">
           <button
             className={`nav-tab-btn ${activeTab === 'oggi' ? 'active' : ''}`}
-            onClick={() => setActiveTab('oggi')}
+            onClick={() => { setActiveTab('oggi'); SoundUtility.playNavClick(); }}
             title="Visualizza il focus della giornata odierna"
           >
             <FlameIcon size={15} />
@@ -409,7 +410,7 @@ function App() {
           </button>
           <button
             className={`nav-tab-btn ${activeTab === 'planner' ? 'active' : ''}`}
-            onClick={() => setActiveTab('planner')}
+            onClick={() => { setActiveTab('planner'); SoundUtility.playNavClick(); }}
             title="Mostra la programmazione del calendario"
           >
             <CalendarIcon size={15} />
@@ -417,7 +418,7 @@ function App() {
           </button>
           <button
             className={`nav-tab-btn ${activeTab === 'subjects' ? 'active' : ''}`}
-            onClick={() => setActiveTab('subjects')}
+            onClick={() => { setActiveTab('subjects'); SoundUtility.playNavClick(); }}
             title="Gestisci le materie e i sotto-task in dettaglio"
           >
             <BookIcon size={15} />
@@ -438,7 +439,7 @@ function App() {
           )}
           <button
             className="btn btn-secondary btn-sm"
-            onClick={() => setShowSettingsModal(true)}
+            onClick={() => { setShowSettingsModal(true); SoundUtility.playNavClick(); }}
             title="Apri le impostazioni del workspace"
           >
             <SettingsIcon size={15} />
@@ -449,21 +450,25 @@ function App() {
 
 
       {activeTab === 'subjects' && (
-        <SubjectsManager subjects={subjects} onUpdateSubjects={setSubjects} onResetAll={handleResetAll} />
+        <div className="tab-pane-container">
+          <SubjectsManager subjects={subjects} onUpdateSubjects={setSubjects} onResetAll={handleResetAll} />
+        </div>
       )}
 
       {activeTab === 'oggi' && (
-        <TodayFocus
-          weeks={weeks}
-          subjects={subjects}
-          onUpdateAllWeeks={setWeeks}
-          onUpdateSubjects={setSubjects}
-          eventColors={eventColors}
-        />
+        <div className="tab-pane-container">
+          <TodayFocus
+            weeks={weeks}
+            subjects={subjects}
+            onUpdateAllWeeks={setWeeks}
+            onUpdateSubjects={setSubjects}
+            eventColors={eventColors}
+          />
+        </div>
       )}
 
       {activeTab === 'planner' && (
-        <div className="main-dashboard-layout">
+        <div className="tab-pane-container main-dashboard-layout">
           {/* Sidebar — always in DOM, animated via CSS */}
           <aside className={`layout-left-column ${isSidebarOpen ? '' : 'sidebar-panel-closed'}`}>
             <MaterialsList

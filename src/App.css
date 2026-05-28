@@ -4459,5 +4459,22 @@ body {
   z-index: 999999 !important;
 }
 
+/* Smooth Premium Slide-Up & Fade-In Transition for Navigation Tabs */
+@keyframes tabSlideUpFade {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tab-pane-container {
+  animation: tabSlideUpFade 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  width: 100%;
+}
+
 
 
