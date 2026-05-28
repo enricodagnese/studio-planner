@@ -426,7 +426,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                                 } as React.CSSProperties}
                               ></span>
                             </label>
-                            <span className="item-name" style={{ fontSize: '16px', fontWeight: 700 }} title={item.name}>
+                            <span className="item-name" style={{ fontSize: '21px', fontWeight: 700 }} title={item.name}>
                               {item.name}
                             </span>
                             {isEvent && (
@@ -479,7 +479,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
       <div className="today-widgets-col" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
         {/* Widget 1: POMODORO TIMER */}
-        <div className="widget-card pomodoro-widget-card" style={{ 
+        <div className="pomodoro-widget-card" style={{ 
           background: currentSettings.color, 
           padding: '24px', 
           borderRadius: '16px', 

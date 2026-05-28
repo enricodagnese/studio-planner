@@ -4376,13 +4376,50 @@ body {
   }
 }
 
-/* Scoped visual rules for tags and past days */
+/* Scoped visual rules for tags and past days - revised */
 .today-focus-dashboard .item-subject-tag {
   display: none !important;
 }
 
+/* Past days collapsed view overrides */
+.calendar-column.day-past .day-title-row .day-name,
+.calendar-column.day-past .day-title-row .day-month-neutral,
+.calendar-column.day-past .slot-pill,
+.calendar-column.day-past .event-type-badge,
 .calendar-column.day-past .item-tags-row {
   display: none !important;
+}
+
+/* Align only the day number centered in collapsed view */
+.calendar-column.day-past .day-title-row {
+  justify-content: center !important;
+  gap: 0 !important;
+}
+
+/* Centering past day number text decoration */
+.calendar-column.day-past .day-number-highlight {
+  text-decoration: line-through !important;
+  color: #71717a !important;
+  opacity: 0.6;
+}
+
+/* Hover expanded view restoration */
+.calendar-column.day-past:hover .day-title-row {
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.calendar-column.day-past:hover .day-title-row .day-name,
+.calendar-column.day-past:hover .day-title-row .day-month-neutral {
+  display: inline-block !important;
+}
+
+.calendar-column.day-past:hover .slot-pill {
+  display: inline-flex !important;
+}
+
+.calendar-column.day-past:hover .event-type-badge {
+  display: inline-block !important;
 }
 
 .calendar-column.day-past:hover .item-tags-row {
