@@ -179,27 +179,24 @@ function App() {
   });
 
   const [weeks, setWeeks] = useState<WeekPlan[]>(() => {
-    // Version-based migration: if version doesn't match, reset weeks entirely
-    const savedVersion = localStorage.getItem(VERSION_KEY);
-    if (savedVersion !== PLANNER_VERSION) {
-      return INITIAL_WEEKS;
-    }
     const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}-weeks`);
     if (saved) {
-      return JSON.parse(saved) as WeekPlan[];
+      try {
+        return JSON.parse(saved) as WeekPlan[];
+      } catch (e) {
+        console.error("Failed to parse saved weeks", e);
+      }
     }
     return INITIAL_WEEKS;
   });
 
   const [activeWeekId, setActiveWeekId] = useState<string>(() => {
-    const savedVersion = localStorage.getItem(VERSION_KEY);
-    if (savedVersion !== PLANNER_VERSION) return INITIAL_WEEKS[0]?.id || '';
     const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}-activeWeekId`);
     if (saved) {
       const activeExists = weeks.some(w => w.id === saved);
       if (activeExists) return saved;
     }
-    return INITIAL_WEEKS[0]?.id || '';
+    return weeks[0]?.id || INITIAL_WEEKS[0]?.id || '';
   });
 
   const [sessionTitle, setSessionTitle] = useState<string>(() => {

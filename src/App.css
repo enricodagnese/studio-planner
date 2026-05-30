@@ -4448,7 +4448,8 @@ body {
 /* Dock sidebar toggle handle to the very left edge of the browser screen when closed */
 .sidebar-strip-toggle.sidebar-closed {
   position: absolute !important;
-  left: -40px !important; /* Bridges container padding to dock flush with window screen */
+  left: -28px !important; /* Bridges container padding to dock cleanly and avoid clipping */
+  width: 22px !important; /* Slightly wider click target when closed */
   top: 50% !important;
   transform: translateY(-50%) !important;
   border-radius: 0 6px 6px 0 !important;

@@ -310,7 +310,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   };
 
   const getGreeting = () => {
-    return "Bentornato Enrico, oggi è:";
+    return "Bentornato Enrico, oggi è";
   };
 
   const getFullMonthName = (dateLabel?: string): string => {
@@ -347,11 +347,11 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
       <div className="today-agenda-col" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
         {/* Clean Left-Aligned Header */}
-        <header style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '15px 0px 5px 0px', background: 'transparent', border: 'none', borderRadius: '0px', boxShadow: 'none' }}>
+        <header style={{ display: 'flex', flexDirection: 'row', alignItems: 'baseline', gap: '8px', padding: '15px 0px 5px 0px', background: 'transparent', border: 'none', borderRadius: '0px', boxShadow: 'none', flexWrap: 'wrap' }}>
           <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff', margin: 0 }}>
             {getGreeting()}
           </h1>
-          <span className="selected-day-label" style={{ fontSize: '18px', fontWeight: 700, color: getMonthColor(activeDay?.dateLabel), marginTop: '4px', textTransform: 'capitalize' }}>
+          <span className="selected-day-label" style={{ fontSize: '24px', fontWeight: 800, color: getMonthColor(activeDay?.dateLabel), textTransform: 'capitalize' }}>
             {activeDay?.name} {getFullMonthName(activeDay?.dateLabel)}
           </span>
         </header>
@@ -433,7 +433,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                                 } as React.CSSProperties}
                               ></span>
                             </label>
-                            <span className="item-name" style={{ fontSize: '28px', fontWeight: 850 }} title={item.name}>
+                            <span className="item-name" style={{ fontSize: '32px', fontWeight: 850 }} title={item.name}>
                               {item.name}
                             </span>
                             {isEvent && (
@@ -453,7 +453,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
 
                           {/* Bottom row: subject tag + quantity tag (only for task items) */}
                           {!isEvent && (subjLabel || qtyLabel) && (
-                            <div className="item-tags-row" style={{ marginTop: '12px', alignSelf: 'flex-start', justifyContent: 'flex-start', gap: '10px' }}>
+                            <div className="item-tags-row" style={{ marginTop: '12px', alignSelf: 'flex-start', justifyContent: 'flex-start', gap: '8px' }}>
                               {subjLabel && (
                                 <span 
                                   className="item-subject-tag"
@@ -461,15 +461,15 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                                     backgroundColor: subject ? `${subject.color}22` : undefined,
                                     color: subject?.color,
                                     borderColor: subject ? `${subject.color}44` : undefined,
-                                    fontSize: '11px',
-                                    padding: '3px 10px',
-                                    borderRadius: '5px'
+                                    fontSize: '10px',
+                                    padding: '2px 8px',
+                                    borderRadius: '4px'
                                   }}
                                 >
                                   {subjLabel}
                                 </span>
                               )}
-                              {qtyLabel && <span className="item-qty-tag" style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '5px' }}>{qtyLabel}</span>}
+                              {qtyLabel && <span className="item-qty-tag" style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px' }}>{qtyLabel}</span>}
                             </div>
                           )}
                         </div>
@@ -599,7 +599,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
 
           {/* Time Display */}
           <div className="timer-time-display" style={{ 
-            fontSize: '96px', 
+            fontSize: '80px', 
             fontWeight: 850, 
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', 
             letterSpacing: '-0.02em', 
