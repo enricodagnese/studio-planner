@@ -341,7 +341,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   };
 
   return (
-    <div className="today-focus-dashboard animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '30px', padding: '10px 0px 40px 0px' }}>
+    <div className="today-focus-dashboard animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '1fr 440px', gap: '50px', padding: '10px 0px 40px 0px' }}>
       
       {/* LEFT COLUMN: Agenda del Giorno */}
       <div className="today-agenda-col" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -381,13 +381,13 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
           };
 
           return (
-            <div key={slotKey} className="today-slot-card-borderless animate-slide-down" style={{ background: 'transparent', border: 'none', borderBottom: slotKey === 'sera' ? 'none' : '1px solid rgba(255,255,255,0.06)', paddingBottom: slotKey === 'sera' ? '0' : '20px', marginBottom: '10px' }}>
-              <div className="today-slot-header" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 0', background: 'transparent', borderBottom: 'none' }}>
+            <div key={slotKey} className="today-slot-card-borderless animate-slide-down" style={{ background: 'transparent', border: 'none', borderBottom: slotKey === 'sera' ? 'none' : '1px solid rgba(255,255,255,0.06)', paddingBottom: slotKey === 'sera' ? '0' : '26px', marginBottom: '16px' }}>
+              <div className="today-slot-header" style={{ display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 0', background: 'transparent', borderBottom: 'none' }}>
                 {slotIcons[slotKey]}
-                <h3 style={{ fontSize: '15px', fontWeight: 800, color: '#f4f4f5', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
+                <h3 style={{ fontSize: '18px', fontWeight: 850, color: '#f4f4f5', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0 }}>
                   {slotLabels[slotKey]}
                 </h3>
-                <span className="slot-items-count" style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.06)', padding: '2px 8px', borderRadius: '10px', fontSize: '10px', color: '#a1a1aa', fontWeight: 600 }}>
+                <span className="slot-items-count" style={{ marginLeft: 'auto', background: 'rgba(255,255,255,0.06)', padding: '3px 10px', borderRadius: '10px', fontSize: '11px', color: '#a1a1aa', fontWeight: 600 }}>
                   {items.length} {items.length === 1 ? 'attività' : 'attività'}
                 </span>
               </div>
@@ -412,27 +412,32 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                         <div 
                           key={item.id} 
                           className={`scheduled-item-pill ${colorClass} ${isEvent ? `event-pill event-${item.eventType}` : ''} ${item.completed ? 'completed' : ''}`}
+                          style={{
+                            padding: '16px 20px',
+                            borderRadius: '12px',
+                            gap: '12px'
+                          }}
                         >
                           {/* Top row: checkbox + name + [event badge] + delete */}
                           <div className="item-header-row">
-                            <label className="checkbox-container-sm">
+                            <label className="checkbox-container-lg">
                               <input 
                                 type="checkbox" 
                                 checked={item.completed} 
                                 onChange={() => handleToggleItem(activeDay.id, slotKey, item.id)}
                               />
                               <span 
-                                className="checkmark-sm"
+                                className="checkmark-lg"
                                 style={{ 
                                   '--accent-color': isEvent ? getEventColor(item.eventType) : undefined 
                                 } as React.CSSProperties}
                               ></span>
                             </label>
-                            <span className="item-name" style={{ fontSize: '21px', fontWeight: 700 }} title={item.name}>
+                            <span className="item-name" style={{ fontSize: '28px', fontWeight: 850 }} title={item.name}>
                               {item.name}
                             </span>
                             {isEvent && (
-                              <span className={`event-type-badge event-badge-${item.eventType}`}>
+                              <span className={`event-type-badge event-badge-${item.eventType}`} style={{ fontSize: '10px', padding: '3px 8px' }}>
                                 {item.eventType === 'esame' ? 'ESAME' : item.eventType === 'svago' ? 'SVAGO' : item.eventType === 'lezione' ? 'LEZIONE' : 'ALTRO'}
                               </span>
                             )}
@@ -442,13 +447,13 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                               onClick={() => handleDeleteItem(activeDay.id, slotKey, item.id)}
                               title="Rimuovi"
                             >
-                              <XIcon size={9} />
+                              <XIcon size={12} />
                             </button>
                           </div>
 
                           {/* Bottom row: subject tag + quantity tag (only for task items) */}
                           {!isEvent && (subjLabel || qtyLabel) && (
-                            <div className="item-tags-row" style={{ marginTop: '4px', alignSelf: 'flex-start', justifyContent: 'flex-start' }}>
+                            <div className="item-tags-row" style={{ marginTop: '12px', alignSelf: 'flex-start', justifyContent: 'flex-start', gap: '10px' }}>
                               {subjLabel && (
                                 <span 
                                   className="item-subject-tag"
@@ -456,14 +461,15 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                                     backgroundColor: subject ? `${subject.color}22` : undefined,
                                     color: subject?.color,
                                     borderColor: subject ? `${subject.color}44` : undefined,
-                                    fontSize: '10.5px',
-                                    padding: '2px 6px'
+                                    fontSize: '11px',
+                                    padding: '3px 10px',
+                                    borderRadius: '5px'
                                   }}
                                 >
                                   {subjLabel}
                                 </span>
                               )}
-                              {qtyLabel && <span className="item-qty-tag" style={{ fontSize: '10.5px', padding: '2px 6px' }}>{qtyLabel}</span>}
+                              {qtyLabel && <span className="item-qty-tag" style={{ fontSize: '11px', padding: '3px 10px', borderRadius: '5px' }}>{qtyLabel}</span>}
                             </div>
                           )}
                         </div>
@@ -483,7 +489,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
         {/* Widget 1: POMODORO TIMER */}
         <div className="pomodoro-widget-card" style={{ 
           background: currentSettings.color, 
-          padding: '24px', 
+          padding: '40px', 
           borderRadius: '16px', 
           display: 'flex', 
           flexDirection: 'column', 
@@ -493,8 +499,8 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
         }}>
           
           {/* Header Row: Title and Settings Toggle Button */}
-          <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <h4 style={{ fontSize: '11px', fontWeight: 800, color: 'rgba(255, 255, 255, 0.7)', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
+          <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h4 style={{ fontSize: '15px', fontWeight: 850, color: 'rgba(255, 255, 255, 0.7)', letterSpacing: '0.06em', textTransform: 'uppercase', margin: 0 }}>
               Pomodoro Timer
             </h4>
             <button 
@@ -503,7 +509,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
               style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.7)', cursor: 'pointer', display: 'flex', padding: '4px', borderRadius: '4px', transition: 'all 0.2s' }}
               title="Impostazioni Durata"
             >
-              <SettingsIcon size={16} />
+              <SettingsIcon size={18} />
             </button>
           </div>
 
@@ -555,14 +561,14 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
           <div className="timer-mode-pills" style={{ 
             display: 'flex', 
             background: 'rgba(0, 0, 0, 0.2)', 
-            padding: '4px', 
-            borderRadius: '10px', 
+            padding: '6px', 
+            borderRadius: '12px', 
             width: '100%', 
-            marginBottom: '24px' 
+            marginBottom: '32px' 
           }}>
             {(['study', 'short', 'long'] as const).map((m) => {
               const isActive = timerMode === m;
-              const label = timerSettings[m].label;
+               const label = timerSettings[m].label;
               return (
                 <button
                   key={m}
@@ -573,10 +579,10 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                     border: 'none',
                     background: isActive ? 'rgba(0, 0, 0, 0.18)' : 'transparent',
                     color: isActive ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    padding: '8px 4px',
-                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 800,
+                    padding: '12px 6px',
+                    borderRadius: '10px',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                     textAlign: 'center',
@@ -593,19 +599,19 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
 
           {/* Time Display */}
           <div className="timer-time-display" style={{ 
-            fontSize: '64px', 
-            fontWeight: 800, 
+            fontSize: '96px', 
+            fontWeight: 850, 
             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif', 
             letterSpacing: '-0.02em', 
             color: '#ffffff', 
-            marginBottom: '24px', 
+            marginBottom: '32px', 
             lineHeight: 1 
           }}>
             {formatTime(timeLeft)}
           </div>
 
           {/* Control Buttons */}
-          <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+          <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
             <button 
               type="button" 
               onClick={toggleTimer}
@@ -614,10 +620,10 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                 background: '#ffffff', 
                 color: currentSettings.color, 
                 border: 'none', 
-                borderRadius: '8px', 
-                padding: '12px 20px', 
-                fontSize: '14px', 
-                fontWeight: 700, 
+                borderRadius: '10px', 
+                padding: '16px 32px', 
+                fontSize: '18px', 
+                fontWeight: 800, 
                 textTransform: 'uppercase', 
                 letterSpacing: '0.05em', 
                 cursor: 'pointer', 
@@ -625,7 +631,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center', 
-                gap: '6px',
+                gap: '8px',
                 transition: 'all 0.2s ease'
               }}
             >
@@ -640,10 +646,10 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                 background: 'rgba(255, 255, 255, 0.15)', 
                 color: '#ffffff', 
                 border: '1px solid rgba(255, 255, 255, 0.25)', 
-                borderRadius: '8px', 
-                padding: '12px 14px', 
-                fontSize: '12px', 
-                fontWeight: 700, 
+                borderRadius: '10px', 
+                padding: '16px 24px', 
+                fontSize: '16px', 
+                fontWeight: 800, 
                 textTransform: 'uppercase', 
                 letterSpacing: '0.05em', 
                 cursor: 'pointer',
