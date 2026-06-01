@@ -351,7 +351,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
           <h1 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.02em', color: 'rgba(255, 255, 255, 0.7)', margin: 0 }}>
             {getGreeting()}
           </h1>
-          <span className="selected-day-label" style={{ fontSize: '36px', fontWeight: 850, color: getMonthColor(activeDay?.dateLabel), textTransform: 'capitalize', letterSpacing: '-0.02em' }}>
+          <span className="selected-day-label" style={{ fontSize: '30px', fontWeight: 850, color: getMonthColor(activeDay?.dateLabel), textTransform: 'capitalize', letterSpacing: '-0.02em' }}>
             {activeDay?.name} {getFullMonthName(activeDay?.dateLabel)}
           </span>
         </header>
@@ -433,7 +433,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                                 } as React.CSSProperties}
                               ></span>
                             </label>
-                            <span className="item-name" style={{ fontSize: '32px', fontWeight: 850 }} title={item.name}>
+                            <span className="item-name" style={{ fontSize: '26px', fontWeight: 850 }} title={item.name}>
                               {item.name}
                             </span>
                             {isEvent && (
