@@ -347,11 +347,11 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
       <div className="today-agenda-col" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         
         {/* Clean Left-Aligned Header */}
-        <header style={{ display: 'flex', flexDirection: 'row', alignItems: 'baseline', gap: '8px', padding: '15px 0px 5px 0px', background: 'transparent', border: 'none', borderRadius: '0px', boxShadow: 'none', flexWrap: 'wrap' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.02em', color: '#ffffff', margin: 0 }}>
+        <header style={{ display: 'flex', flexDirection: 'row', alignItems: 'baseline', gap: '10px', padding: '15px 0px 5px 0px', background: 'transparent', border: 'none', borderRadius: '0px', boxShadow: 'none', flexWrap: 'wrap' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.02em', color: 'rgba(255, 255, 255, 0.7)', margin: 0 }}>
             {getGreeting()}
           </h1>
-          <span className="selected-day-label" style={{ fontSize: '24px', fontWeight: 800, color: getMonthColor(activeDay?.dateLabel), textTransform: 'capitalize' }}>
+          <span className="selected-day-label" style={{ fontSize: '36px', fontWeight: 850, color: getMonthColor(activeDay?.dateLabel), textTransform: 'capitalize', letterSpacing: '-0.02em' }}>
             {activeDay?.name} {getFullMonthName(activeDay?.dateLabel)}
           </span>
         </header>
