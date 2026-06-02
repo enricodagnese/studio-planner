@@ -7,6 +7,7 @@ interface SubjectsManagerProps {
   subjects: Subject[];
   onUpdateSubjects: (updatedSubjects: Subject[]) => void;
   onResetAll?: () => void;
+  weeks?: WeekPlan[];
 }
 
 const PRESET_COLORS = [
@@ -61,7 +62,7 @@ const getQtyInputLabel = (quantityType: TaskQuantityType): string => {
   }
 };
 
-export const SubjectsManager: React.FC<SubjectsManagerProps> = ({ subjects, onUpdateSubjects, onResetAll }) => {
+export const SubjectsManager: React.FC<SubjectsManagerProps> = ({ subjects, onUpdateSubjects, onResetAll, weeks }) => {
   const [selectedSubjId, setSelectedSubjId] = useState<string | null>(null);
   const [addingTaskCategory, setAddingTaskCategory] = useState<'teoria' | 'esercizi' | 'altro' | null>(null);
   const [taskName, setTaskName] = useState('');
@@ -411,11 +412,41 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({ subjects, onUp
             const presetColor = PRESET_COLORS.find(c => c.value === subj.color);
             const colorClass = presetColor ? presetColor.class : 'color-gold';
 
+            const isCompleted = (() => {
+              // 1. Check if there are any uncompleted tasks in the library
+              const hasUncompletedLibrary = subj.tasks.some(t => !t.completed);
+              if (hasUncompletedLibrary) return false;
+
+              // 2. Check if there are any uncompleted tasks scheduled in the calendar
+              let hasCalendarTasks = false;
+              let hasUncompletedCalendar = false;
+              if (weeks) {
+                for (const w of weeks) {
+                  for (const d of w.days) {
+                    for (const slot of ['mattina', 'pomeriggio', 'sera'] as const) {
+                      const items = d[slot] || [];
+                      for (const item of items) {
+                        if (item.subjectId === subj.id) {
+                          hasCalendarTasks = true;
+                          if (!item.completed) {
+                            hasUncompletedCalendar = true;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+
+              if (hasUncompletedCalendar) return false;
+              return (subj.tasks.length + (hasCalendarTasks ? 1 : 0)) > 0;
+            })();
+
             return (
               <div
                 key={subj.id}
                 onClick={() => setSelectedSubjId(subj.id)}
-                className={`subject-grid-card glass-container ${colorClass} ${subj.completed ? 'completed' : ''}`}
+                className={`subject-grid-card glass-container ${colorClass} ${isCompleted ? 'completed' : ''}`}
                 style={{ '--accent-color': subj.color } as React.CSSProperties}
               >
                 <div className="card-emoji-logo" style={{ color: subj.color }}>
@@ -427,7 +458,7 @@ export const SubjectsManager: React.FC<SubjectsManagerProps> = ({ subjects, onUp
                 ) : (
                   <span className="card-subj-stats empty-stats">Nessun compito ancora</span>
                 )}
-                {subj.completed && <span className="card-completed-badge">✓ Completato</span>}
+                {isCompleted && <span className="card-completed-badge">✓ Completato</span>}
               </div>
             );
           })}

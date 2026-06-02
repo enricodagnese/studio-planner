@@ -634,68 +634,62 @@ function App() {
       </header>
 
 
-      {activeTab === 'subjects' && (
-        <div className="tab-pane-container">
-          <SubjectsManager subjects={subjects} onUpdateSubjects={setSubjects} onResetAll={handleResetAll} />
-        </div>
-      )}
+      <div className="tab-pane-container" style={{ display: activeTab === 'subjects' ? 'block' : 'none' }}>
+        <SubjectsManager subjects={subjects} onUpdateSubjects={setSubjects} onResetAll={handleResetAll} weeks={weeks} />
+      </div>
 
-      {activeTab === 'oggi' && (
-        <div className="tab-pane-container">
-          <TodayFocus
-            weeks={weeks}
+      <div className="tab-pane-container" style={{ display: activeTab === 'oggi' ? 'block' : 'none' }}>
+        <TodayFocus
+          weeks={weeks}
+          subjects={subjects}
+          onUpdateAllWeeks={setWeeks}
+          onUpdateSubjects={setSubjects}
+          eventColors={eventColors}
+          taskFontSize={taskFontSize}
+          dayFontSize={dayFontSize}
+        />
+      </div>
+
+      <div className="tab-pane-container main-dashboard-layout" style={{ display: activeTab === 'planner' ? 'flex' : 'none' }}>
+        {/* Sidebar — always in DOM, animated via CSS */}
+        <aside className={`layout-left-column ${isSidebarOpen ? '' : 'sidebar-panel-closed'}`}>
+          <MaterialsList
             subjects={subjects}
-            onUpdateAllWeeks={setWeeks}
+            weeks={weeks}
+            onAddSubject={handleAddSubject}
+            onToggleSubject={handleToggleSubject}
+            onDeleteSubject={handleDeleteSubject}
             onUpdateSubjects={setSubjects}
-            eventColors={eventColors}
-            taskFontSize={taskFontSize}
-            dayFontSize={dayFontSize}
           />
+        </aside>
+
+        {/* Sidebar toggle strip — always visible at boundary */}
+        <div className="sidebar-handle-col">
+          <button
+            className={`sidebar-strip-toggle ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            title={isSidebarOpen ? 'Chiudi libreria' : 'Apri libreria'}
+          >
+            {isSidebarOpen ? <ChevronLeftIcon size={13} /> : <ChevronRightIcon size={13} />}
+          </button>
         </div>
-      )}
 
-      {activeTab === 'planner' && (
-        <div className="tab-pane-container main-dashboard-layout">
-          {/* Sidebar — always in DOM, animated via CSS */}
-          <aside className={`layout-left-column ${isSidebarOpen ? '' : 'sidebar-panel-closed'}`}>
-            <MaterialsList
-              subjects={subjects}
-              weeks={weeks}
-              onAddSubject={handleAddSubject}
-              onToggleSubject={handleToggleSubject}
-              onDeleteSubject={handleDeleteSubject}
-              onUpdateSubjects={setSubjects}
-            />
-          </aside>
-
-          {/* Sidebar toggle strip — always visible at boundary */}
-          <div className="sidebar-handle-col">
-            <button
-              className={`sidebar-strip-toggle ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
-              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              title={isSidebarOpen ? 'Chiudi libreria' : 'Apri libreria'}
-            >
-              {isSidebarOpen ? <ChevronLeftIcon size={13} /> : <ChevronRightIcon size={13} />}
-            </button>
-          </div>
-
-          <main className="layout-right-column">
-            {weeks
-              .filter((week) => !isWeekInPast(week))
-              .map((week) => (
-                <div key={week.id} className="week-wrapper">
-                  <WeeklyGrid
-                    activeWeek={week}
-                    weeks={weeks}
-                    subjects={subjects}
-                    onUpdateAllWeeks={setWeeks}
-                    onUpdateSubjects={setSubjects}
-                  />
-                </div>
-              ))}
-          </main>
-        </div>
-      )}
+        <main className="layout-right-column">
+          {weeks
+            .filter((week) => !isWeekInPast(week))
+            .map((week) => (
+              <div key={week.id} className="week-wrapper">
+                <WeeklyGrid
+                  activeWeek={week}
+                  weeks={weeks}
+                  subjects={subjects}
+                  onUpdateAllWeeks={setWeeks}
+                  onUpdateSubjects={setSubjects}
+                />
+              </div>
+            ))}
+        </main>
+      </div>
 
       {showAddEventModal && (
         <AddEventModal

@@ -123,11 +123,41 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
             const hasTasks = theoryTasks.length > 0 || exerciseTasks.length > 0 || otherTasks.length > 0;
             const isExpanded = !!expandedSubjIds[sub.id];
 
+            const isCompleted = (() => {
+              // 1. Check if there are any uncompleted tasks in the library
+              const hasUncompletedLibrary = sub.tasks.some(t => !t.completed);
+              if (hasUncompletedLibrary) return false;
+
+              // 2. Check if there are any uncompleted tasks scheduled in the calendar
+              let hasCalendarTasks = false;
+              let hasUncompletedCalendar = false;
+              if (weeks) {
+                for (const w of weeks) {
+                  for (const d of w.days) {
+                    for (const slot of ['mattina', 'pomeriggio', 'sera'] as const) {
+                      const items = d[slot] || [];
+                      for (const item of items) {
+                        if (item.subjectId === sub.id) {
+                          hasCalendarTasks = true;
+                          if (!item.completed) {
+                            hasUncompletedCalendar = true;
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+
+              if (hasUncompletedCalendar) return false;
+              return (sub.tasks.length + (hasCalendarTasks ? 1 : 0)) > 0;
+            })();
+
             return (
               <div key={sub.id} className="subject-tree-node" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {/* Main subject card: NOT draggable, only for preview and opening tasks */}
                 <div
-                  className={`subject-card ${colorClass} ${sub.completed ? 'completed' : ''}`}
+                  className={`subject-card ${colorClass} ${isCompleted ? 'completed' : ''}`}
                   style={{ 
                     '--accent-color': sub.color,
                     paddingLeft: '14px',
