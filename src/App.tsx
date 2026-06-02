@@ -273,6 +273,13 @@ function App() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSynced, setLastSynced] = useState<string>('');
   const [supabaseConfig, setSupabaseConfig] = useState<{ url: string; anonKey: string }>(() => {
+    const envUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+    if (envUrl && envKey) {
+      return { url: envUrl, anonKey: envKey };
+    }
+
     return {
       url: localStorage.getItem('antigravity-studio-planner-supabase-url') || '',
       anonKey: localStorage.getItem('antigravity-studio-planner-supabase-key') || ''
