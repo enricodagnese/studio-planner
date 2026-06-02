@@ -22,6 +22,8 @@ interface TodayFocusProps {
     lezione: string;
     altro: string;
   };
+  taskFontSize?: number;
+  dayFontSize?: number;
 }
 
 interface QuickTodo {
@@ -35,7 +37,9 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   subjects,
   onUpdateAllWeeks,
   onUpdateSubjects,
-  eventColors = { esame: '#ef4444', svago: '#3b82f6', lezione: '#10b981', altro: '#a78bfa' }
+  eventColors = { esame: '#ef4444', svago: '#3b82f6', lezione: '#10b981', altro: '#a78bfa' },
+  taskFontSize = 26,
+  dayFontSize = 30
 }) => {
   // 1. --- Navigation & Date Logic ---
   // Create a flat array of all scheduled days for easier navigation
@@ -351,7 +355,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
           <h1 style={{ fontSize: '22px', fontWeight: 700, letterSpacing: '-0.02em', color: 'rgba(255, 255, 255, 0.7)', margin: 0 }}>
             {getGreeting()}
           </h1>
-          <span className="selected-day-label" style={{ fontSize: '30px', fontWeight: 850, color: getMonthColor(activeDay?.dateLabel), textTransform: 'capitalize', letterSpacing: '-0.02em' }}>
+          <span className="selected-day-label" style={{ fontSize: `${dayFontSize}px`, fontWeight: 850, color: getMonthColor(activeDay?.dateLabel), textTransform: 'capitalize', letterSpacing: '-0.02em' }}>
             {activeDay?.name} {getFullMonthName(activeDay?.dateLabel)}
           </span>
         </header>
@@ -433,7 +437,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
                                 } as React.CSSProperties}
                               ></span>
                             </label>
-                            <span className="item-name" style={{ fontSize: '26px', fontWeight: 850 }} title={item.name}>
+                            <span className="item-name" style={{ fontSize: `${taskFontSize}px`, fontWeight: 850 }} title={item.name}>
                               {item.name}
                             </span>
                             {isEvent && (

@@ -260,6 +260,13 @@ function App() {
     };
   });
 
+  const [taskFontSize, setTaskFontSize] = useState<number>(() => {
+    return parseInt(localStorage.getItem('antigravity-studio-planner-task-font-size') || '26');
+  });
+  const [dayFontSize, setDayFontSize] = useState<number>(() => {
+    return parseInt(localStorage.getItem('antigravity-studio-planner-day-font-size') || '30');
+  });
+
 
   // Sync version on mount (after state is set)
   useEffect(() => {
@@ -272,6 +279,8 @@ function App() {
   useEffect(() => { localStorage.setItem(`${LOCAL_STORAGE_KEY}-activeWeekId`, activeWeekId); }, [activeWeekId]);
   useEffect(() => { localStorage.setItem(TITLE_STORAGE_KEY, sessionTitle); }, [sessionTitle]);
   useEffect(() => { localStorage.setItem('antigravity-studio-planner-event-colors', JSON.stringify(eventColors)); }, [eventColors]);
+  useEffect(() => { localStorage.setItem('antigravity-studio-planner-task-font-size', taskFontSize.toString()); }, [taskFontSize]);
+  useEffect(() => { localStorage.setItem('antigravity-studio-planner-day-font-size', dayFontSize.toString()); }, [dayFontSize]);
 
   // Sync task completed state from subjects to calendar items
   useEffect(() => {
@@ -488,6 +497,8 @@ function App() {
             onUpdateAllWeeks={setWeeks}
             onUpdateSubjects={setSubjects}
             eventColors={eventColors}
+            taskFontSize={taskFontSize}
+            dayFontSize={dayFontSize}
           />
         </div>
       )}
@@ -553,6 +564,10 @@ function App() {
           eventColors={eventColors}
           onChangeEventColors={setEventColors}
           onClose={() => setShowSettingsModal(false)}
+          taskFontSize={taskFontSize}
+          onChangeTaskFontSize={setTaskFontSize}
+          dayFontSize={dayFontSize}
+          onChangeDayFontSize={setDayFontSize}
         />
       )}
     </div>

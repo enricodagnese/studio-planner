@@ -21,6 +21,10 @@ interface SettingsModalProps {
     altro: string;
   }) => void;
   onClose: () => void;
+  taskFontSize: number;
+  onChangeTaskFontSize: (size: number) => void;
+  dayFontSize: number;
+  onChangeDayFontSize: (size: number) => void;
 }
 
 const DEFAULT_COLORS = {
@@ -38,7 +42,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onResetAll,
   eventColors,
   onChangeEventColors,
-  onClose
+  onClose,
+  taskFontSize,
+  onChangeTaskFontSize,
+  dayFontSize,
+  onChangeDayFontSize
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -147,6 +155,48 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             >
               Ripristina Colori Predefiniti
             </button>
+          </section>
+
+          <hr style={{ border: 'none', borderBottom: '1px solid rgba(255,255,255,0.08)', margin: 0 }} />
+
+          {/* UI Sizing Scale Section */}
+          <section className="settings-section">
+            <h4 style={{ fontSize: '12px', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px', fontWeight: 700 }}>
+              Dimensioni Caratteri (Homepage Oggi)
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600, color: '#e4e4e7' }}>
+                  <span>Dimensione Giorno Corrente</span>
+                  <span style={{ color: 'var(--accent-primary)' }}>{dayFontSize}px</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="20" 
+                  max="44" 
+                  step="1"
+                  value={dayFontSize} 
+                  onChange={(e) => onChangeDayFontSize(parseInt(e.target.value))}
+                  style={{ width: '100%', accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 600, color: '#e4e4e7' }}>
+                  <span>Dimensione Compiti</span>
+                  <span style={{ color: 'var(--accent-primary)' }}>{taskFontSize}px</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="16" 
+                  max="36" 
+                  step="1"
+                  value={taskFontSize} 
+                  onChange={(e) => onChangeTaskFontSize(parseInt(e.target.value))}
+                  style={{ width: '100%', accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+                />
+              </div>
+            </div>
           </section>
 
           <hr style={{ border: 'none', borderBottom: '1px solid rgba(255,255,255,0.08)', margin: 0 }} />
