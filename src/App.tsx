@@ -311,11 +311,12 @@ function App() {
 
   // Fetch remote planner state from Supabase when user logs in
   useEffect(() => {
+    const client = supabase;
     const fetchRemoteState = async () => {
-      if (!supabase || !user) return;
+      if (!client || !user) return;
       setIsSyncing(true);
       try {
-        const { data, error } = await supabase
+        const { data, error } = await client
           .from('user_planner_state')
           .select('*')
           .single();
@@ -343,12 +344,13 @@ function App() {
 
   // Debounced Cloud Sync: push state changes to Supabase 1 second after user stops typing/clicking
   useEffect(() => {
-    if (!supabase || !user) return;
+    const client = supabase;
+    if (!client || !user) return;
 
     const handler = setTimeout(async () => {
       setIsSyncing(true);
       try {
-        const { error } = await supabase
+        const { error } = await client
           .from('user_planner_state')
           .upsert({
             user_id: user.id,
@@ -378,10 +380,11 @@ function App() {
 
   // Manual Sync Trigger
   const handleForceSync = async () => {
-    if (!supabase || !user) return;
+    const client = supabase;
+    if (!client || !user) return;
     setIsSyncing(true);
     try {
-      const { error } = await supabase
+      const { error } = await client
         .from('user_planner_state')
         .upsert({
           user_id: user.id,
