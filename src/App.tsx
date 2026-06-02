@@ -8,6 +8,7 @@ import { SettingsModal } from './components/SettingsModal';
 import { TodayFocus } from './components/TodayFocus';
 import { PlusIcon, CalendarIcon, BookIcon, ChevronLeftIcon, ChevronRightIcon, FlameIcon, SettingsIcon } from './components/Icons';
 import SoundUtility from './utils/audio';
+import { supabase, updateSupabaseClient, clearSupabaseClient } from './utils/supabase';
 import './App.css';
 
 
@@ -267,6 +268,17 @@ function App() {
     return parseInt(localStorage.getItem('antigravity-studio-planner-day-font-size') || '30');
   });
 
+  // --- Supabase Cloud Sync States ---
+  const [user, setUser] = useState<any>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSynced, setLastSynced] = useState<string>('');
+  const [supabaseConfig, setSupabaseConfig] = useState<{ url: string; anonKey: string }>(() => {
+    return {
+      url: localStorage.getItem('antigravity-studio-planner-supabase-url') || '',
+      anonKey: localStorage.getItem('antigravity-studio-planner-supabase-key') || ''
+    };
+  });
+
 
   // Sync version on mount (after state is set)
   useEffect(() => {
@@ -281,6 +293,135 @@ function App() {
   useEffect(() => { localStorage.setItem('antigravity-studio-planner-event-colors', JSON.stringify(eventColors)); }, [eventColors]);
   useEffect(() => { localStorage.setItem('antigravity-studio-planner-task-font-size', taskFontSize.toString()); }, [taskFontSize]);
   useEffect(() => { localStorage.setItem('antigravity-studio-planner-day-font-size', dayFontSize.toString()); }, [dayFontSize]);
+
+  // Check current Supabase Auth session on mount and listen to changes
+  useEffect(() => {
+    if (supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setUser(session?.user ?? null);
+      });
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setUser(session?.user ?? null);
+      });
+
+      return () => subscription.unsubscribe();
+    }
+  }, [supabaseConfig]);
+
+  // Fetch remote planner state from Supabase when user logs in
+  useEffect(() => {
+    const fetchRemoteState = async () => {
+      if (!supabase || !user) return;
+      setIsSyncing(true);
+      try {
+        const { data, error } = await supabase
+          .from('user_planner_state')
+          .select('*')
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching remote state:', error);
+        } else if (data) {
+          setWeeks(data.weeks);
+          setSubjects(data.subjects);
+          setSessionTitle(data.session_title);
+          if (data.event_colors) setEventColors(data.event_colors);
+          if (data.task_font_size) setTaskFontSize(data.task_font_size);
+          if (data.day_font_size) setDayFontSize(data.day_font_size);
+          setLastSynced(new Date(data.updated_at).toLocaleTimeString());
+        }
+      } catch (err) {
+        console.error('Failed to sync remote data:', err);
+      } finally {
+        setIsSyncing(false);
+      }
+    };
+
+    fetchRemoteState();
+  }, [user]);
+
+  // Debounced Cloud Sync: push state changes to Supabase 1 second after user stops typing/clicking
+  useEffect(() => {
+    if (!supabase || !user) return;
+
+    const handler = setTimeout(async () => {
+      setIsSyncing(true);
+      try {
+        const { error } = await supabase
+          .from('user_planner_state')
+          .upsert({
+            user_id: user.id,
+            weeks,
+            subjects,
+            session_title: sessionTitle,
+            event_colors: eventColors,
+            task_font_size: taskFontSize,
+            day_font_size: dayFontSize,
+            updated_at: new Date().toISOString()
+          });
+
+        if (error) {
+          console.error('Error auto-syncing with cloud database:', error);
+        } else {
+          setLastSynced(new Date().toLocaleTimeString());
+        }
+      } catch (err) {
+        console.error('Failed auto-sync push:', err);
+      } finally {
+        setIsSyncing(false);
+      }
+    }, 1000);
+
+    return () => clearTimeout(handler);
+  }, [weeks, subjects, sessionTitle, eventColors, taskFontSize, dayFontSize, user]);
+
+  // Manual Sync Trigger
+  const handleForceSync = async () => {
+    if (!supabase || !user) return;
+    setIsSyncing(true);
+    try {
+      const { error } = await supabase
+        .from('user_planner_state')
+        .upsert({
+          user_id: user.id,
+          weeks,
+          subjects,
+          session_title: sessionTitle,
+          event_colors: eventColors,
+          task_font_size: taskFontSize,
+          day_font_size: dayFontSize,
+          updated_at: new Date().toISOString()
+        });
+
+      if (error) {
+        alert("Errore durante la sincronizzazione: " + error.message);
+      } else {
+        setLastSynced(new Date().toLocaleTimeString());
+        alert("Sincronizzazione completata con successo!");
+      }
+    } catch (err: any) {
+      alert("Errore di rete: " + err.message);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleConnectSupabase = (url: string, key: string) => {
+    const success = updateSupabaseClient(url, key);
+    if (success) {
+      setSupabaseConfig({ url, anonKey: key });
+      return true;
+    }
+    return false;
+  };
+
+  const handleDisconnectSupabase = () => {
+    clearSupabaseClient();
+    setSupabaseConfig({ url: '', anonKey: '' });
+    setUser(null);
+    setLastSynced('');
+  };
 
   // Sync task completed state from subjects to calendar items
   useEffect(() => {
@@ -568,6 +709,13 @@ function App() {
           onChangeTaskFontSize={setTaskFontSize}
           dayFontSize={dayFontSize}
           onChangeDayFontSize={setDayFontSize}
+          user={user}
+          isSyncing={isSyncing}
+          lastSynced={lastSynced}
+          supabaseConfig={supabaseConfig}
+          onConnectSupabase={handleConnectSupabase}
+          onDisconnectSupabase={handleDisconnectSupabase}
+          onForceSync={handleForceSync}
         />
       )}
     </div>

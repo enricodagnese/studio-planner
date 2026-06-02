@@ -1,6 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import type { PlannerState } from '../types/planner';
 import { XIcon, DownloadIcon, UploadIcon, TrashIcon, SettingsIcon } from './Icons';
+import { supabase } from '../utils/supabase';
 
 interface SettingsModalProps {
   weeks: any[];
@@ -25,6 +26,15 @@ interface SettingsModalProps {
   onChangeTaskFontSize: (size: number) => void;
   dayFontSize: number;
   onChangeDayFontSize: (size: number) => void;
+  
+  // Supabase states & handlers
+  user: any;
+  isSyncing: boolean;
+  lastSynced: string;
+  supabaseConfig: { url: string; anonKey: string };
+  onConnectSupabase: (url: string, key: string) => boolean;
+  onDisconnectSupabase: () => void;
+  onForceSync: () => void;
 }
 
 const DEFAULT_COLORS = {
@@ -33,6 +43,36 @@ const DEFAULT_COLORS = {
   lezione: '#10b981',
   altro: '#a78bfa'
 };
+
+const CloudIcon = ({ size = 16, style = {} }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
+    <path d="M17.5 19A3.5 3.5 0 0 0 21 15.5c0-2.79-2.54-4.5-5-4.5-.48 0-.93.07-1.39.2A5 5 0 0 0 5 12c0 .28.03.55.08.82A4.5 4.5 0 0 0 1 17c0 2.2 1.8 4 4 4h12.5" />
+  </svg>
+);
+
+const LockIcon = ({ size = 16, style = {} }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
+    <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+);
+
+const RefreshIcon = ({ size = 16, style = {}, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style} className={className}>
+    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+    <path d="M3 3v5h5" />
+    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+    <path d="M16 16h5v5" />
+  </svg>
+);
+
+const DatabaseIcon = ({ size = 16, style = {} }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
+    <ellipse cx="12" cy="5" rx="9" ry="3" />
+    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+    <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" />
+  </svg>
+);
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   weeks,
@@ -46,9 +86,94 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   taskFontSize,
   onChangeTaskFontSize,
   dayFontSize,
-  onChangeDayFontSize
+  onChangeDayFontSize,
+  user,
+  isSyncing,
+  lastSynced,
+  supabaseConfig,
+  onConnectSupabase,
+  onDisconnectSupabase,
+  onForceSync
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Credentials input states
+  const [urlInput, setUrlInput] = useState(supabaseConfig.url);
+  const [keyInput, setKeyInput] = useState(supabaseConfig.anonKey);
+  const [isEditingKeys, setIsEditingKeys] = useState(!supabaseConfig.url);
+
+  // Auth Form States
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
+
+  // Keep input states in sync with config changes
+  useEffect(() => {
+    setUrlInput(supabaseConfig.url);
+    setKeyInput(supabaseConfig.anonKey);
+    setIsEditingKeys(!supabaseConfig.url);
+  }, [supabaseConfig]);
+
+  const handleConnectDb = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!urlInput.trim() || !keyInput.trim()) {
+      alert("Inserisci sia l'URL che la chiave Anon di Supabase!");
+      return;
+    }
+    const success = onConnectSupabase(urlInput.trim(), keyInput.trim());
+    if (success) {
+      setIsEditingKeys(false);
+    } else {
+      alert("Impossibile connettere a Supabase. Verifica le tue credenziali.");
+    }
+  };
+
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supabase) {
+      alert("Configura prima le chiavi di Supabase!");
+      return;
+    }
+    setAuthLoading(true);
+    setAuthError('');
+    try {
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) {
+          setAuthError(error.message);
+        } else {
+          alert("Registrazione completata! Verifica la tua email o effettua l'accesso se la conferma email è disattivata su Supabase.");
+          setIsSignUp(false);
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) {
+          setAuthError(error.message);
+        }
+      }
+    } catch (err: any) {
+      setAuthError(err.message);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    if (supabase) {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        alert("Errore durante la disconnessione: " + error.message);
+      }
+    }
+  };
 
   const handleExport = () => {
     try {
@@ -121,9 +246,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <button type="button" className="btn-close-modal" onClick={onClose} title="Chiudi">
             <XIcon size={14} />
           </button>
-        </header>
-
-        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '10px 0' }}>
+        </header>        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '10px 6px 10px 0', maxHeight: '72vh', overflowY: 'auto' }}>
+          <style>{`
+            @keyframes spin-slow {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+            .spin-loader {
+              animation: spin-slow 1.5s linear infinite;
+            }
+            .btn-xs {
+              padding: 4px 8px;
+              font-size: 11px;
+            }
+          `}</style>
           
           {/* Colors Customization Section */}
           <section className="settings-section">
@@ -201,13 +337,205 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           <hr style={{ border: 'none', borderBottom: '1px solid rgba(255,255,255,0.08)', margin: 0 }} />
 
+          {/* Supabase Cloud Sync Section */}
+          <section className="settings-section" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <CloudIcon size={15} style={{ color: 'var(--accent-primary)' }} />
+              <h4 style={{ fontSize: '12px', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.05em', margin: 0, fontWeight: 700 }}>
+                Sincronizzazione Cloud (Supabase)
+              </h4>
+            </div>
+
+            {isEditingKeys ? (
+              <form onSubmit={handleConnectDb} style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <p style={{ fontSize: '11px', color: '#a1a1aa', lineHeight: '1.4', margin: 0 }}>
+                  Connetti un database Supabase per salvare automaticamente i tuoi dati sul Cloud e sincronizzarli tra dispositivi.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '10px', fontWeight: 600, color: '#a1a1aa' }}>SUPABASE PROJECT URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://xyz.supabase.co"
+                    value={urlInput}
+                    onChange={(e) => setUrlInput(e.target.value)}
+                    style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '6px 10px', color: '#fff', fontSize: '12px' }}
+                    required
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '10px', fontWeight: 600, color: '#a1a1aa' }}>SUPABASE ANON PUBLIC KEY</label>
+                  <input
+                    type="password"
+                    placeholder="eyJhbGciOiJIUzI1NiIsIn..."
+                    value={keyInput}
+                    onChange={(e) => setKeyInput(e.target.value)}
+                    style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '6px 10px', color: '#fff', fontSize: '12px' }}
+                    required
+                  />
+                </div>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                  <button type="submit" className="btn btn-primary btn-sm" style={{ flex: 1, justifyContent: 'center' }}>
+                    <DatabaseIcon size={13} />
+                    <span>Connetti Database</span>
+                  </button>
+                  {supabaseConfig.url && (
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => setIsEditingKeys(false)}>
+                      Annulla
+                    </button>
+                  )}
+                </div>
+              </form>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* DB Info Banner */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(16, 185, 129, 0.04)', border: '1px solid rgba(16, 185, 129, 0.15)', padding: '10px', borderRadius: '6px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+                    <span style={{ fontSize: '11px', fontWeight: 600, color: '#a7f3d0' }}>Database Connesso</span>
+                  </div>
+                  <button
+                    type="button"
+                    style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '10px', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+                    onClick={() => setIsEditingKeys(true)}
+                  >
+                    Modifica chiavi
+                  </button>
+                </div>
+
+                {/* Authentication Panel */}
+                {!user ? (
+                  <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '2px', marginBottom: '4px' }}>
+                      <button
+                        type="button"
+                        onClick={() => { setIsSignUp(false); setAuthError(''); }}
+                        style={{ flex: 1, background: 'none', border: 'none', borderBottom: !isSignUp ? '2px solid var(--accent-primary)' : 'none', color: !isSignUp ? '#fff' : '#71717a', padding: '6px 0', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Accedi
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setIsSignUp(true); setAuthError(''); }}
+                        style={{ flex: 1, background: 'none', border: 'none', borderBottom: isSignUp ? '2px solid var(--accent-primary)' : 'none', color: isSignUp ? '#fff' : '#71717a', padding: '6px 0', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Registrati
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '10px', fontWeight: 600, color: '#a1a1aa' }}>EMAIL</label>
+                      <input
+                        type="email"
+                        placeholder="nome@esempio.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '6px 10px', color: '#fff', fontSize: '12px' }}
+                        required
+                      />
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <label style={{ fontSize: '10px', fontWeight: 600, color: '#a1a1aa' }}>PASSWORD</label>
+                      <input
+                        type="password"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '6px 10px', color: '#fff', fontSize: '12px' }}
+                        required
+                      />
+                    </div>
+
+                    {authError && (
+                      <div style={{ fontSize: '10px', color: '#f87171', background: 'rgba(248, 113, 113, 0.05)', border: '1px solid rgba(248, 113, 113, 0.15)', padding: '6px 8px', borderRadius: '4px' }}>
+                        {authError}
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={authLoading}
+                      className="btn btn-primary btn-sm"
+                      style={{ width: '100%', justifyContent: 'center', marginTop: '6px' }}
+                    >
+                      <LockIcon size={12} />
+                      <span>{authLoading ? 'Elaborazione...' : isSignUp ? 'Crea Account Cloud' : 'Accedi al Cloud'}</span>
+                    </button>
+                  </form>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                        <span style={{ fontSize: '10px', color: '#a1a1aa', fontWeight: 600 }}>ACCOUNT ATTIVO</span>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#fff', maxWidth: '190px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={user.email}>
+                          {user.email}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        className="btn btn-danger btn-xs"
+                        onClick={handleSignOut}
+                        style={{ fontSize: '10px', padding: '4px 8px' }}
+                      >
+                        Esci
+                      </button>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '10px', marginTop: '4px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
+                        <span style={{ fontSize: '10px', color: '#a1a1aa' }}>STATO CLOUD</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {isSyncing ? (
+                            <>
+                              <RefreshIcon size={10} className="spin-loader" style={{ color: 'var(--accent-primary)' }} />
+                              <span style={{ fontSize: '11px', color: '#e4e4e7' }}>In corso...</span>
+                            </>
+                          ) : (
+                            <>
+                              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
+                              <span style={{ fontSize: '11px', color: '#a1a1aa' }}>
+                                Sincronizzato: <strong style={{ color: '#fff' }}>{lastSynced || 'Ora'}</strong>
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={isSyncing}
+                        className="btn btn-secondary btn-xs"
+                        onClick={onForceSync}
+                        style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '10px', padding: '6px 10px' }}
+                      >
+                        <RefreshIcon size={10} className={isSyncing ? "spin-loader" : ""} />
+                        Sincronizza
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-4px' }}>
+                  <button
+                    type="button"
+                    style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+                    onClick={onDisconnectSupabase}
+                  >
+                    Disconnetti interamente database
+                  </button>
+                </div>
+              </div>
+            )}
+          </section>
+
+          <hr style={{ border: 'none', borderBottom: '1px solid rgba(255,255,255,0.08)', margin: 0 }} />
+
           {/* Backup & Restore Section */}
           <section className="settings-section">
             <h4 style={{ fontSize: '12px', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px', fontWeight: 700 }}>
-              Salvataggio & Backup
+              Salvataggio & Backup Locale
             </h4>
             <p style={{ fontSize: '11px', color: '#71717a', lineHeight: '1.4', marginBottom: '12px' }}>
-              Esporta lo stato completo del tuo workspace per non perdere i tuoi progressi, o ripristina un backup precedentemente salvato.
+              Esporta lo stato completo del tuo workspace in un file locale per non perdere i tuoi progressi, o ripristina un backup precedentemente salvato.
             </p>
             <div className="settings-actions-row" style={{ display: 'flex', gap: '10px' }}>
               <button 
