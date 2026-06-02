@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Subject, Task, TaskQuantityType } from '../types/planner';
+import type { Subject, Task, TaskQuantityType, WeekPlan } from '../types/planner';
 import { TrashIcon, BookIcon, PenIcon, SettingsIcon, CopyIcon, ChevronLeftIcon } from './Icons';
 import { CybersecurityLogo } from './CybersecurityLogo';
 
