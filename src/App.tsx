@@ -286,6 +286,8 @@ function App() {
     };
   });
 
+  const lastKnownStateStrRef = useRef<string>('');
+
   // --- Lifted Pomodoro Timer States ---
   const [timerMode, setTimerMode] = useState<'study' | 'short' | 'long'>(() => {
     const saved = localStorage.getItem('antigravity-studio-planner-timer-mode');
@@ -420,6 +422,16 @@ function App() {
         if (error && error.code !== 'PGRST116') {
           console.error('Error fetching remote state:', error);
         } else if (data) {
+          const remoteStateStr = JSON.stringify({
+            weeks: data.weeks,
+            subjects: data.subjects,
+            session_title: data.session_title,
+            event_colors: data.event_colors,
+            task_font_size: data.task_font_size,
+            day_font_size: data.day_font_size
+          });
+          lastKnownStateStrRef.current = remoteStateStr;
+
           setWeeks(data.weeks);
           setSubjects(data.subjects);
           setSessionTitle(data.session_title);
@@ -443,6 +455,18 @@ function App() {
     const client = supabase;
     if (!client || !user) return;
 
+    const currentStateStr = JSON.stringify({
+      weeks,
+      subjects,
+      session_title: sessionTitle,
+      event_colors: eventColors,
+      task_font_size: taskFontSize,
+      day_font_size: dayFontSize
+    });
+
+    // If local state matches the last known remote state, skip pushing
+    if (currentStateStr === lastKnownStateStrRef.current) return;
+
     const handler = setTimeout(async () => {
       setIsSyncing(true);
       try {
@@ -462,6 +486,7 @@ function App() {
         if (error) {
           console.error('Error auto-syncing with cloud database:', error);
         } else {
+          lastKnownStateStrRef.current = currentStateStr;
           setLastSynced(new Date().toLocaleTimeString());
         }
       } catch (err) {
@@ -473,6 +498,66 @@ function App() {
 
     return () => clearTimeout(handler);
   }, [weeks, subjects, sessionTitle, eventColors, taskFontSize, dayFontSize, user]);
+
+  // Periodic background pull: fetch remote state every 5 minutes to sync changes from other devices
+  useEffect(() => {
+    const client = supabase;
+    if (!client || !user) return;
+
+    const pullInterval = setInterval(async () => {
+      if (isSyncing) return; // Skip if we are pushing to avoid overwrite
+
+      try {
+        const { data, error } = await client
+          .from('user_planner_state')
+          .select('*')
+          .single();
+
+        if (error) {
+          if (error.code !== 'PGRST116') {
+            console.error('Error in periodic background pull:', error);
+          }
+          return;
+        }
+
+        if (data) {
+          const remoteStateStr = JSON.stringify({
+            weeks: data.weeks,
+            subjects: data.subjects,
+            session_title: data.session_title,
+            event_colors: data.event_colors,
+            task_font_size: data.task_font_size,
+            day_font_size: data.day_font_size
+          });
+
+          const localStateStr = JSON.stringify({
+            weeks,
+            subjects,
+            session_title: sessionTitle,
+            event_colors: eventColors,
+            task_font_size: taskFontSize,
+            day_font_size: dayFontSize
+          });
+
+          // Update only if remote changes have occurred
+          if (remoteStateStr !== localStateStr) {
+            lastKnownStateStrRef.current = remoteStateStr;
+            setWeeks(data.weeks);
+            setSubjects(data.subjects);
+            setSessionTitle(data.session_title);
+            if (data.event_colors) setEventColors(data.event_colors);
+            if (data.task_font_size) setTaskFontSize(data.task_font_size);
+            if (data.day_font_size) setDayFontSize(data.day_font_size);
+            setLastSynced(new Date(data.updated_at).toLocaleTimeString());
+          }
+        }
+      } catch (err) {
+        console.error('Failed background pull:', err);
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(pullInterval);
+  }, [user, weeks, subjects, sessionTitle, eventColors, taskFontSize, dayFontSize, isSyncing, supabaseConfig]);
 
   // Manual Sync Trigger
   const handleForceSync = async () => {
@@ -496,6 +581,15 @@ function App() {
       if (error) {
         alert("Errore durante la sincronizzazione: " + error.message);
       } else {
+        const currentStateStr = JSON.stringify({
+          weeks,
+          subjects,
+          session_title: sessionTitle,
+          event_colors: eventColors,
+          task_font_size: taskFontSize,
+          day_font_size: dayFontSize
+        });
+        lastKnownStateStrRef.current = currentStateStr;
         setLastSynced(new Date().toLocaleTimeString());
         alert("Sincronizzazione completata con successo!");
       }
