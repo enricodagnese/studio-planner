@@ -165,7 +165,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     const newCompleted = !foundItem.completed;
 
     if (newCompleted) {
-      SoundUtility.playTaskCompleted();
+      SoundUtility.playTaskCompleted(foundItem.eventType);
     }
 
     // Update calendar weeks immutably

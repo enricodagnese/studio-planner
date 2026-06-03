@@ -16,8 +16,108 @@ class SoundUtility {
     return this.ctx;
   }
 
-  // Chime for task completed: double pleasant ping
-  public static playTaskCompleted() {
+  // Fanfare / Celebration chime for exams completed
+  public static playExamCompleted() {
+    try {
+      const ctx = this.getContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+
+      const playTone = (time: number, freq: number, duration: number, volume = 0.1) => {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        osc.type = 'triangle'; // warmer sound
+        osc.frequency.setValueAtTime(freq, time);
+        gainNode.gain.setValueAtTime(volume, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+        osc.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        osc.start(time);
+        osc.stop(time + duration);
+      };
+
+      // Triumphant progression: C5 -> E5 -> G5 -> C6
+      playTone(now, 523.25, 0.4);        // C5
+      playTone(now + 0.1, 659.25, 0.4);  // E5
+      playTone(now + 0.2, 783.99, 0.4);  // G5
+      playTone(now + 0.3, 1046.50, 0.8, 0.12); // C6 (long and slightly louder)
+    } catch (e) {
+      console.warn("Audio play blocked", e);
+    }
+  }
+
+  // Bouncy, playful bubble/pop sound for leisure/fun activities completed
+  public static playLeisureCompleted() {
+    try {
+      const ctx = this.getContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+
+      const playBubble = (time: number, freqStart: number, freqEnd: number, duration: number) => {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freqStart, time);
+        osc.frequency.exponentialRampToValueAtTime(freqEnd, time + duration);
+        gainNode.gain.setValueAtTime(0.08, time);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, time + duration);
+        osc.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        osc.start(time);
+        osc.stop(time + duration);
+      };
+
+      // Play two quick upward bubbles
+      playBubble(now, 400, 800, 0.12);
+      playBubble(now + 0.08, 600, 1200, 0.15);
+    } catch (e) {
+      console.warn("Audio play blocked", e);
+    }
+  }
+
+  // Classic dual-frequency resonant bell sound for lectures/lessons completed
+  public static playLectureCompleted() {
+    try {
+      const ctx = this.getContext();
+      if (!ctx) return;
+      const now = ctx.currentTime;
+
+      const playBellNode = (freq: number, volume: number) => {
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+        gainNode.gain.setValueAtTime(volume, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+        osc.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.6);
+      };
+
+      // Ringing dual frequency (A5 + C#6)
+      playBellNode(880, 0.08);    // A5
+      playBellNode(1109.73, 0.06); // C#6
+    } catch (e) {
+      console.warn("Audio play blocked", e);
+    }
+  }
+
+  // Chime for task completed: double pleasant ping, or custom sounds for events
+  public static playTaskCompleted(eventType?: 'esame' | 'svago' | 'lezione' | 'altro' | string) {
+    if (eventType === 'esame') {
+      this.playExamCompleted();
+      return;
+    }
+    if (eventType === 'svago') {
+      this.playLeisureCompleted();
+      return;
+    }
+    if (eventType === 'lezione') {
+      this.playLectureCompleted();
+      return;
+    }
+
     try {
       const ctx = this.getContext();
       if (!ctx) return;

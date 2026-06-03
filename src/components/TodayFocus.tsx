@@ -158,7 +158,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
     const newCompleted = !foundItem.completed;
 
     if (newCompleted) {
-      SoundUtility.playTaskCompleted();
+      SoundUtility.playTaskCompleted(foundItem.eventType);
     }
 
     // Update calendar weeks immutably
