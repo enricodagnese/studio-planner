@@ -326,7 +326,7 @@ function App() {
         short: customDurations.short * 60,
         long: customDurations.long * 60
       };
-      setTimeLeft(timerSettings[timerMode].duration || timerSettings[timerMode]);
+      setTimeLeft(timerSettings[timerMode]);
     }
   }, [timerMode, customDurations]);
 
@@ -744,9 +744,7 @@ function App() {
             customDurations={customDurations}
             setCustomDurations={setCustomDurations}
             timeLeft={timeLeft}
-            setTimeLeft={setTimeLeft}
             timerRunning={timerRunning}
-            setTimerRunning={setTimerRunning}
             toggleTimer={toggleTimer}
             resetTimer={resetTimer}
           />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { WeekPlan, Subject, CalendarItem, TaskQuantityType } from '../types/planner';
 import SoundUtility from '../utils/audio';
 import { 
@@ -31,9 +31,7 @@ interface TodayFocusProps {
   customDurations: { study: number; short: number; long: number };
   setCustomDurations: (durations: { study: number; short: number; long: number }) => void;
   timeLeft: number;
-  setTimeLeft: React.Dispatch<React.SetStateAction<number>>;
   timerRunning: boolean;
-  setTimerRunning: (running: boolean) => void;
   toggleTimer: () => void;
   resetTimer: () => void;
 }
@@ -57,9 +55,7 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   customDurations,
   setCustomDurations,
   timeLeft,
-  setTimeLeft,
   timerRunning,
-  setTimerRunning,
   toggleTimer,
   resetTimer
 }) => {
