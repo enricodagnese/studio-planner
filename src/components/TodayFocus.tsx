@@ -24,6 +24,18 @@ interface TodayFocusProps {
   };
   taskFontSize?: number;
   dayFontSize?: number;
+
+  // Lifted timer states & triggers
+  timerMode: 'study' | 'short' | 'long';
+  setTimerMode: (mode: 'study' | 'short' | 'long') => void;
+  customDurations: { study: number; short: number; long: number };
+  setCustomDurations: (durations: { study: number; short: number; long: number }) => void;
+  timeLeft: number;
+  setTimeLeft: React.Dispatch<React.SetStateAction<number>>;
+  timerRunning: boolean;
+  setTimerRunning: (running: boolean) => void;
+  toggleTimer: () => void;
+  resetTimer: () => void;
 }
 
 interface QuickTodo {
@@ -39,7 +51,17 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   onUpdateSubjects,
   eventColors = { esame: '#ef4444', svago: '#3b82f6', lezione: '#10b981', altro: '#a78bfa' },
   taskFontSize = 26,
-  dayFontSize = 30
+  dayFontSize = 30,
+  timerMode,
+  setTimerMode,
+  customDurations,
+  setCustomDurations,
+  timeLeft,
+  setTimeLeft,
+  timerRunning,
+  setTimerRunning,
+  toggleTimer,
+  resetTimer
 }) => {
   // 1. --- Navigation & Date Logic ---
   // Create a flat array of all scheduled days for easier navigation
@@ -61,16 +83,6 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   const activeDay = allDays[initialIndex];
 
   // 2. --- Pomodoro Timer Widget (Redesigned & Customizable) ---
-  const [timerMode, setTimerMode] = useState<'study' | 'short' | 'long'>(() => {
-    const saved = localStorage.getItem('antigravity-studio-planner-timer-mode');
-    return (saved as 'study' | 'short' | 'long') || 'study';
-  });
-
-  const [customDurations, setCustomDurations] = useState<{ study: number; short: number; long: number }>(() => {
-    const saved = localStorage.getItem('antigravity-studio-planner-pomodoro-durations');
-    return saved ? JSON.parse(saved) : { study: 25, short: 5, long: 15 };
-  });
-
   const [showTimerSettings, setShowTimerSettings] = useState(false);
 
   const timerSettings = {
@@ -80,75 +92,11 @@ export const TodayFocus: React.FC<TodayFocusProps> = ({
   };
 
   const currentSettings = timerSettings[timerMode];
-  const [timeLeft, setTimeLeft] = useState(currentSettings.duration);
-  const [timerRunning, setTimerRunning] = useState(false);
-  const timerIntervalRef = useRef<any>(null);
-
-  // Save mode and durations
-  useEffect(() => {
-    localStorage.setItem('antigravity-studio-planner-timer-mode', timerMode);
-  }, [timerMode]);
-
-  useEffect(() => {
-    localStorage.setItem('antigravity-studio-planner-pomodoro-durations', JSON.stringify(customDurations));
-  }, [customDurations]);
-
-  // When mode or durations change, reset duration if timer not running
-  useEffect(() => {
-    if (!timerRunning) {
-      setTimeLeft(timerSettings[timerMode].duration);
-    }
-  }, [timerMode, customDurations, timerRunning]);
-
-  // Handle countdown loop
-  useEffect(() => {
-    if (timerRunning) {
-      timerIntervalRef.current = setInterval(() => {
-        setTimeLeft((prev) => {
-          if (prev <= 1) {
-            setTimerRunning(false);
-            if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-            playCompletionSound();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    }
-
-    return () => {
-      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    };
-  }, [timerRunning]);
-
-  const toggleTimer = () => {
-    const nextRunning = !timerRunning;
-    setTimerRunning(nextRunning);
-    if (nextRunning) {
-      SoundUtility.playTimerStart();
-    } else {
-      SoundUtility.playTimerPause();
-    }
-  };
-
-  const resetTimer = () => {
-    setTimerRunning(false);
-    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-    setTimeLeft(timerSettings[timerMode].duration);
-    SoundUtility.playTimerPause();
-  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  // Sound Synthesizer via Web Audio API (Triple C5-E5-G5 Major Chime)
-  const playCompletionSound = () => {
-    SoundUtility.playTimerComplete();
   };
 
   // Streak Widget removed per user request

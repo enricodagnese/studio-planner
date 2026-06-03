@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { PlannerState, Subject, WeekPlan } from './types/planner';
 import { MaterialsList } from './components/MaterialsList';
 import { WeeklyGrid } from './components/WeeklyGrid';
@@ -285,6 +285,95 @@ function App() {
       anonKey: localStorage.getItem('antigravity-studio-planner-supabase-key') || ''
     };
   });
+
+  // --- Lifted Pomodoro Timer States ---
+  const [timerMode, setTimerMode] = useState<'study' | 'short' | 'long'>(() => {
+    const saved = localStorage.getItem('antigravity-studio-planner-timer-mode');
+    return (saved as 'study' | 'short' | 'long') || 'study';
+  });
+
+  const [customDurations, setCustomDurations] = useState<{ study: number; short: number; long: number }>(() => {
+    const saved = localStorage.getItem('antigravity-studio-planner-pomodoro-durations');
+    return saved ? JSON.parse(saved) : { study: 25, short: 5, long: 15 };
+  });
+
+  const [timeLeft, setTimeLeft] = useState(() => {
+    const timerSettings = {
+      study: customDurations.study * 60,
+      short: customDurations.short * 60,
+      long: customDurations.long * 60
+    };
+    return timerSettings[timerMode];
+  });
+  const [timerRunning, setTimerRunning] = useState(false);
+  const timerIntervalRef = useRef<any>(null);
+
+  // Sync mode and durations to localStorage
+  useEffect(() => {
+    localStorage.setItem('antigravity-studio-planner-timer-mode', timerMode);
+  }, [timerMode]);
+
+  useEffect(() => {
+    localStorage.setItem('antigravity-studio-planner-pomodoro-durations', JSON.stringify(customDurations));
+  }, [customDurations]);
+
+  // When mode or durations change, reset duration if timer not running
+  // NOTE: We DO NOT put timerRunning here to avoid resetting the remaining time when pausing!
+  useEffect(() => {
+    if (!timerRunning) {
+      const timerSettings = {
+        study: customDurations.study * 60,
+        short: customDurations.short * 60,
+        long: customDurations.long * 60
+      };
+      setTimeLeft(timerSettings[timerMode].duration || timerSettings[timerMode]);
+    }
+  }, [timerMode, customDurations]);
+
+  // Timer countdown loop
+  useEffect(() => {
+    if (timerRunning) {
+      timerIntervalRef.current = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            setTimerRunning(false);
+            if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+            SoundUtility.playTimerComplete();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    }
+
+    return () => {
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    };
+  }, [timerRunning]);
+
+  const toggleTimer = () => {
+    const nextRunning = !timerRunning;
+    setTimerRunning(nextRunning);
+    if (nextRunning) {
+      SoundUtility.playTimerStart();
+    } else {
+      SoundUtility.playTimerPause();
+    }
+  };
+
+  const resetTimer = () => {
+    setTimerRunning(false);
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    const timerSettings = {
+      study: customDurations.study * 60,
+      short: customDurations.short * 60,
+      long: customDurations.long * 60
+    };
+    setTimeLeft(timerSettings[timerMode]);
+    SoundUtility.playTimerPause();
+  };
 
 
   // Sync version on mount (after state is set)
@@ -634,62 +723,78 @@ function App() {
       </header>
 
 
-      <div className="tab-pane-container" style={{ display: activeTab === 'subjects' ? 'block' : 'none' }}>
-        <SubjectsManager subjects={subjects} onUpdateSubjects={setSubjects} onResetAll={handleResetAll} weeks={weeks} />
-      </div>
-
-      <div className="tab-pane-container" style={{ display: activeTab === 'oggi' ? 'block' : 'none' }}>
-        <TodayFocus
-          weeks={weeks}
-          subjects={subjects}
-          onUpdateAllWeeks={setWeeks}
-          onUpdateSubjects={setSubjects}
-          eventColors={eventColors}
-          taskFontSize={taskFontSize}
-          dayFontSize={dayFontSize}
-        />
-      </div>
-
-      <div className="tab-pane-container main-dashboard-layout" style={{ display: activeTab === 'planner' ? 'flex' : 'none' }}>
-        {/* Sidebar — always in DOM, animated via CSS */}
-        <aside className={`layout-left-column ${isSidebarOpen ? '' : 'sidebar-panel-closed'}`}>
-          <MaterialsList
-            subjects={subjects}
-            weeks={weeks}
-            onAddSubject={handleAddSubject}
-            onToggleSubject={handleToggleSubject}
-            onDeleteSubject={handleDeleteSubject}
-            onUpdateSubjects={setSubjects}
-          />
-        </aside>
-
-        {/* Sidebar toggle strip — always visible at boundary */}
-        <div className="sidebar-handle-col">
-          <button
-            className={`sidebar-strip-toggle ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            title={isSidebarOpen ? 'Chiudi libreria' : 'Apri libreria'}
-          >
-            {isSidebarOpen ? <ChevronLeftIcon size={13} /> : <ChevronRightIcon size={13} />}
-          </button>
+      {activeTab === 'subjects' && (
+        <div className="tab-pane-container">
+          <SubjectsManager subjects={subjects} onUpdateSubjects={setSubjects} onResetAll={handleResetAll} weeks={weeks} />
         </div>
+      )}
 
-        <main className="layout-right-column">
-          {weeks
-            .filter((week) => !isWeekInPast(week))
-            .map((week) => (
-              <div key={week.id} className="week-wrapper">
-                <WeeklyGrid
-                  activeWeek={week}
-                  weeks={weeks}
-                  subjects={subjects}
-                  onUpdateAllWeeks={setWeeks}
-                  onUpdateSubjects={setSubjects}
-                />
-              </div>
-            ))}
-        </main>
-      </div>
+      {activeTab === 'oggi' && (
+        <div className="tab-pane-container">
+          <TodayFocus
+            weeks={weeks}
+            subjects={subjects}
+            onUpdateAllWeeks={setWeeks}
+            onUpdateSubjects={setSubjects}
+            eventColors={eventColors}
+            taskFontSize={taskFontSize}
+            dayFontSize={dayFontSize}
+            timerMode={timerMode}
+            setTimerMode={setTimerMode}
+            customDurations={customDurations}
+            setCustomDurations={setCustomDurations}
+            timeLeft={timeLeft}
+            setTimeLeft={setTimeLeft}
+            timerRunning={timerRunning}
+            setTimerRunning={setTimerRunning}
+            toggleTimer={toggleTimer}
+            resetTimer={resetTimer}
+          />
+        </div>
+      )}
+
+      {activeTab === 'planner' && (
+        <div className="tab-pane-container main-dashboard-layout">
+          {/* Sidebar — always in DOM, animated via CSS */}
+          <aside className={`layout-left-column ${isSidebarOpen ? '' : 'sidebar-panel-closed'}`}>
+            <MaterialsList
+              subjects={subjects}
+              weeks={weeks}
+              onAddSubject={handleAddSubject}
+              onToggleSubject={handleToggleSubject}
+              onDeleteSubject={handleDeleteSubject}
+              onUpdateSubjects={setSubjects}
+            />
+          </aside>
+
+          {/* Sidebar toggle strip — always visible at boundary */}
+          <div className="sidebar-handle-col">
+            <button
+              className={`sidebar-strip-toggle ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              title={isSidebarOpen ? 'Chiudi libreria' : 'Apri libreria'}
+            >
+              {isSidebarOpen ? <ChevronLeftIcon size={13} /> : <ChevronRightIcon size={13} />}
+            </button>
+          </div>
+
+          <main className="layout-right-column">
+            {weeks
+              .filter((week) => !isWeekInPast(week))
+              .map((week) => (
+                <div key={week.id} className="week-wrapper">
+                  <WeeklyGrid
+                    activeWeek={week}
+                    weeks={weeks}
+                    subjects={subjects}
+                    onUpdateAllWeeks={setWeeks}
+                    onUpdateSubjects={setSubjects}
+                  />
+                </div>
+              ))}
+          </main>
+        </div>
+      )}
 
       {showAddEventModal && (
         <AddEventModal
