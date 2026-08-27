@@ -248,6 +248,7 @@ function App() {
   // --- Supabase Cloud Sync States ---
   const [user, setUser] = useState<any>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncError, setSyncError] = useState<string>('');
   const [lastSynced, setLastSynced] = useState<string>('');
   const [supabaseConfig, setSupabaseConfig] = useState<{ url: string; anonKey: string }>(() => {
     const envUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -390,14 +391,47 @@ function App() {
     const fetchRemoteState = async () => {
       if (!client || !user) return;
       setIsSyncing(true);
+      setSyncError('');
       try {
         const { data, error } = await client
           .from('user_planner_state')
           .select('*')
           .single();
 
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error fetching remote state:', error);
+        if (error) {
+          if (error.code === 'PGRST116') {
+            // No remote state found yet: initial push of current local state
+            const { error: insertErr } = await client
+              .from('user_planner_state')
+              .upsert({
+                user_id: user.id,
+                weeks,
+                subjects,
+                session_title: sessionTitle,
+                event_colors: eventColors,
+                task_font_size: taskFontSize,
+                day_font_size: dayFontSize,
+                updated_at: new Date().toISOString()
+              });
+            if (insertErr) {
+              console.error('Initial state upload failed:', insertErr);
+              setSyncError(insertErr.message);
+            } else {
+              const currentStateStr = JSON.stringify({
+                weeks,
+                subjects,
+                session_title: sessionTitle,
+                event_colors: eventColors,
+                task_font_size: taskFontSize,
+                day_font_size: dayFontSize
+              });
+              lastKnownStateStrRef.current = currentStateStr;
+              setLastSynced(new Date().toLocaleTimeString());
+            }
+          } else {
+            console.error('Error fetching remote state:', error);
+            setSyncError(error.message);
+          }
         } else if (data) {
           const remoteStateStr = JSON.stringify({
             weeks: data.weeks,
@@ -409,23 +443,24 @@ function App() {
           });
           lastKnownStateStrRef.current = remoteStateStr;
 
-          setWeeks(data.weeks);
-          setSubjects(data.subjects);
-          setSessionTitle(data.session_title);
+          if (data.weeks && Array.isArray(data.weeks) && data.weeks.length > 0) setWeeks(data.weeks);
+          if (data.subjects && Array.isArray(data.subjects)) setSubjects(data.subjects);
+          if (data.session_title) setSessionTitle(data.session_title);
           if (data.event_colors) setEventColors(data.event_colors);
           if (data.task_font_size) setTaskFontSize(data.task_font_size);
           if (data.day_font_size) setDayFontSize(data.day_font_size);
           setLastSynced(new Date(data.updated_at).toLocaleTimeString());
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to sync remote data:', err);
+        setSyncError(err?.message || 'Errore di connessione a Supabase');
       } finally {
         setIsSyncing(false);
       }
     };
 
     fetchRemoteState();
-  }, [user]);
+  }, [user, supabaseConfig]);
 
   // Debounced Cloud Sync: push state changes to Supabase 1 second after user stops typing/clicking
   useEffect(() => {
@@ -462,12 +497,15 @@ function App() {
 
         if (error) {
           console.error('Error auto-syncing with cloud database:', error);
+          setSyncError(error.message);
         } else {
+          setSyncError('');
           lastKnownStateStrRef.current = currentStateStr;
           setLastSynced(new Date().toLocaleTimeString());
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed auto-sync push:', err);
+        setSyncError(err?.message || 'Errore durante il salvataggio su Supabase');
       } finally {
         setIsSyncing(false);
       }
@@ -556,8 +594,10 @@ function App() {
         });
 
       if (error) {
+        setSyncError(error.message);
         alert("Errore durante la sincronizzazione: " + error.message);
       } else {
+        setSyncError('');
         const currentStateStr = JSON.stringify({
           weeks,
           subjects,
@@ -571,6 +611,7 @@ function App() {
         alert("Sincronizzazione completata con successo!");
       }
     } catch (err: any) {
+      setSyncError(err?.message || 'Errore di rete');
       alert("Errore di rete: " + err.message);
     } finally {
       setIsSyncing(false);
@@ -581,6 +622,7 @@ function App() {
     const success = updateSupabaseClient(url, key);
     if (success) {
       setSupabaseConfig({ url, anonKey: key });
+      setSyncError('');
       return true;
     }
     return false;
@@ -591,6 +633,7 @@ function App() {
     setSupabaseConfig({ url: '', anonKey: '' });
     setUser(null);
     setLastSynced('');
+    setSyncError('');
   };
 
   // Sync task completed state from subjects to calendar items
@@ -889,6 +932,7 @@ function App() {
           onChangeDayFontSize={setDayFontSize}
           user={user}
           isSyncing={isSyncing}
+          syncError={syncError}
           lastSynced={lastSynced}
           supabaseConfig={supabaseConfig}
           onConnectSupabase={handleConnectSupabase}

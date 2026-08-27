@@ -32,11 +32,16 @@ export const getSupabaseCredentials = (): SupabaseCredentials | null => {
 
 // Initialize Supabase client
 export const initSupabaseClient = (url?: string, key?: string): SupabaseClient | null => {
-  const targetUrl = url || localStorage.getItem(STORAGE_URL_KEY) || import.meta.env.VITE_SUPABASE_URL;
-  const targetKey = key || localStorage.getItem(STORAGE_KEY_KEY) || import.meta.env.VITE_SUPABASE_ANON_KEY;
+  let targetUrl = (url || localStorage.getItem(STORAGE_URL_KEY) || import.meta.env.VITE_SUPABASE_URL || '').trim();
+  let targetKey = (key || localStorage.getItem(STORAGE_KEY_KEY) || import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
 
   if (!targetUrl || !targetKey) {
     return null;
+  }
+
+  // Ensure url starts with https:// if protocol was omitted
+  if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+    targetUrl = 'https://' + targetUrl;
   }
 
   try {

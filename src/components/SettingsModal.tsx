@@ -30,6 +30,7 @@ interface SettingsModalProps {
   // Supabase states & handlers
   user: any;
   isSyncing: boolean;
+  syncError?: string;
   lastSynced: string;
   supabaseConfig: { url: string; anonKey: string };
   onConnectSupabase: (url: string, key: string) => boolean;
@@ -43,6 +44,38 @@ const DEFAULT_COLORS = {
   lezione: '#10b981',
   altro: '#a78bfa'
 };
+
+const SUPABASE_SQL_SETUP = `-- 1. Crea la tabella per salvare lo stato dello studio
+CREATE TABLE IF NOT EXISTS public.user_planner_state (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  weeks JSONB NOT NULL DEFAULT '[]'::JSONB,
+  subjects JSONB NOT NULL DEFAULT '[]'::JSONB,
+  session_title TEXT DEFAULT 'SESSIONE ESTIVA',
+  event_colors JSONB DEFAULT '{"esame":"#ef4444","svago":"#3b82f6","lezione":"#10b981","altro":"#a78bfa"}'::JSONB,
+  task_font_size INTEGER DEFAULT 26,
+  day_font_size INTEGER DEFAULT 30,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- 2. Abilita la sicurezza a livello di riga (RLS)
+ALTER TABLE public.user_planner_state ENABLE ROW LEVEL SECURITY;
+
+-- 3. Crea le policy di accesso utente
+DROP POLICY IF EXISTS "Users can read own planner state" ON public.user_planner_state;
+CREATE POLICY "Users can read own planner state"
+  ON public.user_planner_state FOR SELECT
+  USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can insert own planner state" ON public.user_planner_state;
+CREATE POLICY "Users can insert own planner state"
+  ON public.user_planner_state FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "Users can update own planner state" ON public.user_planner_state;
+CREATE POLICY "Users can update own planner state"
+  ON public.user_planner_state FOR UPDATE
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);`;
 
 const CloudIcon = ({ size = 16, style = {} }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
@@ -89,6 +122,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onChangeDayFontSize,
   user,
   isSyncing,
+  syncError,
   lastSynced,
   supabaseConfig,
   onConnectSupabase,
@@ -101,6 +135,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [urlInput, setUrlInput] = useState(supabaseConfig.url);
   const [keyInput, setKeyInput] = useState(supabaseConfig.anonKey);
   const [isEditingKeys, setIsEditingKeys] = useState(!supabaseConfig.url);
+  const [showSqlGuide, setShowSqlGuide] = useState(false);
+  const [copiedSql, setCopiedSql] = useState(false);
 
   // Auth Form States
   const [isSignUp, setIsSignUp] = useState(false);
@@ -130,37 +166,67 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }
   };
 
+  const handleCopySql = () => {
+    navigator.clipboard.writeText(SUPABASE_SQL_SETUP);
+    setCopiedSql(true);
+    setTimeout(() => setCopiedSql(false), 2500);
+  };
+
   const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!supabase) {
-      alert("Configura prima le chiavi di Supabase!");
+    let client = supabase;
+
+    // If supabase client not initialized or credentials modified, auto-connect first
+    if (!client || (urlInput.trim() && urlInput.trim() !== supabaseConfig.url) || (keyInput.trim() && keyInput.trim() !== supabaseConfig.anonKey)) {
+      if (urlInput.trim() && keyInput.trim()) {
+        const ok = onConnectSupabase(urlInput.trim(), keyInput.trim());
+        if (!ok) {
+          setAuthError("Impossibile inizializzare Supabase. Verifica URL e Anon Key.");
+          return;
+        }
+        client = supabase;
+      } else {
+        setAuthError("Configura prima l'URL e la Anon Key di Supabase.");
+        return;
+      }
+    }
+
+    if (!client) {
+      setAuthError("Client Supabase non configurato.");
       return;
     }
+
     setAuthLoading(true);
     setAuthError('');
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
+        const { error } = await client.auth.signUp({
+          email: email.trim(),
+          password: password.trim(),
         });
         if (error) {
           setAuthError(error.message);
         } else {
-          alert("Registrazione completata! Verifica la tua email o effettua l'accesso se la conferma email è disattivata su Supabase.");
+          alert("Registrazione completata! Se su Supabase è attiva la conferma email, clicca sul link ricevuto prima di accedere. Altrimenti puoi fare il login subito.");
           setIsSignUp(false);
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
+        const { error } = await client.auth.signInWithPassword({
+          email: email.trim(),
+          password: password.trim(),
         });
         if (error) {
-          setAuthError(error.message);
+          if (error.message.includes("Email not confirmed")) {
+            setAuthError("Email non confermata. Controlla la tua casella di posta per confermare, o disattiva 'Confirm email' su Supabase (Authentication -> Providers -> Email).");
+          } else if (error.message.includes("Invalid login credentials")) {
+            setAuthError("Credenziali non corrette. Verifica email e password o registrati se non hai ancora un account.");
+          } else {
+            setAuthError(error.message);
+          }
         }
       }
     } catch (err: any) {
-      setAuthError(err.message);
+      setAuthError(err?.message || "Errore di connessione a Supabase.");
     } finally {
       setAuthLoading(false);
     }
@@ -490,6 +556,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                               <RefreshIcon size={10} className="spin-loader" style={{ color: 'var(--accent-primary)' }} />
                               <span style={{ fontSize: '11px', color: '#e4e4e7' }}>In corso...</span>
                             </>
+                          ) : syncError ? (
+                            <>
+                              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' }} />
+                              <span style={{ fontSize: '11px', color: '#f87171' }}>Errore sincronizzazione</span>
+                            </>
                           ) : (
                             <>
                               <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} />
@@ -511,8 +582,60 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         Sincronizza
                       </button>
                     </div>
+
+                    {syncError && (
+                      <div style={{ fontSize: '11px', color: '#fca5a5', background: 'rgba(239, 68, 68, 0.08)', border: '1px solid rgba(239, 68, 68, 0.25)', padding: '8px 10px', borderRadius: '6px', lineHeight: '1.4' }}>
+                        <div style={{ fontWeight: 700, color: '#f87171', marginBottom: '2px' }}>Errore Database:</div>
+                        <div>{syncError}</div>
+                        {(syncError.includes('user_planner_state') || syncError.includes('relation') || syncError.includes('policy') || syncError.includes('42P01') || syncError.includes('PGRST')) && (
+                          <div style={{ marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed rgba(239,68,68,0.2)', fontSize: '10.5px' }}>
+                            💡 <em>La tabella o le regole di sicurezza (RLS) potrebbero non essere state create su Supabase.</em>
+                            <button
+                              type="button"
+                              onClick={() => setShowSqlGuide(!showSqlGuide)}
+                              style={{ background: 'none', border: 'none', color: '#38bdf8', textDecoration: 'underline', cursor: 'pointer', padding: '2px 0 0 0', display: 'block', fontSize: '11px', fontWeight: 600 }}
+                            >
+                              {showSqlGuide ? "▲ Chiudi Guida SQL" : "▼ Apri Script SQL per Supabase"}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
+
+                {/* SQL Table Setup Guide Accordion */}
+                <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowSqlGuide(!showSqlGuide)}
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'transparent', border: 'none', color: '#a1a1aa', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    <span>🛠️ Script Configurazione Database (SQL)</span>
+                    <span style={{ color: '#71717a' }}>{showSqlGuide ? '▲' : '▼'}</span>
+                  </button>
+                  
+                  {showSqlGuide && (
+                    <div style={{ padding: '10px 12px 12px 12px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <p style={{ fontSize: '11px', color: '#94a3b8', margin: 0, lineHeight: '1.4' }}>
+                        Vai nella sezione <strong>SQL Editor</strong> del tuo progetto su Supabase, incolla questo script e premi <strong>Run</strong>:
+                      </p>
+                      <pre style={{ background: '#090a0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '8px 10px', fontSize: '10px', color: '#38bdf8', overflowX: 'auto', maxHeight: '140px', margin: 0, fontFamily: 'monospace' }}>
+                        {SUPABASE_SQL_SETUP}
+                      </pre>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-xs"
+                          onClick={handleCopySql}
+                          style={{ fontSize: '10px', padding: '4px 10px', background: copiedSql ? 'rgba(16,185,129,0.2)' : undefined, color: copiedSql ? '#10b981' : undefined }}
+                        >
+                          {copiedSql ? "✓ Copiato negli appunti!" : "📋 Copia Script SQL"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
                 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-4px' }}>
                   <button
