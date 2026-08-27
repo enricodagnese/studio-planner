@@ -992,6 +992,78 @@ body {
 }
 
 /* ===================================================
+   SETTEMBRE: Stile Celeste Chiaro
+   =================================================== */
+
+/* Colonna del giorno di Settembre */
+.calendar-column.month-set {
+  background: rgba(14, 165, 233, 0.04) !important;
+  border-color: rgba(56, 189, 248, 0.25) !important;
+}
+
+.calendar-column.month-set:hover {
+  background: rgba(14, 165, 233, 0.07) !important;
+  border-color: rgba(56, 189, 248, 0.45) !important;
+}
+
+/* Header del giorno di Settembre */
+.cal-col-header-month.month-set {
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0.03) 100%) !important;
+  border-bottom: 2px solid rgba(56, 189, 248, 0.4) !important;
+}
+
+.month-set .day-name {
+  color: #7dd3fc !important;
+}
+
+.month-set .day-number-highlight {
+  color: #38bdf8 !important;
+}
+
+.month-set .day-month-neutral {
+  color: #38bdf8 !important;
+  font-weight: 700;
+}
+
+.month-set .time-slot-box {
+  border-color: rgba(56, 189, 248, 0.12);
+  background: rgba(14, 165, 233, 0.02);
+}
+
+/* Light Theme Overrides per Settembre */
+.light-theme .calendar-column.month-set {
+  background: #f0f9ff !important;
+  border-color: rgba(2, 132, 199, 0.2) !important;
+}
+
+.light-theme .calendar-column.month-set:hover {
+  background: #e0f2fe !important;
+  border-color: rgba(2, 132, 199, 0.35) !important;
+}
+
+.light-theme .cal-col-header-month.month-set {
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.2) 0%, rgba(56, 189, 248, 0.05) 100%) !important;
+  border-bottom: 2px solid rgba(2, 132, 199, 0.35) !important;
+}
+
+.light-theme .month-set .day-name {
+  color: #0369a1 !important;
+}
+
+.light-theme .month-set .day-number-highlight {
+  color: #0284c7 !important;
+}
+
+.light-theme .month-set .day-month-neutral {
+  color: #0284c7 !important;
+}
+
+.light-theme .month-set .time-slot-box {
+  border-color: rgba(2, 132, 199, 0.15);
+  background: rgba(240, 249, 255, 0.8);
+}
+
+/* ===================================================
    LIGHT MODE PRESETS & OVERRIDES
    =================================================== */
 

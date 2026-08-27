@@ -64,7 +64,8 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     const month = (dateLabel.split(' ')[1] || '').toLowerCase();
     if (month.includes('mag')) return 'month-mag';
     if (month.includes('giu')) return 'month-giu';
-    if (month.includes('lug') || month.includes('ago')) return 'month-lug';
+    if (month.includes('lug')) return 'month-lug';
+    if (month.includes('ago')) return 'month-ago';
     if (month.includes('set')) return 'month-set';
     return '';
   };
