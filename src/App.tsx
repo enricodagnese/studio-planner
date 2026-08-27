@@ -931,6 +931,7 @@ function App() {
           dayFontSize={dayFontSize}
           onChangeDayFontSize={setDayFontSize}
           user={user}
+          onUserChange={setUser}
           isSyncing={isSyncing}
           syncError={syncError}
           lastSynced={lastSynced}

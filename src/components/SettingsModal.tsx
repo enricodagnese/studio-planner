@@ -29,6 +29,7 @@ interface SettingsModalProps {
   
   // Supabase states & handlers
   user: any;
+  onUserChange: (user: any) => void;
   isSyncing: boolean;
   syncError?: string;
   lastSynced: string;
@@ -121,6 +122,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   dayFontSize,
   onChangeDayFontSize,
   user,
+  onUserChange,
   isSyncing,
   syncError,
   lastSynced,
@@ -200,18 +202,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     setAuthError('');
     try {
       if (isSignUp) {
-        const { error } = await client.auth.signUp({
+        const { data, error } = await client.auth.signUp({
           email: email.trim(),
           password: password.trim(),
         });
         if (error) {
           setAuthError(error.message);
         } else {
-          alert("Registrazione completata! Se su Supabase è attiva la conferma email, clicca sul link ricevuto prima di accedere. Altrimenti puoi fare il login subito.");
-          setIsSignUp(false);
+          if (data?.user && data?.session) {
+            onUserChange(data.user);
+          } else {
+            alert("Registrazione completata! Se su Supabase è attiva la conferma email, clicca sul link ricevuto prima di accedere. Altrimenti puoi fare il login subito.");
+            setIsSignUp(false);
+          }
         }
       } else {
-        const { error } = await client.auth.signInWithPassword({
+        const { data, error } = await client.auth.signInWithPassword({
           email: email.trim(),
           password: password.trim(),
         });
@@ -223,6 +229,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           } else {
             setAuthError(error.message);
           }
+        } else if (data?.user) {
+          onUserChange(data.user);
+          setAuthError('');
         }
       }
     } catch (err: any) {
@@ -239,6 +248,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         alert("Errore durante la disconnessione: " + error.message);
       }
     }
+    onUserChange(null);
   };
 
   const handleExport = () => {
