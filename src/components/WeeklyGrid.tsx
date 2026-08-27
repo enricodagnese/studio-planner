@@ -65,6 +65,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
     if (month.includes('mag')) return 'month-mag';
     if (month.includes('giu')) return 'month-giu';
     if (month.includes('lug') || month.includes('ago')) return 'month-lug';
+    if (month.includes('set')) return 'month-set';
     return '';
   };
 
@@ -285,8 +286,8 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
         const isPast = (() => {
           if (isToday) return false;
           const monthsMap: Record<string, number> = {
-            'Mag': 4, 'Giu': 5, 'Lug': 6, 'Ago': 7,
-            'mag': 4, 'giu': 5, 'lug': 6, 'ago': 7
+            'Gen': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'Mag': 4, 'Giu': 5, 'Lug': 6, 'Ago': 7, 'Set': 8, 'Ott': 9, 'Nov': 10, 'Dic': 11,
+            'gen': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'mag': 4, 'giu': 5, 'lug': 6, 'ago': 7, 'set': 8, 'ott': 9, 'nov': 10, 'dic': 11
           };
           const dateParts = day.dateLabel.split(' ');
           const dNum = parseInt(dateParts[0]);
@@ -295,7 +296,7 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
           const mNum = monthsMap[mStr];
           if (mNum === undefined) return false;
 
-          const currentYear = 2026;
+          const currentYear = todayDate.getFullYear();
           const dayPure = new Date(currentYear, mNum, dNum);
           const todayPure = new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate());
 

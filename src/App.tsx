@@ -13,7 +13,7 @@ import './App.css';
 
 
 // Version key for forced migration when data structure changes
-const PLANNER_VERSION = '4';
+const PLANNER_VERSION = '5';
 const VERSION_KEY = 'antigravity-studio-planner-version';
 
 const INITIAL_SUBJECTS: Subject[] = [
@@ -49,101 +49,66 @@ const INITIAL_SUBJECTS: Subject[] = [
   { id: 'subj-6', name: 'Cloud - Network soft.', pages: 17, completed: false, color: '#f472b6', logo: 'server', description: 'Reti software-defined (SDN) e piani di controllo/dati.', tasks: [] }
 ];
 
-// Calendar: May 25 2026 (Monday) → July 17 2026 (Friday)
-// Verification: Jan 1 2026 = Thursday. May 25 = Thursday + 144 days = Thursday + 20w4d = Monday ✓
+// Calendar: August 24 2026 (Monday) → September 27 2026 (Sunday)
 const INITIAL_WEEKS: WeekPlan[] = [
   {
-    id: 'week-1', name: 'Settimana 1: 25 Mag - 31 Mag',
+    id: 'week-1', name: 'Settimana 1: 24 Ago - 30 Ago',
     days: [
-      { id: 'w1d1', name: 'Lunedì 25',   dateLabel: '25 Mag', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w1d2', name: 'Martedì 26',  dateLabel: '26 Mag', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w1d3', name: 'Mercoledì 27',dateLabel: '27 Mag', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w1d4', name: 'Giovedì 28',  dateLabel: '28 Mag', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w1d5', name: 'Venerdì 29',  dateLabel: '29 Mag', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w1d6', name: 'Sabato 30',   dateLabel: '30 Mag', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w1d7', name: 'Domenica 31', dateLabel: '31 Mag', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w1d1', name: 'Lunedì 24',   dateLabel: '24 Ago', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w1d2', name: 'Martedì 25',  dateLabel: '25 Ago', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w1d3', name: 'Mercoledì 26',dateLabel: '26 Ago', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w1d4', name: 'Giovedì 27',  dateLabel: '27 Ago', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w1d5', name: 'Venerdì 28',  dateLabel: '28 Ago', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w1d6', name: 'Sabato 29',   dateLabel: '29 Ago', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w1d7', name: 'Domenica 30', dateLabel: '30 Ago', mattina: [], pomeriggio: [], sera: [] },
     ]
   },
   {
-    id: 'week-2', name: 'Settimana 2: 1 Giu - 7 Giu',
+    id: 'week-2', name: 'Settimana 2: 31 Ago - 6 Set',
     days: [
-      { id: 'w2d1', name: 'Lunedì 1',    dateLabel: '1 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w2d2', name: 'Martedì 2',   dateLabel: '2 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w2d3', name: 'Mercoledì 3', dateLabel: '3 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w2d4', name: 'Giovedì 4',   dateLabel: '4 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w2d5', name: 'Venerdì 5',   dateLabel: '5 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w2d6', name: 'Sabato 6',    dateLabel: '6 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w2d7', name: 'Domenica 7',  dateLabel: '7 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w2d1', name: 'Lunedì 31',   dateLabel: '31 Ago', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w2d2', name: 'Martedì 1',   dateLabel: '1 Set',  mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w2d3', name: 'Mercoledì 2', dateLabel: '2 Set',  mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w2d4', name: 'Giovedì 3',   dateLabel: '3 Set',  mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w2d5', name: 'Venerdì 4',   dateLabel: '4 Set',  mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w2d6', name: 'Sabato 5',    dateLabel: '5 Set',  mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w2d7', name: 'Domenica 6',  dateLabel: '6 Set',  mattina: [], pomeriggio: [], sera: [] },
     ]
   },
   {
-    id: 'week-3', name: 'Settimana 3: 8 Giu - 14 Giu',
+    id: 'week-3', name: 'Settimana 3: 7 Set - 13 Set',
     days: [
-      { id: 'w3d1', name: 'Lunedì 8',    dateLabel: '8 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w3d2', name: 'Martedì 9',   dateLabel: '9 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w3d3', name: 'Mercoledì 10',dateLabel: '10 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w3d4', name: 'Giovedì 11',  dateLabel: '11 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w3d5', name: 'Venerdì 12',  dateLabel: '12 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w3d6', name: 'Sabato 13',   dateLabel: '13 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w3d7', name: 'Domenica 14', dateLabel: '14 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w3d1', name: 'Lunedì 7',    dateLabel: '7 Set',  mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w3d2', name: 'Martedì 8',   dateLabel: '8 Set',  mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w3d3', name: 'Mercoledì 9', dateLabel: '9 Set',  mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w3d4', name: 'Giovedì 10',  dateLabel: '10 Set', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w3d5', name: 'Venerdì 11',  dateLabel: '11 Set', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w3d6', name: 'Sabato 12',   dateLabel: '12 Set', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w3d7', name: 'Domenica 13', dateLabel: '13 Set', mattina: [], pomeriggio: [], sera: [] },
     ]
   },
   {
-    id: 'week-4', name: 'Settimana 4: 15 Giu - 21 Giu',
+    id: 'week-4', name: 'Settimana 4: 14 Set - 20 Set',
     days: [
-      { id: 'w4d1', name: 'Lunedì 15',   dateLabel: '15 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w4d2', name: 'Martedì 16',  dateLabel: '16 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w4d3', name: 'Mercoledì 17',dateLabel: '17 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w4d4', name: 'Giovedì 18',  dateLabel: '18 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w4d5', name: 'Venerdì 19',  dateLabel: '19 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w4d6', name: 'Sabato 20',   dateLabel: '20 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w4d7', name: 'Domenica 21', dateLabel: '21 Giu', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w4d1', name: 'Lunedì 14',   dateLabel: '14 Set', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w4d2', name: 'Martedì 15',  dateLabel: '15 Set', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w4d3', name: 'Mercoledì 16',dateLabel: '16 Set', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w4d4', name: 'Giovedì 17',  dateLabel: '17 Set', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w4d5', name: 'Venerdì 18',  dateLabel: '18 Set', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w4d6', name: 'Sabato 19',   dateLabel: '19 Set', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w4d7', name: 'Domenica 20', dateLabel: '20 Set', mattina: [], pomeriggio: [], sera: [] },
     ]
   },
   {
-    id: 'week-5', name: 'Settimana 5: 22 Giu - 28 Giu',
+    id: 'week-5', name: 'Settimana 5: 21 Set - 27 Set',
     days: [
-      { id: 'w5d1', name: 'Lunedì 22',   dateLabel: '22 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w5d2', name: 'Martedì 23',  dateLabel: '23 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w5d3', name: 'Mercoledì 24',dateLabel: '24 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w5d4', name: 'Giovedì 25',  dateLabel: '25 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w5d5', name: 'Venerdì 26',  dateLabel: '26 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w5d6', name: 'Sabato 27',   dateLabel: '27 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w5d7', name: 'Domenica 28', dateLabel: '28 Giu', mattina: [], pomeriggio: [], sera: [] },
-    ]
-  },
-  {
-    id: 'week-6', name: 'Settimana 6: 29 Giu - 5 Lug',
-    days: [
-      { id: 'w6d1', name: 'Lunedì 29',   dateLabel: '29 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w6d2', name: 'Martedì 30',  dateLabel: '30 Giu', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w6d3', name: 'Mercoledì 1', dateLabel: '1 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w6d4', name: 'Giovedì 2',   dateLabel: '2 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w6d5', name: 'Venerdì 3',   dateLabel: '3 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w6d6', name: 'Sabato 4',    dateLabel: '4 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w6d7', name: 'Domenica 5',  dateLabel: '5 Lug', mattina: [], pomeriggio: [], sera: [] },
-    ]
-  },
-  {
-    id: 'week-7', name: 'Settimana 7: 6 Lug - 12 Lug',
-    days: [
-      { id: 'w7d1', name: 'Lunedì 6',    dateLabel: '6 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w7d2', name: 'Martedì 7',   dateLabel: '7 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w7d3', name: 'Mercoledì 8', dateLabel: '8 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w7d4', name: 'Giovedì 9',   dateLabel: '9 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w7d5', name: 'Venerdì 10',  dateLabel: '10 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w7d6', name: 'Sabato 11',   dateLabel: '11 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w7d7', name: 'Domenica 12', dateLabel: '12 Lug', mattina: [], pomeriggio: [], sera: [] },
-    ]
-  },
-  {
-    id: 'week-8', name: 'Settimana 8: 13 Lug - 17 Lug',
-    days: [
-      { id: 'w8d1', name: 'Lunedì 13',   dateLabel: '13 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w8d2', name: 'Martedì 14',  dateLabel: '14 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w8d3', name: 'Mercoledì 15',dateLabel: '15 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w8d4', name: 'Giovedì 16',  dateLabel: '16 Lug', mattina: [], pomeriggio: [], sera: [] },
-      { id: 'w8d5', name: 'Venerdì 17',  dateLabel: '17 Lug', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w5d1', name: 'Lunedì 21',   dateLabel: '21 Set', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w5d2', name: 'Martedì 22',  dateLabel: '22 Set', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w5d3', name: 'Mercoledì 23',dateLabel: '23 Set', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w5d4', name: 'Giovedì 24',  dateLabel: '24 Set', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w5d5', name: 'Venerdì 25',  dateLabel: '25 Set', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w5d6', name: 'Sabato 26',   dateLabel: '26 Set', mattina: [], pomeriggio: [], sera: [] },
+      { id: 'w5d7', name: 'Domenica 27', dateLabel: '27 Set', mattina: [], pomeriggio: [], sera: [] },
     ]
   },
 ];
@@ -170,7 +135,7 @@ const isWeekInPast = (week: WeekPlan): boolean => {
     const mNum = monthsMap[mStr];
     if (mNum === undefined) return false;
 
-    const currentYear = 2026;
+    const currentYear = todayDate.getFullYear();
     const dayPure = new Date(currentYear, mNum, dNum);
     return dayPure < todayPure;
   });
@@ -191,23 +156,31 @@ function App() {
       '💻': 'terminal', '📦': 'database', '📡': 'server', '📚': 'shield'
     };
     if (saved) {
-      const parsed = JSON.parse(saved) as Subject[];
-      return parsed.map((s) => ({
-        ...s,
-        color: colorMigrationMap[s.color] || s.color,
-        logo: logoMigrationMap[s.logo] || s.logo || 'shield',
-        description: s.description || '',
-        tasks: (s.tasks || []).map((t) => ({
-          ...t,
-          category: t.category || 'teoria',
-          quantityType: t.quantityType || 'pagine',
-        })),
-      }));
+      try {
+        const parsed = JSON.parse(saved) as Subject[];
+        return parsed.map((s) => ({
+          ...s,
+          color: colorMigrationMap[s.color] || s.color,
+          logo: logoMigrationMap[s.logo] || s.logo || 'shield',
+          description: s.description || '',
+          tasks: (s.tasks || []).map((t) => ({
+            ...t,
+            category: t.category || 'teoria',
+            quantityType: t.quantityType || 'pagine',
+          })),
+        }));
+      } catch (e) {
+        console.error("Failed to parse saved subjects", e);
+      }
     }
     return INITIAL_SUBJECTS;
   });
 
   const [weeks, setWeeks] = useState<WeekPlan[]>(() => {
+    const savedVersion = localStorage.getItem(VERSION_KEY);
+    if (savedVersion !== PLANNER_VERSION) {
+      return INITIAL_WEEKS;
+    }
     const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}-weeks`);
     if (saved) {
       try {
@@ -220,6 +193,10 @@ function App() {
   });
 
   const [activeWeekId, setActiveWeekId] = useState<string>(() => {
+    const savedVersion = localStorage.getItem(VERSION_KEY);
+    if (savedVersion !== PLANNER_VERSION) {
+      return INITIAL_WEEKS[0]?.id || 'week-1';
+    }
     const saved = localStorage.getItem(`${LOCAL_STORAGE_KEY}-activeWeekId`);
     if (saved) {
       const activeExists = weeks.some(w => w.id === saved);
