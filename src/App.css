@@ -992,78 +992,6 @@ body {
 }
 
 /* ===================================================
-   SETTEMBRE: Stile Celeste Chiaro
-   =================================================== */
-
-/* Colonna del giorno di Settembre */
-.calendar-column.month-set {
-  background: rgba(14, 165, 233, 0.04) !important;
-  border-color: rgba(56, 189, 248, 0.25) !important;
-}
-
-.calendar-column.month-set:hover {
-  background: rgba(14, 165, 233, 0.07) !important;
-  border-color: rgba(56, 189, 248, 0.45) !important;
-}
-
-/* Header del giorno di Settembre */
-.cal-col-header-month.month-set {
-  background: linear-gradient(180deg, rgba(56, 189, 248, 0.15) 0%, rgba(56, 189, 248, 0.03) 100%) !important;
-  border-bottom: 2px solid rgba(56, 189, 248, 0.4) !important;
-}
-
-.month-set .day-name {
-  color: #7dd3fc !important;
-}
-
-.month-set .day-number-highlight {
-  color: #38bdf8 !important;
-}
-
-.month-set .day-month-neutral {
-  color: #38bdf8 !important;
-  font-weight: 700;
-}
-
-.month-set .time-slot-box {
-  border-color: rgba(56, 189, 248, 0.12);
-  background: rgba(14, 165, 233, 0.02);
-}
-
-/* Light Theme Overrides per Settembre */
-.light-theme .calendar-column.month-set {
-  background: #f0f9ff !important;
-  border-color: rgba(2, 132, 199, 0.2) !important;
-}
-
-.light-theme .calendar-column.month-set:hover {
-  background: #e0f2fe !important;
-  border-color: rgba(2, 132, 199, 0.35) !important;
-}
-
-.light-theme .cal-col-header-month.month-set {
-  background: linear-gradient(180deg, rgba(56, 189, 248, 0.2) 0%, rgba(56, 189, 248, 0.05) 100%) !important;
-  border-bottom: 2px solid rgba(2, 132, 199, 0.35) !important;
-}
-
-.light-theme .month-set .day-name {
-  color: #0369a1 !important;
-}
-
-.light-theme .month-set .day-number-highlight {
-  color: #0284c7 !important;
-}
-
-.light-theme .month-set .day-month-neutral {
-  color: #0284c7 !important;
-}
-
-.light-theme .month-set .time-slot-box {
-  border-color: rgba(2, 132, 199, 0.15);
-  background: rgba(240, 249, 255, 0.8);
-}
-
-/* ===================================================
    LIGHT MODE PRESETS & OVERRIDES
    =================================================== */
 
@@ -2945,89 +2873,7 @@ body {
 }
 
 
-/* ===================================================
-   MONTH-BASED CALENDAR COLUMN BACKGROUND TINTS
-   (Green=May, Yellow=June, Red=July)
-   =================================================== */
 
-.calendar-column.month-mag {
-  background: rgba(52, 211, 153, 0.06) !important;
-  border-color: rgba(52, 211, 153, 0.15) !important;
-}
-
-.calendar-column.month-mag .day-name,
-.calendar-column.month-mag .day-number-highlight,
-.calendar-column.month-mag .day-month-neutral {
-  color: #ffffff !important;
-}
-
-.calendar-column.month-mag .column-header {
-  border-bottom-color: rgba(52, 211, 153, 0.2);
-}
-
-.calendar-column.month-giu {
-  background: rgba(251, 191, 36, 0.06) !important;
-  border-color: rgba(251, 191, 36, 0.15) !important;
-}
-
-.calendar-column.month-giu .day-name,
-.calendar-column.month-giu .day-number-highlight,
-.calendar-column.month-giu .day-month-neutral {
-  color: #ffffff !important;
-}
-
-.calendar-column.month-giu .column-header {
-  border-bottom-color: rgba(251, 191, 36, 0.2);
-}
-
-.calendar-column.month-lug {
-  background: rgba(248, 113, 113, 0.06) !important;
-  border-color: rgba(248, 113, 113, 0.15) !important;
-}
-
-.calendar-column.month-lug .day-name,
-.calendar-column.month-lug .day-number-highlight,
-.calendar-column.month-lug .day-month-neutral {
-  color: #ffffff !important;
-}
-
-.calendar-column.month-lug .column-header {
-  border-bottom-color: rgba(248, 113, 113, 0.2);
-}
-
-/* Light mode month tints */
-.light-theme .calendar-column.month-mag {
-  background: rgba(52, 211, 153, 0.05) !important;
-  border-color: rgba(52, 211, 153, 0.2) !important;
-}
-
-.light-theme .calendar-column.month-mag .day-name,
-.light-theme .calendar-column.month-mag .day-number-highlight,
-.light-theme .calendar-column.month-mag .day-month-neutral {
-  color: #065f46 !important;
-}
-
-.light-theme .calendar-column.month-giu {
-  background: rgba(251, 191, 36, 0.05) !important;
-  border-color: rgba(251, 191, 36, 0.2) !important;
-}
-
-.light-theme .calendar-column.month-giu .day-name,
-.light-theme .calendar-column.month-giu .day-number-highlight,
-.light-theme .calendar-column.month-giu .day-month-neutral {
-  color: #92400e !important;
-}
-
-.light-theme .calendar-column.month-lug {
-  background: rgba(248, 113, 113, 0.05) !important;
-  border-color: rgba(248, 113, 113, 0.2) !important;
-}
-
-.light-theme .calendar-column.month-lug .day-name,
-.light-theme .calendar-column.month-lug .day-number-highlight,
-.light-theme .calendar-column.month-lug .day-month-neutral {
-  color: #991b1b !important;
-}
 
 
 /* ===================================================
@@ -3164,25 +3010,33 @@ body {
 /* Reset: remove column-level background/border for month classes */
 .calendar-column.month-mag,
 .calendar-column.month-giu,
-.calendar-column.month-lug {
+.calendar-column.month-lug,
+.calendar-column.month-ago,
+.calendar-column.month-set {
   background: rgba(18, 18, 20, 0.35) !important;
   border-color: var(--border-color) !important;
 }
 
 /* Apply month color ONLY to the header div */
 .cal-col-header-month.month-mag {
-  background: linear-gradient(135deg, rgba(52, 211, 153, 0.18), rgba(52, 211, 153, 0.06));
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.18), rgba(52, 211, 153, 0.06)) !important;
   border-bottom: 2px solid rgba(52, 211, 153, 0.35) !important;
   border-radius: 8px 8px 0 0;
 }
 .cal-col-header-month.month-giu {
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(251, 191, 36, 0.06));
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.18), rgba(251, 191, 36, 0.06)) !important;
   border-bottom: 2px solid rgba(251, 191, 36, 0.35) !important;
   border-radius: 8px 8px 0 0;
 }
-.cal-col-header-month.month-lug {
-  background: linear-gradient(135deg, rgba(248, 113, 113, 0.18), rgba(248, 113, 113, 0.06));
+.cal-col-header-month.month-lug,
+.cal-col-header-month.month-ago {
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.18), rgba(248, 113, 113, 0.06)) !important;
   border-bottom: 2px solid rgba(248, 113, 113, 0.35) !important;
+  border-radius: 8px 8px 0 0;
+}
+.cal-col-header-month.month-set {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(56, 189, 248, 0.06)) !important;
+  border-bottom: 2px solid rgba(56, 189, 248, 0.35) !important;
   border-radius: 8px 8px 0 0;
 }
 
@@ -3195,26 +3049,35 @@ body {
 /* Month abbrev: use month accent color */
 .cal-col-header-month.month-mag .day-month-neutral { color: rgba(52, 211, 153, 0.85) !important; }
 .cal-col-header-month.month-giu .day-month-neutral { color: rgba(251, 191, 36, 0.85) !important; }
-.cal-col-header-month.month-lug .day-month-neutral { color: rgba(248, 113, 113, 0.85) !important; }
+.cal-col-header-month.month-lug .day-month-neutral,
+.cal-col-header-month.month-ago .day-month-neutral { color: rgba(248, 113, 113, 0.85) !important; }
+.cal-col-header-month.month-set .day-month-neutral { color: rgba(56, 189, 248, 0.85) !important; }
 
 /* Light mode month headers */
 .light-theme .cal-col-header-month.month-mag {
-  background: linear-gradient(135deg, rgba(52, 211, 153, 0.12), rgba(52, 211, 153, 0.04));
+  background: linear-gradient(135deg, rgba(52, 211, 153, 0.12), rgba(52, 211, 153, 0.04)) !important;
   border-bottom-color: rgba(52, 211, 153, 0.3) !important;
 }
 .light-theme .cal-col-header-month.month-giu {
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(251, 191, 36, 0.04));
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(251, 191, 36, 0.04)) !important;
   border-bottom-color: rgba(251, 191, 36, 0.3) !important;
 }
-.light-theme .cal-col-header-month.month-lug {
-  background: linear-gradient(135deg, rgba(248, 113, 113, 0.12), rgba(248, 113, 113, 0.04));
+.light-theme .cal-col-header-month.month-lug,
+.light-theme .cal-col-header-month.month-ago {
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.12), rgba(248, 113, 113, 0.04)) !important;
   border-bottom-color: rgba(248, 113, 113, 0.3) !important;
+}
+.light-theme .cal-col-header-month.month-set {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(56, 189, 248, 0.04)) !important;
+  border-bottom-color: rgba(56, 189, 248, 0.3) !important;
 }
 .light-theme .cal-col-header-month .day-name,
 .light-theme .cal-col-header-month .day-number-highlight { color: #0f172a !important; }
 .light-theme .cal-col-header-month.month-mag .day-month-neutral { color: #059669 !important; }
 .light-theme .cal-col-header-month.month-giu .day-month-neutral { color: #d97706 !important; }
-.light-theme .cal-col-header-month.month-lug .day-month-neutral { color: #dc2626 !important; }
+.light-theme .cal-col-header-month.month-lug .day-month-neutral,
+.light-theme .cal-col-header-month.month-ago .day-month-neutral { color: #dc2626 !important; }
+.light-theme .cal-col-header-month.month-set .day-month-neutral { color: #0284c7 !important; }
 
 
 /* 2. TODAY HIGHLIGHT — much more visible
