@@ -933,7 +933,7 @@ function App() {
                 background: 'rgba(255, 255, 255, 0.05)',
                 border: '1px solid rgba(255, 255, 255, 0.12)',
                 borderRadius: '20px',
-                padding: '4px 12px',
+                padding: '5px 14px',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease'
               }}
@@ -941,9 +941,6 @@ function App() {
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981' }} />
               <span style={{ fontSize: '12px', fontWeight: 600, color: '#f4f4f5' }}>
                 Ciao {getUserDisplayName(user)}
-              </span>
-              <span style={{ fontSize: '11px', color: isSyncing ? '#38bdf8' : '#a1a1aa' }} title={isSyncing ? 'Sincronizzazione in corso...' : `Ultimo salvataggio: ${lastSynced || 'Ora'}`}>
-                {isSyncing ? '☁️...' : '☁️'}
               </span>
             </div>
           ) : (
