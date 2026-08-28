@@ -3,6 +3,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 // LocalStorage keys for manual configuration
 const STORAGE_URL_KEY = 'antigravity-studio-planner-supabase-url';
 const STORAGE_KEY_KEY = 'antigravity-studio-planner-supabase-key';
+const AUTH_STORAGE_KEY = 'antigravity-studio-planner-auth-token';
 
 export interface SupabaseCredentials {
   url: string;
@@ -16,7 +17,7 @@ export const getSupabaseCredentials = (): SupabaseCredentials | null => {
   const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
   if (envUrl && envKey) {
-    return { url: envUrl, anonKey: envKey };
+    return { url: envUrl.trim(), anonKey: envKey.trim() };
   }
 
   // Second, check localStorage for custom credentials
@@ -24,7 +25,7 @@ export const getSupabaseCredentials = (): SupabaseCredentials | null => {
   const storedKey = localStorage.getItem(STORAGE_KEY_KEY);
 
   if (storedUrl && storedKey) {
-    return { url: storedUrl, anonKey: storedKey };
+    return { url: storedUrl.trim(), anonKey: storedKey.trim() };
   }
 
   return null;
@@ -47,6 +48,7 @@ export const initSupabaseClient = (url?: string, key?: string): SupabaseClient |
   try {
     return createClient(targetUrl, targetKey, {
       auth: {
+        storageKey: AUTH_STORAGE_KEY,
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true
@@ -61,12 +63,21 @@ export const initSupabaseClient = (url?: string, key?: string): SupabaseClient |
 // Singleton active client instance
 export let supabase = initSupabaseClient();
 
+export const getSupabaseClient = (): SupabaseClient | null => {
+  if (!supabase) {
+    supabase = initSupabaseClient();
+  }
+  return supabase;
+};
+
 // Update singleton instance with new credentials
 export const updateSupabaseClient = (url: string, key: string): boolean => {
-  const client = initSupabaseClient(url, key);
+  const trimmedUrl = url.trim();
+  const trimmedKey = key.trim();
+  const client = initSupabaseClient(trimmedUrl, trimmedKey);
   if (client) {
-    localStorage.setItem(STORAGE_URL_KEY, url);
-    localStorage.setItem(STORAGE_KEY_KEY, key);
+    localStorage.setItem(STORAGE_URL_KEY, trimmedUrl);
+    localStorage.setItem(STORAGE_KEY_KEY, trimmedKey);
     supabase = client;
     return true;
   }
@@ -77,5 +88,6 @@ export const updateSupabaseClient = (url: string, key: string): boolean => {
 export const clearSupabaseClient = () => {
   localStorage.removeItem(STORAGE_URL_KEY);
   localStorage.removeItem(STORAGE_KEY_KEY);
+  localStorage.removeItem(AUTH_STORAGE_KEY);
   supabase = null;
 };

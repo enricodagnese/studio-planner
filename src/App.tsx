@@ -372,17 +372,37 @@ function App() {
 
   // Check current Supabase Auth session on mount and listen to changes
   useEffect(() => {
-    if (supabase) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setUser(session?.user ?? null);
-      });
-
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        setUser(session?.user ?? null);
-      });
-
-      return () => subscription.unsubscribe();
+    const client = supabase;
+    if (!client) {
+      setUser(null);
+      return;
     }
+
+    // Retrieve active session on startup
+    client.auth.getSession().then(({ data: { session }, error }) => {
+      if (!error && session?.user) {
+        setUser(session.user);
+      }
+    });
+
+    // Listen to explicit auth state changes
+    const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        if (session?.user) {
+          setUser(session.user);
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+      } else if (event === 'INITIAL_SESSION') {
+        if (session?.user) {
+          setUser(session.user);
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [supabaseConfig]);
 
   // Fetch remote planner state from Supabase when user logs in
