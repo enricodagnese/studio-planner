@@ -427,16 +427,11 @@ function App() {
       }
     });
 
-    // Listen to explicit auth state changes
+    // Listen to auth state changes
     const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
+      console.log('[Supabase Auth Event]', event, session?.user?.email);
       if (session?.user) {
         handleSetUser(session.user);
-        // Clean URL hash if it contains access_token from OAuth
-        if (window.location.hash && window.location.hash.includes('access_token')) {
-          window.history.replaceState(null, '', window.location.pathname + window.location.search);
-        }
-      } else if (event === 'SIGNED_OUT') {
-        handleSetUser(null);
       }
     });
 
