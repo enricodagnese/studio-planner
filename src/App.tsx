@@ -271,7 +271,25 @@ function App() {
   });
 
   // --- Supabase Cloud Sync States ---
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<any>(() => {
+    const cached = localStorage.getItem('antigravity-studio-planner-cached-user');
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch {}
+    }
+    return null;
+  });
+
+  const handleSetUser = (u: any) => {
+    setUser(u);
+    if (u) {
+      localStorage.setItem('antigravity-studio-planner-cached-user', JSON.stringify(u));
+    } else {
+      localStorage.removeItem('antigravity-studio-planner-cached-user');
+    }
+  };
+
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string>('');
   const [lastSynced, setLastSynced] = useState<string>('');
@@ -399,29 +417,26 @@ function App() {
   useEffect(() => {
     const client = supabase;
     if (!client) {
-      setUser(null);
       return;
     }
 
     // Retrieve active session on startup
     client.auth.getSession().then(({ data: { session }, error }) => {
       if (!error && session?.user) {
-        setUser(session.user);
+        handleSetUser(session.user);
       }
     });
 
     // Listen to explicit auth state changes
     const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-        if (session?.user) {
-          setUser(session.user);
+      if (session?.user) {
+        handleSetUser(session.user);
+        // Clean URL hash if it contains access_token from OAuth
+        if (window.location.hash && window.location.hash.includes('access_token')) {
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
         }
       } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-      } else if (event === 'INITIAL_SESSION') {
-        if (session?.user) {
-          setUser(session.user);
-        }
+        handleSetUser(null);
       }
     });
 
@@ -1062,7 +1077,7 @@ function App() {
           dayFontSize={dayFontSize}
           onChangeDayFontSize={setDayFontSize}
           user={user}
-          onUserChange={setUser}
+          onUserChange={handleSetUser}
           isSyncing={isSyncing}
           syncError={syncError}
           lastSynced={lastSynced}
