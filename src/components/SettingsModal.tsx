@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import type { PlannerState } from '../types/planner';
 import { XIcon, DownloadIcon, UploadIcon, TrashIcon, SettingsIcon } from './Icons';
-import { supabase } from '../utils/supabase';
+import { supabase, getSupabaseClient } from '../utils/supabase';
 
 interface SettingsModalProps {
   weeks: any[];
@@ -105,6 +105,12 @@ const DatabaseIcon = ({ size = 16, style = {} }) => (
     <ellipse cx="12" cy="5" rx="9" ry="3" />
     <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
     <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" />
+  </svg>
+);
+
+const GitHubIcon = ({ size = 16, style = {} }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" style={style}>
+    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
   </svg>
 );
 
@@ -223,9 +229,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         });
         if (error) {
           if (error.message.includes("Email not confirmed")) {
-            setAuthError("Email non confermata. Controlla la tua casella di posta per confermare, o disattiva 'Confirm email' su Supabase (Authentication -> Providers -> Email).");
-          } else if (error.message.includes("Invalid login credentials")) {
-            setAuthError("Credenziali non corrette. Verifica email e password o registrati se non hai ancora un account.");
+            setAuthError("Email non ancora confermata. Controlla la tua casella di posta per confermare l'account, o disattiva 'Confirm email' su Supabase (Authentication -> Sign In / Providers -> Email).");
+          } else if (error.message.includes("Invalid login credentials") || error.message.includes("invalid_credentials")) {
+            setAuthError(`Credenziali errate per "${email.trim()}". Verifica se l'email contiene errori di battitura o se la password è corretta. Puoi anche usare il pulsante GitHub in alto!`);
           } else {
             setAuthError(error.message);
           }
@@ -236,6 +242,64 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       }
     } catch (err: any) {
       setAuthError(err?.message || "Errore di connessione a Supabase.");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleGitHubLogin = async () => {
+    let client = getSupabaseClient() || supabase;
+    if (!client || (urlInput.trim() && urlInput.trim() !== supabaseConfig.url) || (keyInput.trim() && keyInput.trim() !== supabaseConfig.anonKey)) {
+      if (urlInput.trim() && keyInput.trim()) {
+        const ok = onConnectSupabase(urlInput.trim(), keyInput.trim());
+        if (!ok) {
+          setAuthError("Impossibile inizializzare Supabase. Verifica URL e Anon Key.");
+          return;
+        }
+        client = getSupabaseClient() || supabase;
+      }
+    }
+    if (!client) {
+      setAuthError("Configura prima l'URL e la Anon Key di Supabase.");
+      return;
+    }
+    setAuthLoading(true);
+    setAuthError('');
+    try {
+      const { error } = await client.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: window.location.origin + window.location.pathname,
+        },
+      });
+      if (error) {
+        setAuthError(error.message);
+        setAuthLoading(false);
+      }
+    } catch (err: any) {
+      setAuthError(err?.message || "Errore durante l'accesso con GitHub.");
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSendMagicLink = async () => {
+    if (!email.trim()) {
+      setAuthError("Inserisci prima il tuo indirizzo email nel campo sopra per ricevere il link.");
+      return;
+    }
+    setAuthLoading(true);
+    setAuthError('');
+    try {
+      const client = getSupabaseClient() || supabase;
+      if (!client) throw new Error("Supabase non configurato");
+      const { error } = await client.auth.signInWithOtp({ email: email.trim() });
+      if (error) {
+        setAuthError(error.message);
+      } else {
+        alert(`Abbiamo inviato un link di accesso a ${email.trim()}. Clicca sul link nella tua email per accedere!`);
+      }
+    } catch (err: any) {
+      setAuthError(err?.message || "Errore durante l'invio del link di accesso");
     } finally {
       setAuthLoading(false);
     }
@@ -480,64 +544,113 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                 {/* Authentication Panel */}
                 {!user ? (
-                  <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '2px', marginBottom: '4px' }}>
-                      <button
-                        type="button"
-                        onClick={() => { setIsSignUp(false); setAuthError(''); }}
-                        style={{ flex: 1, background: 'none', border: 'none', borderBottom: !isSignUp ? '2px solid var(--accent-primary)' : 'none', color: !isSignUp ? '#fff' : '#71717a', padding: '6px 0', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
-                      >
-                        Accedi
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => { setIsSignUp(true); setAuthError(''); }}
-                        style={{ flex: 1, background: 'none', border: 'none', borderBottom: isSignUp ? '2px solid var(--accent-primary)' : 'none', color: isSignUp ? '#fff' : '#71717a', padding: '6px 0', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
-                      >
-                        Registrati
-                      </button>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '10px', fontWeight: 600, color: '#a1a1aa' }}>EMAIL</label>
-                      <input
-                        type="email"
-                        placeholder="nome@esempio.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '6px 10px', color: '#fff', fontSize: '12px' }}
-                        required
-                      />
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                      <label style={{ fontSize: '10px', fontWeight: 600, color: '#a1a1aa' }}>PASSWORD</label>
-                      <input
-                        type="password"
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '6px 10px', color: '#fff', fontSize: '12px' }}
-                        required
-                      />
-                    </div>
-
-                    {authError && (
-                      <div style={{ fontSize: '10px', color: '#f87171', background: 'rgba(248, 113, 113, 0.05)', border: '1px solid rgba(248, 113, 113, 0.15)', padding: '6px 8px', borderRadius: '4px' }}>
-                        {authError}
-                      </div>
-                    )}
-
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                    
+                    {/* 1-Click GitHub Login Button */}
                     <button
-                      type="submit"
+                      type="button"
                       disabled={authLoading}
-                      className="btn btn-primary btn-sm"
-                      style={{ width: '100%', justifyContent: 'center', marginTop: '6px' }}
+                      onClick={handleGitHubLogin}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        background: '#24292f',
+                        color: '#ffffff',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        borderRadius: '6px',
+                        padding: '8px 12px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'background 0.2s',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                      }}
+                      onMouseOver={(e) => (e.currentTarget.style.background = '#2f363d')}
+                      onMouseOut={(e) => (e.currentTarget.style.background = '#24292f')}
                     >
-                      <LockIcon size={12} />
-                      <span>{authLoading ? 'Elaborazione...' : isSignUp ? 'Crea Account Cloud' : 'Accedi al Cloud'}</span>
+                      <GitHubIcon size={16} />
+                      <span>{authLoading ? 'Connessione...' : 'Accedi con GitHub'}</span>
                     </button>
-                  </form>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '2px 0' }}>
+                      <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+                      <span style={{ fontSize: '10px', color: '#71717a', textTransform: 'uppercase', letterSpacing: '0.05em' }}>oppure con email</span>
+                      <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.08)' }} />
+                    </div>
+
+                    <form onSubmit={handleAuthSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '2px', marginBottom: '2px' }}>
+                        <button
+                          type="button"
+                          onClick={() => { setIsSignUp(false); setAuthError(''); }}
+                          style={{ flex: 1, background: 'none', border: 'none', borderBottom: !isSignUp ? '2px solid var(--accent-primary)' : 'none', color: !isSignUp ? '#fff' : '#71717a', padding: '4px 0', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Accedi
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setIsSignUp(true); setAuthError(''); }}
+                          style={{ flex: 1, background: 'none', border: 'none', borderBottom: isSignUp ? '2px solid var(--accent-primary)' : 'none', color: isSignUp ? '#fff' : '#71717a', padding: '4px 0', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          Registrati
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '10px', fontWeight: 600, color: '#a1a1aa' }}>EMAIL</label>
+                        <input
+                          type="email"
+                          placeholder="nome@esempio.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '6px 10px', color: '#fff', fontSize: '12px' }}
+                          required
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <label style={{ fontSize: '10px', fontWeight: 600, color: '#a1a1aa' }}>PASSWORD</label>
+                        <input
+                          type="password"
+                          placeholder="••••••••"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '6px 10px', color: '#fff', fontSize: '12px' }}
+                          required
+                        />
+                      </div>
+
+                      {authError && (
+                        <div style={{ fontSize: '11px', color: '#fca5a5', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.35)', padding: '8px 10px', borderRadius: '6px', lineHeight: '1.4' }}>
+                          <strong>⚠️ Errore:</strong> {authError}
+                        </div>
+                      )}
+
+                      <button
+                        type="submit"
+                        disabled={authLoading}
+                        className="btn btn-primary btn-sm"
+                        style={{ width: '100%', justifyContent: 'center', marginTop: '4px' }}
+                      >
+                        <LockIcon size={12} />
+                        <span>{authLoading ? 'Elaborazione...' : isSignUp ? 'Crea Account Cloud' : 'Accedi con Password'}</span>
+                      </button>
+
+                      {!isSignUp && (
+                        <button
+                          type="button"
+                          disabled={authLoading}
+                          onClick={handleSendMagicLink}
+                          style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '11px', textDecoration: 'underline', cursor: 'pointer', textAlign: 'center', marginTop: '2px', padding: '4px' }}
+                        >
+                          Password dimenticata? Invia link di accesso via email
+                        </button>
+                      )}
+                    </form>
+                  </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.06)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
