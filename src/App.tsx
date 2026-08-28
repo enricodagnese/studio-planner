@@ -11,6 +11,24 @@ import SoundUtility from './utils/audio';
 import { supabase, updateSupabaseClient, clearSupabaseClient } from './utils/supabase';
 import './App.css';
 
+const GitHubIcon = ({ size = 14, style = {} }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" style={style}>
+    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+  </svg>
+);
+
+const getUserDisplayName = (user: any): string => {
+  if (!user) return 'Enrico Dagnese';
+  const meta = user.user_metadata || {};
+  return (
+    meta.full_name ||
+    meta.display_name ||
+    meta.name ||
+    meta.user_name ||
+    meta.preferred_username ||
+    (user.email ? user.email.split('@')[0] : 'Enrico Dagnese')
+  );
+};
 
 // Version key for forced migration when data structure changes
 const PLANNER_VERSION = '5';
@@ -212,7 +230,14 @@ function App() {
   const [showAddEventModal, setShowAddEventModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [activeTab, setActiveTab] = useState<'oggi' | 'planner' | 'subjects'>('oggi');
+  const [activeTab, setActiveTab] = useState<'oggi' | 'planner' | 'subjects'>(() => {
+    const saved = localStorage.getItem('antigravity-studio-planner-tab');
+    return (saved as 'oggi' | 'planner' | 'subjects') || 'planner';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('antigravity-studio-planner-tab', activeTab);
+  }, [activeTab]);
   const [theme] = useState<'dark' | 'light'>(() => {
     return (localStorage.getItem('antigravity-studio-planner-theme') as 'dark' | 'light') || 'dark';
   });
@@ -463,13 +488,34 @@ function App() {
           });
           lastKnownStateStrRef.current = remoteStateStr;
 
-          if (data.weeks && Array.isArray(data.weeks) && data.weeks.length > 0) setWeeks(data.weeks);
-          if (data.subjects && Array.isArray(data.subjects)) setSubjects(data.subjects);
+          // Check if remote data has the updated August-September 2026 calendar
+          const isRemoteCurrent = data.weeks && Array.isArray(data.weeks) && data.weeks.some((w: any) =>
+            w.days && w.days.some((d: any) => d.dateLabel && (d.dateLabel.includes('Ago') || d.dateLabel.includes('Set')))
+          );
+
+          if (isRemoteCurrent) {
+            setWeeks(data.weeks);
+          } else {
+            // If remote has outdated calendar schema, sync current INITIAL_WEEKS with subjects
+            await client.from('user_planner_state').upsert({
+              user_id: user.id,
+              weeks: INITIAL_WEEKS,
+              subjects: (data.subjects && data.subjects.length > 0) ? data.subjects : subjects,
+              session_title: data.session_title || sessionTitle,
+              event_colors: data.event_colors || eventColors,
+              task_font_size: data.task_font_size || taskFontSize,
+              day_font_size: data.day_font_size || dayFontSize,
+              updated_at: new Date().toISOString()
+            });
+            setWeeks(INITIAL_WEEKS);
+          }
+
+          if (data.subjects && Array.isArray(data.subjects) && data.subjects.length > 0) setSubjects(data.subjects);
           if (data.session_title) setSessionTitle(data.session_title);
           if (data.event_colors) setEventColors(data.event_colors);
           if (data.task_font_size) setTaskFontSize(data.task_font_size);
           if (data.day_font_size) setDayFontSize(data.day_font_size);
-          setLastSynced(new Date(data.updated_at).toLocaleTimeString());
+          setLastSynced(new Date(data.updated_at || Date.now()).toLocaleTimeString());
         }
       } catch (err: any) {
         console.error('Failed to sync remote data:', err);
@@ -635,6 +681,25 @@ function App() {
       alert("Errore di rete: " + err.message);
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleDirectGitHubLogin = async () => {
+    const client = supabase;
+    if (!client) {
+      setShowSettingsModal(true);
+      return;
+    }
+    try {
+      await client.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: window.location.origin + window.location.pathname,
+        },
+      });
+    } catch (err) {
+      console.error('GitHub direct login error:', err);
+      setShowSettingsModal(true);
     }
   };
 
@@ -845,6 +910,52 @@ function App() {
               <span>Aggiungi Evento</span>
             </button>
           )}
+
+          {user ? (
+            <div
+              className="header-user-badge"
+              onClick={() => { setShowSettingsModal(true); SoundUtility.playNavClick(); }}
+              title="Account Connesso - Clicca per gestire impostazioni o disconnetterti"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.12)',
+                borderRadius: '20px',
+                padding: '4px 12px',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981' }} />
+              <span style={{ fontSize: '12px', fontWeight: 600, color: '#f4f4f5' }}>
+                Ciao {getUserDisplayName(user)}
+              </span>
+              <span style={{ fontSize: '11px', color: isSyncing ? '#38bdf8' : '#a1a1aa' }} title={isSyncing ? 'Sincronizzazione in corso...' : `Ultimo salvataggio: ${lastSynced || 'Ora'}`}>
+                {isSyncing ? '☁️...' : '☁️'}
+              </span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={handleDirectGitHubLogin}
+              title="Accedi subito con il tuo account GitHub"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                background: '#24292f',
+                color: '#fff',
+                borderColor: 'rgba(255,255,255,0.2)'
+              }}
+            >
+              <GitHubIcon size={14} />
+              <span>Accedi con GitHub</span>
+            </button>
+          )}
+
           <button
             className="btn btn-secondary btn-sm"
             onClick={() => { setShowSettingsModal(true); SoundUtility.playNavClick(); }}
