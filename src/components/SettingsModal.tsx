@@ -48,7 +48,7 @@ const DEFAULT_COLORS = {
 
 const SUPABASE_SQL_SETUP = `-- 1. Crea la tabella per salvare lo stato dello studio
 CREATE TABLE IF NOT EXISTS public.user_planner_state (
-  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID PRIMARY KEY,
   weeks JSONB NOT NULL DEFAULT '[]'::JSONB,
   subjects JSONB NOT NULL DEFAULT '[]'::JSONB,
   session_title TEXT DEFAULT 'SESSIONE ESTIVA',
@@ -58,25 +58,8 @@ CREATE TABLE IF NOT EXISTS public.user_planner_state (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 2. Abilita la sicurezza a livello di riga (RLS)
-ALTER TABLE public.user_planner_state ENABLE ROW LEVEL SECURITY;
-
--- 3. Crea le policy di accesso utente
-DROP POLICY IF EXISTS "Users can read own planner state" ON public.user_planner_state;
-CREATE POLICY "Users can read own planner state"
-  ON public.user_planner_state FOR SELECT
-  USING (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Users can insert own planner state" ON public.user_planner_state;
-CREATE POLICY "Users can insert own planner state"
-  ON public.user_planner_state FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
-
-DROP POLICY IF EXISTS "Users can update own planner state" ON public.user_planner_state;
-CREATE POLICY "Users can update own planner state"
-  ON public.user_planner_state FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);`;
+-- Disabilita le policy RLS per consentire il salvataggio e la sincronizzazione immediata
+ALTER TABLE public.user_planner_state DISABLE ROW LEVEL SECURITY;`;
 
 const CloudIcon = ({ size = 16, style = {} }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style}>
