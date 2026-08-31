@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Subject, WeekPlan, CalendarItem, TaskQuantityType } from '../types/planner';
 import { PlusIcon, XIcon } from './Icons';
 import SoundUtility from '../utils/audio';
+import { isWeekInPast } from '../utils/dateUtils';
 
 interface WeeklyGridProps {
   activeWeek: WeekPlan;
@@ -115,6 +116,20 @@ export const WeeklyGrid: React.FC<WeeklyGridProps> = ({
         quantityType: dragged.quantityType as TaskQuantityType,
         completed: false,
       };
+
+      // If this task existed in a past week uncompleted, remove the old instance
+      if (dragged.taskId) {
+        for (const w of updatedWeeks) {
+          if (isWeekInPast(w)) {
+            for (const d of w.days) {
+              for (const s of ['mattina', 'pomeriggio', 'sera'] as const) {
+                d[s] = d[s].filter(i => !(i.taskId === dragged.taskId && !i.completed));
+              }
+            }
+          }
+        }
+      }
+
       const targetDay = updatedWeeks.find(w => w.id === activeWeek.id)?.days.find(d => d.id === dayId);
       if (!targetDay) return;
       targetDay[slotKey].push(newItem);

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Subject, WeekPlan } from '../types/planner';
 import { BookIcon, GripVerticalIcon, ChevronRightIcon } from './Icons';
 import { CybersecurityLogo } from './CybersecurityLogo';
+import { isWeekInPast } from '../utils/dateUtils';
 
 interface MaterialsListProps {
   subjects: Subject[];
@@ -84,6 +85,9 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
   const scheduledTaskIds = new Set<string>();
   if (weeks) {
     for (const w of weeks) {
+      // If a week is completely in the past, uncompleted tasks must NOT be hidden from the library!
+      if (isWeekInPast(w)) continue;
+
       for (const d of w.days) {
         for (const slot of ['mattina', 'pomeriggio', 'sera'] as const) {
           const items = d[slot] || [];
@@ -128,11 +132,12 @@ export const MaterialsList: React.FC<MaterialsListProps> = ({
               const hasUncompletedLibrary = sub.tasks.some(t => !t.completed);
               if (hasUncompletedLibrary) return false;
 
-              // 2. Check if there are any uncompleted tasks scheduled in the calendar
+              // 2. Check if there are any uncompleted tasks scheduled in the active calendar
               let hasCalendarTasks = false;
               let hasUncompletedCalendar = false;
               if (weeks) {
                 for (const w of weeks) {
+                  if (isWeekInPast(w)) continue;
                   for (const d of w.days) {
                     for (const slot of ['mattina', 'pomeriggio', 'sera'] as const) {
                       const items = d[slot] || [];
